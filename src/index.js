@@ -78,7 +78,7 @@ export const App = () => (
                         path="/account"
                         component={withRouter(userIsNotAuthenticatedRedir(AuthContainer))}
                     />
-                    <Route path="/streams" component={withRouter(DiscoverScreen)} />
+                    <Route path="/streams/:location?" component={withRouter(DiscoverScreen)} />
                     <Route path="/purchases" component={withRouter(PurchasesScreen)} />
                     <Route path="/listings" component={withRouter(ListingsScreen)} />
                     <Route path="/enlist" component={withRouter(EnlistScreen)} />

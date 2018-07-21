@@ -10,19 +10,18 @@ import supercluster from 'supercluster';
 import DiscoverMapMarker from './DiscoverMapMarker';
 import Cluster from '../generic/Cluster';
 import { STREAMS_ACTIONS } from '../../redux/streams/actions';
-import {USER_ACTIONS} from "../../redux/user/actions";
 
 class DiscoverMap extends Component {
-  constructor(props){
-    super(props);
+    constructor(props) {
+        super(props);
 
-    this.props.updateUserLocation();
-    this.state = {
-      clusteredMarkers:null,
-      openedMapMarker:null,
-      mapRef:null
-    };
-  }
+
+        this.state = {
+            clusteredMarkers: null,
+            openedMapMarker: null,
+            mapRef: null
+        };
+    }
 
   openMapMarker(streamKey){
     if(streamKey === this.state.openedMapMarker)
@@ -164,7 +163,6 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchStreams: (lng,lat,distance) => dispatch(STREAMS_ACTIONS.fetchStreams(null,lng,lat,distance)),
     updateMap: (map) => dispatch(STREAMS_ACTIONS.updateMap(map)),
-    updateUserLocation: () => dispatch(USER_ACTIONS.updateLocation())
   }
 }
 

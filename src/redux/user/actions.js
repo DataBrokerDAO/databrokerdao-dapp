@@ -17,7 +17,7 @@ export const USER_ACTIONS = {
         ({ coords: location }) => {
             const { latitude: lat, longitude: lng } = location;
 
-            dispatch(STREAMS_ACTIONS.setCenter(lat, lng));
+            dispatch(STREAMS_ACTIONS.setCenter({ lat, lng }));
             dispatch({
                 type: USER_TYPES.SET_LOCATION,
                 location

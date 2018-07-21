@@ -24,10 +24,11 @@ export const STREAMS_TYPES = {
   FETCH_FILTER_ADDRESS: 'FETCH_FILTER_ADDRESS' //Address (city) in location filter
 };
 
+const unAuthenticatedAxiosClient = axios(null, true, true);
+
 function fetchFilterAddress(dispatch, lat, lng) {
     //Geocode map center to set value of location filter (so e.g. "Kessel-Lo" shows up when moving the map to Kessel-Lo)
     const latlng = `${lat},${lng}`;
-    const unAuthenticatedAxiosClient = axios(null, true, true);
     unAuthenticatedAxiosClient
         .get(
             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=${APIKey}&result_type=locality`
@@ -42,6 +43,14 @@ function fetchFilterAddress(dispatch, lat, lng) {
                 filterAddress
             });
         });
+}
+
+function getGeolocationByAddress(address) {
+    return unAuthenticatedAxiosClient
+        .get(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${APIKey}&result_type=locality`
+        )
+        .then(({ data }) => data.results.shift().geometry.location);
 }
 
 export const STREAMS_ACTIONS = {
@@ -376,17 +385,25 @@ export const STREAMS_ACTIONS = {
       STREAMS_ACTIONS.fetchStreams(dispatch, filter);
     };
   },
-  setCenter: (lat, lng) => {
-      return (dispatch, getState) => {
-          const { streams: { map } } = getState();
-          const newMap = {...map, lat, lng }
+  setCenter: ({ lat, lng, address }) => {
+      return async (dispatch, getState) => {
+          if (address) {
+            const res = await getGeolocationByAddress(address)
+            lat = res.lat;
+            lng = res.lng;
+          }
 
-          dispatch({
-              type: STREAMS_TYPES.UPDATED_MAP,
-              map: newMap
-          });
+          if (lat && lng) {
+            const { streams: { map } } = getState();
+            const newMap = {...map, lat, lng }
 
-          fetchFilterAddress(dispatch, lat, lng);
+            dispatch({
+                type: STREAMS_TYPES.UPDATED_MAP,
+                map: newMap
+            });
+
+            fetchFilterAddress(dispatch, lat, lng);
+          }
       };
   },
   updateMap: map => {
