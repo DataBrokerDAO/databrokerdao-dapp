@@ -3,6 +3,7 @@ import find from 'lodash/find';
 import map from 'lodash/map';
 import axios from '../../utils/axios';
 import { fetchSensors } from '../../api/sensors';
+import { asyncRetry } from '../../utils/async';
 
 const APIKey = 'AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
 
@@ -27,30 +28,30 @@ export const STREAMS_TYPES = {
 const unAuthenticatedAxiosClient = axios(null, true, true);
 
 function fetchFilterAddress(dispatch, lat, lng) {
-    //Geocode map center to set value of location filter (so e.g. "Kessel-Lo" shows up when moving the map to Kessel-Lo)
-    const latlng = `${lat},${lng}`;
-    unAuthenticatedAxiosClient
-        .get(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=${APIKey}&result_type=locality`
-        )
-        .then(response => {
-            const filterAddress = response.data.results[0]
-                ? response.data.results[0].formatted_address
-                : 'Unkown address';
+  //Geocode map center to set value of location filter (so e.g. "Kessel-Lo" shows up when moving the map to Kessel-Lo)
+  const latlng = `${lat},${lng}`;
+  unAuthenticatedAxiosClient
+    .get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=${APIKey}&result_type=locality`
+    )
+    .then(response => {
+      const filterAddress = response.data.results[0]
+        ? response.data.results[0].formatted_address
+        : 'Unkown address';
 
-            dispatch({
-                type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
-                filterAddress
-            });
-        });
+      dispatch({
+        type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
+        filterAddress
+      });
+    });
 }
 
 function getGeolocationByAddress(address) {
-    return unAuthenticatedAxiosClient
-        .get(
-            `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${APIKey}&result_type=locality`
-        )
-        .then(({ data }) => data.results.shift().geometry.location);
+  return unAuthenticatedAxiosClient
+    .get(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${APIKey}&result_type=locality`
+    )
+    .then(({ data }) => data.results.shift().geometry.location);
 }
 
 export const STREAMS_ACTIONS = {
@@ -90,7 +91,7 @@ export const STREAMS_ACTIONS = {
             ...state.map,
             distance: _distance,
             lat: _lat,
-            lng: _lng,
+            lng: _lng
           }
         });
       } else {
@@ -121,17 +122,13 @@ export const STREAMS_ACTIONS = {
             const parsedResponse = {};
             each(response.data.items, item => {
               //Temporary filter out streams at same coordinates (should be supported in UI in future)
-              const itemAtSameCoordinates = find(
-                parsedResponse,
-                parsedItem => {
-                  return (
-                    parsedItem.geometry.coordinates[0] ===
-                      item.geo.coordinates[1] &&
-                    parsedItem.geometry.coordinates[1] ===
-                      item.geo.coordinates[0]
-                  );
-                }
-              );
+              const itemAtSameCoordinates = find(parsedResponse, parsedItem => {
+                return (
+                  parsedItem.geometry.coordinates[0] ===
+                    item.geo.coordinates[1] &&
+                  parsedItem.geometry.coordinates[1] === item.geo.coordinates[0]
+                );
+              });
 
               if (!itemAtSameCoordinates) {
                 parsedResponse[item.key] = {
@@ -386,25 +383,27 @@ export const STREAMS_ACTIONS = {
     };
   },
   setCenter: ({ lat, lng, address }) => {
-      return async (dispatch, getState) => {
-          if (address) {
-            const res = await getGeolocationByAddress(address)
-            lat = res.lat;
-            lng = res.lng;
-          }
+    return async (dispatch, getState) => {
+      if (address) {
+        const res = await getGeolocationByAddress(address);
+        lat = res.lat;
+        lng = res.lng;
+      }
 
-          if (lat && lng) {
-            const { streams: { map } } = getState();
-            const newMap = {...map, lat, lng }
+      if (lat && lng) {
+        const {
+          streams: { map }
+        } = getState();
+        const newMap = { ...map, lat, lng };
 
-            dispatch({
-                type: STREAMS_TYPES.UPDATED_MAP,
-                map: newMap
-            });
+        dispatch({
+          type: STREAMS_TYPES.UPDATED_MAP,
+          map: newMap
+        });
 
-            fetchFilterAddress(dispatch, lat, lng);
-          }
-      };
+        fetchFilterAddress(dispatch, lat, lng);
+      }
+    };
   },
   updateMap: map => {
     return (dispatch, getState) => {
@@ -453,36 +452,47 @@ export const STREAMS_ACTIONS = {
         getDtxTokenRegistry(),
         getStreamRegistry(),
         getMetadataHash()
-      ]).then(responses => {
+      ]).then(async responses => {
         const deployedTokenContractAddress =
           responses[0].data.items[0].contractaddress;
         const spenderAddress = responses[1].data.base.key;
         const metadataHash = responses[2].data[0].hash;
 
-        // Time to approve the tokens
-        authenticatedAxiosClient
-          .post(`/dtxtoken/${deployedTokenContractAddress}/approve`, {
+        try {
+          // Time to approve the tokens
+          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
+          let response = await authenticatedAxiosClient.post(url, {
             spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
             value: amount.toString()
-          })
-          .then(response => {
-            //Tokens have been allocated - now we can make the purchase!
-            authenticatedAxiosClient
-              .post(`/sensorregistry/challenge`, {
-                listing: stream.key,
-                stakeamount: amount,
-                metadata: metadataHash
-              })
-              .then(response => {
-                dispatch({
-                  type: STREAMS_TYPES.CHALLENGING_STREAM,
-                  value: false
-                });
-              });
-          })
-          .catch(error => {
-            console.log(error);
           });
+          let uuid = response.data.uuid;
+          let receipt = await asyncRetry(
+            authenticatedAxiosClient,
+            `${url}/${uuid}`
+          );
+          console.log(receipt);
+
+          //Tokens have been allocated - now we can make the purchase!
+          url = `/sensorregistry/challenge`;
+          response = await authenticatedAxiosClient.post(url, {
+            listing: stream.key,
+            stakeamount: amount,
+            metadata: metadataHash
+          });
+          uuid = response.data.uuid;
+          receipt = await asyncRetry(
+            authenticatedAxiosClient,
+            `${url}/${uuid}`
+          );
+          console.log(receipt);
+
+          dispatch({
+            type: STREAMS_TYPES.CHALLENGING_STREAM,
+            value: false
+          });
+        } catch (error) {
+          console.log(error);
+        }
       });
     };
   }

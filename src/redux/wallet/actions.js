@@ -1,4 +1,5 @@
 import axios from '../../utils/axios';
+import { asyncRetry } from '../../utils/async';
 
 export const WALLET_TYPES = {
   FETCH_WALLET: 'FETCH_WALLET',
@@ -31,39 +32,41 @@ export const WALLET_ACTIONS = {
     };
   },
   mintTokens: amount => {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
       dispatch({
         type: WALLET_TYPES.MINTING_TOKENS,
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
-      authenticatedAxiosClient
-        .post('/dtxminter/mint', {
+      try {
+        const authenticatedAxiosClient = axios(null, true);
+        let url = '/dtxminter/mint';
+        let response = await authenticatedAxiosClient.post(url, {
           _amount: amount
-        })
-        .then(response => {
-          dispatch({
-            type: WALLET_TYPES.MINTING_TOKENS,
-            value: false
-          });
-          authenticatedAxiosClient
-            .get('/wallet/balance')
-            .then(response => {
-              const wallet = response.data.DTX;
-
-              dispatch({
-                type: WALLET_TYPES.FETCH_WALLET,
-                wallet
-              });
-            })
-            .catch(error => {
-              console.log(error);
-            });
-        })
-        .catch(error => {
-          console.log(error);
         });
+
+        let uuid = response.data.uuid;
+        let receipt = await asyncRetry(
+          authenticatedAxiosClient,
+          `${url}/${uuid}`
+        );
+        console.log(receipt);
+
+        dispatch({
+          type: WALLET_TYPES.MINTING_TOKENS,
+          value: false
+        });
+
+        response = await authenticatedAxiosClient.get('/wallet/balance');
+        const wallet = response.data.DTX;
+
+        dispatch({
+          type: WALLET_TYPES.FETCH_WALLET,
+          wallet
+        });
+      } catch (error) {
+        console.log(error);
+      }
     };
   }
 };

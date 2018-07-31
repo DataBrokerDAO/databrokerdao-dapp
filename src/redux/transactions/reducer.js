@@ -8,13 +8,11 @@ export const DEFAULT_STATE = {
   total: 0,
   filter: {
     type: '',
-    startDate: new Date(
-      clone(new Date()).setMonth(new Date().getMonth() - 1)
-    ),
+    startDate: new Date(clone(new Date()).setMonth(new Date().getMonth() - 1)),
     endDate: new Date(clone(new Date()).setHours(23, 59, 59, 999)),
     start: 0,
     limit: 10,
-    dir: 'desc'
+    sort: 'desc'
   },
   transactionTypes: [],
   transactions: []

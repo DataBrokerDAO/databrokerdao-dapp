@@ -2,6 +2,7 @@ import each from 'lodash/each';
 import axios from '../../utils/axios';
 import { BigNumber } from 'bignumber.js';
 import localStorage from '../../localstorage';
+import { asyncRetry } from '../../utils/async';
 
 export const LISTING_TYPES = {
   FETCH_LISTINGS: 'FETCH_LISTINGS',
@@ -133,22 +134,3 @@ export const LISTING_ACTIONS = {
     };
   }
 };
-
-async function asyncRetry(authenticatedAxiosClient, url) {
-  const retry = require('async-retry');
-  return await retry(async bail => {
-    const res = await authenticatedAxiosClient.get(url);
-    if (!(res.data && res.data.receipt)) {
-      throw new Error('Tx not mined yet');
-    }
-
-    if (res.data.receipt.status === 0) {
-      console.log('Bailing', res.data);
-      bail(new Error('Tx reverted'));
-      return;
-    }
-
-    console.log(res.data);
-    return res.data.receipt;
-  });
-}

@@ -24,8 +24,8 @@ export const TRANSACTIONS_ACTIONS = {
       const authenticatedAxiosClient = axios(null, true);
 
       // Filters
-      let url = `/events?skip=${filter.start}&limit=${filter.limit}&dir=${
-        filter.dir
+      let url = `/events?skip=${filter.start}&limit=${filter.limit}&sort=${
+        filter.sort
       }`;
       if (filter.type !== '') url += `&event=${filter.type}`;
       if (filter.startDate && filter.endDate)

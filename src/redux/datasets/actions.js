@@ -41,9 +41,8 @@ export const DATASET_ACTIONS = {
         filterUrlQuery += `category=${filter.categories[0]}`;
       else
         filterUrlQuery += map(filter.categories, cat => {
-            return `category[]=${cat}`;
-          })
-          .join('&');
+          return `category[]=${cat}`;
+        }).join('&');
 
       filterUrlQuery += '&';
 
@@ -52,9 +51,8 @@ export const DATASET_ACTIONS = {
         filterUrlQuery += `filetype=${filter.filetypes[0]}`;
       else
         filterUrlQuery += map(filter.filetypes, type => {
-            return `filetype[]=${type}`;
-          })
-          .join('&');
+          return `filetype[]=${type}`;
+        }).join('&');
 
       if (_filter) {
         dispatch({
@@ -63,7 +61,7 @@ export const DATASET_ACTIONS = {
         });
       }
 
-      const { limit, start, dir } = filter;
+      const { limit, start, sort } = filter;
 
       const authenticatedAxiosClient = axios(null, true);
       const fetchDatasetCounter = state.datasets.fetchDatasetCounter + 1;
@@ -75,7 +73,7 @@ export const DATASET_ACTIONS = {
           {
             limit,
             start,
-            dir,
+            sort,
             filterUrlQuery
           },
           true

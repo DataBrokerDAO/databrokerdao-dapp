@@ -2,6 +2,7 @@ import each from 'lodash/each';
 import axios from '../../utils/axios';
 import moment from 'moment';
 import localStorage from '../../localstorage';
+import { asyncRetry } from '../../utils/async';
 
 export const PURCHASES_TYPES = {
   FETCH_PURCHASES: 'FETCH_PURCHASES',
@@ -104,41 +105,48 @@ export const PURCHASES_ACTIONS = {
         getPurchaseRegistry(),
         getMetadataHash()
       ])
-        .then(responses => {
+        .then(async responses => {
           const deployedTokenContractAddress =
             responses[0].data.items[0].contractaddress;
           const spenderAddress = responses[1].data.base.key;
           const metadataHash = responses[2].data[0].hash;
 
           // Time to approve the tokens
-          authenticatedAxiosClient
-            .post(`/dtxtoken/${deployedTokenContractAddress}/approve`, {
-              spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-              value: purchasePrice.toString()
-            })
-            .then(response => {
-              //Tokens have been allocated - now we can make the purchase!
-              authenticatedAxiosClient
-                .post(`/purchaseregistry/purchaseaccess`, {
-                  sensor: stream.key,
-                  endtime:
-                    endTime !== 0
-                      ? moment(endTime)
-                          .unix()
-                          .toString()
-                      : '0',
-                  metadata: metadataHash
-                })
-                .then(response => {
-                  dispatch({
-                    type: PURCHASES_TYPES.PURCHASING_ACCESS,
-                    value: false
-                  });
-                });
-            })
-            .catch(error => {
-              console.log(error);
-            });
+          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
+          let response = await authenticatedAxiosClient.post(url, {
+            spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
+            value: purchasePrice.toString()
+          });
+          let uuid = response.data.uuid;
+          let receipt = await asyncRetry(
+            authenticatedAxiosClient,
+            `${url}/${uuid}`
+          );
+          console.log(receipt);
+
+          //Tokens have been allocated - now we can make the purchase!
+          url = `/purchaseregistry/purchaseaccess`;
+          response = await authenticatedAxiosClient.post(url, {
+            sensor: stream.key,
+            endtime:
+              endTime !== 0
+                ? moment(endTime)
+                    .unix()
+                    .toString()
+                : '0',
+            metadata: metadataHash
+          });
+          uuid = response.data.uuid;
+          receipt = await asyncRetry(
+            authenticatedAxiosClient,
+            `${url}/${uuid}`
+          );
+          console.log(receipt);
+
+          dispatch({
+            type: PURCHASES_TYPES.PURCHASING_ACCESS,
+            value: false
+          });
         })
         .catch(error => {
           console.log(error);

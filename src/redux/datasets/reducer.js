@@ -8,7 +8,7 @@ export const DEFAULT_STATE = {
     filetypes: ['json', 'xls', 'csv'],
     start: 0,
     limit: 10,
-    dir: 'asc'
+    sort: 'asc'
   },
   datasets: {},
   fetchingDatasets: false,
