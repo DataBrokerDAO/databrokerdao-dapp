@@ -81,43 +81,74 @@ export const LISTING_ACTIONS = {
         getDtxTokenRegistry(),
         getStreamRegistry(),
         getMetadataHash()
-      ]).then(responses => {
+      ]).then(async responses => {
         const deployedTokenContractAddress =
-          responses[0].data.items[0].contractaddress;
-        const spenderAddress = responses[1].data.base.key;
+          responses[0].data.items[0].contractAddress;
+        const spenderAddress = responses[1].data.base.contractAddress;
         const metadataHash = responses[2].data[0].hash;
 
-        // Time to approve the tokens
-        authenticatedAxiosClient
-          .post(`/dtxtoken/${deployedTokenContractAddress}/approve`, {
-            spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-            value: BigNumber(stream.stake)
+        try {
+          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
+          let response = await authenticatedAxiosClient.post(url, {
+            _spender: spenderAddress,
+            _value: BigNumber(stream.stake)
               .times(BigNumber(10).pow(18))
               .toString()
-          })
-          .then(response => {
-            //Tokens have been allocated - now we can make the purchase!
-            authenticatedAxiosClient
-              .post(`/sensorregistry/enlist`, {
-                stakeamount: BigNumber(stream.stake)
-                  .times(BigNumber(10).pow(18))
-                  .toString(),
-                price: BigNumber(stream.price)
-                  .times(BigNumber(10).pow(18))
-                  .toString(),
-                metadata: metadataHash
-              })
-              .then(response => {
-                dispatch({
-                  type: LISTING_TYPES.ENLISTING_STREAM,
-                  value: false
-                });
-              });
-          })
-          .catch(error => {
-            console.log(error);
           });
+          let uuid = response.data.uuid;
+          let receipt = await asyncRetry(
+            authenticatedAxiosClient,
+            `${url}/${uuid}`
+          );
+          console.log(receipt);
+
+          url = `/sensorregistry/enlist`;
+          response = await authenticatedAxiosClient.post(
+            `/sensorregistry/enlist`,
+            {
+              _stakeAmount: BigNumber(stream.stake)
+                .times(BigNumber(10).pow(18))
+                .toString(),
+              _price: BigNumber(stream.price)
+                .times(BigNumber(10).pow(18))
+                .toString(),
+              _metadata: metadataHash
+            }
+          );
+          uuid = response.data.uuid;
+          receipt = await asyncRetry(
+            authenticatedAxiosClient,
+            `${url}/${uuid}`
+          );
+          console.log(receipt);
+
+          dispatch({
+            type: LISTING_TYPES.ENLISTING_STREAM,
+            value: false
+          });
+        } catch (error) {
+          console.log('Failed enlisting with error: ', error);
+        }
       });
     };
   }
 };
+
+async function asyncRetry(authenticatedAxiosClient, url) {
+  const retry = require('async-retry');
+  return await retry(async bail => {
+    const res = await authenticatedAxiosClient.get(url);
+    if (!(res.data && res.data.receipt)) {
+      throw new Error('Tx not mined yet');
+    }
+
+    if (res.data.receipt.status === 0) {
+      console.log('Bailing', res.data);
+      bail(new Error('Tx reverted'));
+      return;
+    }
+
+    console.log(res.data);
+    return res.data.receipt;
+  });
+}

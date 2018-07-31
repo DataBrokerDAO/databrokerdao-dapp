@@ -14,54 +14,56 @@ export const WALLET_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null,true);
-      authenticatedAxiosClient.get(
-        "/my-wallet"
-      ).then(response => {
-        const wallet = response.data.DTX;
-
-        dispatch({
-          type: WALLET_TYPES.FETCH_WALLET,
-          wallet
-        });
-      }).catch(error => {
-        console.log(error);
-      });
-
-    }
-  },
-  mintTokens: (amount) => {
-    return(dispatch,getState) => {
-      dispatch({
-        type: WALLET_TYPES.MINTING_TOKENS,
-        value: true
-      });
-
-      const authenticatedAxiosClient = axios(null,true);
-      authenticatedAxiosClient.post(
-        "/dtxminter/mint", {
-          amount: amount
-        }
-      ).then(response => {
-        dispatch({
-          type: WALLET_TYPES.MINTING_TOKENS,
-          value: false
-        });
-        authenticatedAxiosClient.get(
-          "/my-wallet"
-        ).then(response => {
+      const authenticatedAxiosClient = axios(null, true);
+      authenticatedAxiosClient
+        .get('/wallet/balance')
+        .then(response => {
           const wallet = response.data.DTX;
 
           dispatch({
             type: WALLET_TYPES.FETCH_WALLET,
             wallet
           });
-        }).catch(error => {
+        })
+        .catch(error => {
           console.log(error);
         });
-      }).catch(error => {
-        console.log(error);
+    };
+  },
+  mintTokens: amount => {
+    return (dispatch, getState) => {
+      dispatch({
+        type: WALLET_TYPES.MINTING_TOKENS,
+        value: true
       });
-    }
+
+      const authenticatedAxiosClient = axios(null, true);
+      authenticatedAxiosClient
+        .post('/dtxminter/mint', {
+          _amount: amount
+        })
+        .then(response => {
+          dispatch({
+            type: WALLET_TYPES.MINTING_TOKENS,
+            value: false
+          });
+          authenticatedAxiosClient
+            .get('/wallet/balance')
+            .then(response => {
+              const wallet = response.data.DTX;
+
+              dispatch({
+                type: WALLET_TYPES.FETCH_WALLET,
+                wallet
+              });
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    };
   }
-}
+};

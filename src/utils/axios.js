@@ -18,7 +18,7 @@ export default function getAxios(jwtToken=false, anonymous=false, noAuthorizatio
     });
   }
   else if(anonymous){
-    const anonymousJWTToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRJZCI6IjViNTgzNjViMzFmMDNlMjMzNjQ5ODlmNiIsImlhdCI6MTUzMjUwNzc5MH0.1__HtFmL2gRrorCfPySk-EC9saSZxhV5i7ZgwAVjLVY";
+    const anonymousJWTToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRJZCI6IjViNWFmNGM3MzFkNjIzZDViOTViYjY2ZiIsImlhdCI6MTUzMjY4ODEzNX0.yY4ZUTtdplejyPuQugXAXBcQ-pWshbPC2OicBZTZslc";
     return axios.create({
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: { Authorization: anonymousJWTToken }

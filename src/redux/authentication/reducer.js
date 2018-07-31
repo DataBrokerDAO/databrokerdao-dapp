@@ -15,109 +15,40 @@ export const LOGOUT = 'LOGOUT';
 // ------------------------------------
 // Actions
 // ------------------------------------
-
-async function createNewWallet(axiosClient, email, password) {
-  const walletResponse = await axiosClient.post('/wallet', {
-    email: email,
-    password: password
-  });
-  const { mnemonic, mnemonicHash, wallet } = walletResponse.data;
-  return { mnemonic, mnemonicHash, wallet };
-}
-
-async function encryptedPrivateKeyAndAddress(wallet, password) {
-  const walletObject = Wallet.fromV3(wallet, password);
-  const privateKey = walletObject.getPrivateKey();
-  const encryptedPrivateKey = new ECIES()
-    .encryptMessage(
-      privateKey,
-      Buffer.from(process.env.REACT_APP_SERVER_PUBLIC_KEY, 'hex'),
-      privateKey
-    )
-    .toString('hex');
-  return { encryptedPrivateKey, address: walletObject.getAddressString() };
-}
-
-async function storeKeys(axiosClient, email, address, keystore, mnemonicHash) {
-  await axiosClient.post('/keystorage', {
-    email,
-    wallet: {
-      ethereum: {
-        address,
-        keystore
-      }
-    },
-    mnemonicHash
-  });
-}
-
-async function getJWTToken(axiosClient, encryptedPrivateKey) {
-  const tokenResponse = await axiosClient.post('/authenticate', {
-    privateKeys: {
-      ethereum: encryptedPrivateKey
-    },
-    encrypted: true
-  });
-  //console.log(tokenResponse);
-  localStorage.setItem('jwtToken', tokenResponse.data.token);
-  return tokenResponse.data.token;
-}
-
 export function register(values, { props, setErrors }) {
   //setSubmitting
   return async (dispatch, getState) => {
     const axiosClient = axios();
     try {
-      // CREATE A NEW WALLET
-      // console.log('CREATE A NEW WALLET');
-      const { mnemonicHash, wallet } = await createNewWallet(
-        axiosClient,
-        values.email,
-        values.password
+      const retrieveResponse = await axiosClient.post(
+        '/accounts/authenticate',
+        {
+          username: encodeURIComponent(values.email),
+          password: encodeURIComponent(values.password)
+        }
       );
-      // console.log({ mnemonicHash, wallet });
-      // GET THE ADDRESS AND ENCRYPT THE PRIVATE KEY
-      // console.log('GET THE ADDRESS AND ENCRYPT THE PRIVATE KEY');
-      const {
-        encryptedPrivateKey,
-        address
-      } = await encryptedPrivateKeyAndAddress(wallet, values.password);
-      localStorage.setItem('address', address);
-
-      // console.log({
-      //   encryptedPrivateKey,
-      //   address
-      // });
-      // STORE THE KEYS
-      // console.log('STORE THE KEYS');
-      await storeKeys(axiosClient, values.email, address, wallet, mnemonicHash);
-      // console.log({
-      //   done: true
-      // });
-      // GET THE JWT TOKEN
-      const token = await getJWTToken(axiosClient, encryptedPrivateKey);
-
+      const { token, ethereum } = retrieveResponse.data;
+      localStorage.setItem('address', ethereum.address);
       localStorage.setItem('email', values.email);
 
       dispatch({
         type: TOKEN_RECEIVED,
-        payload: { token, address }
+        payload: { token, address: ethereum.address }
       });
+
       // GET THE ROLES OF THE USER
-      // TODO add JWT token to the axios client!
-      // TODO enable back
-      // const roleResponse = await axiosClient.get(
-      //   `/wallet/roles?address=${encodeURIComponent(address)}`
-      // );
-      // localStorage.setItem('roles', roleResponse.data.roles);
-      // dispatch({
-      //   type: ROLES_RECEIVED,
-      //   payload: { roles: roleResponse.data.roles }
-      // });
+      const authenticatedAxiosClient = axios(token);
+      const roleResponse = await authenticatedAxiosClient.get(
+        `/wallet/roles?address=${encodeURIComponent(ethereum.address)}`
+      );
+      localStorage.setItem('roles', roleResponse.data.roles);
+      dispatch({
+        type: ROLES_RECEIVED,
+        payload: { roles: roleResponse.data.roles }
+      });
 
       if (props.callBack) props.callBack();
     } catch (error) {
-      //console.log(error);
       setErrors({
         email:
           (error.response &&
@@ -134,32 +65,26 @@ export function login(values, { props, setSubmitting, setErrors }) {
   return async (dispatch, getState) => {
     const axiosClient = axios();
     try {
-      const retrieveResponse = await axiosClient.get(
-        `/keystorage?email=${encodeURIComponent(values.email)}`
+      const retrieveResponse = await axiosClient.post(
+        '/accounts/authenticate',
+        {
+          username: encodeURIComponent(values.email),
+          password: encodeURIComponent(values.password)
+        }
       );
-      const { wallet } = retrieveResponse.data;
-      // GET THE ADDRESS AND ENCRYPT THE PRIVATE KEY
-      const {
-        encryptedPrivateKey,
-        address
-      } = await encryptedPrivateKeyAndAddress(
-        wallet.ethereum.keystore,
-        values.password
-      );
-      localStorage.setItem('address', address);
+      const { token, ethereum } = retrieveResponse.data;
+      localStorage.setItem('address', ethereum.address);
+      localStorage.setItem('email', values.email);
 
-      // GET THE JWT TOKEN
-      const token = await getJWTToken(axiosClient, encryptedPrivateKey);
       dispatch({
         type: TOKEN_RECEIVED,
-        payload: { token, address }
+        payload: { token, address: ethereum.address }
       });
-      localStorage.setItem('email', values.email);
 
       // GET THE ROLES OF THE USER
       const authenticatedAxiosClient = axios(token);
       const roleResponse = await authenticatedAxiosClient.get(
-        `/wallet/roles?address=${encodeURIComponent(address)}`
+        `/wallet/roles?address=${encodeURIComponent(ethereum.address)}`
       );
       localStorage.setItem('roles', roleResponse.data.roles);
       dispatch({
@@ -167,7 +92,6 @@ export function login(values, { props, setSubmitting, setErrors }) {
         payload: { roles: roleResponse.data.roles }
       });
     } catch (error) {
-      // console.log(error);
       setErrors({
         email:
           (error.response &&

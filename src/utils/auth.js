@@ -2,6 +2,7 @@ import locationHelperBuilder from 'redux-auth-wrapper/history4/locationHelper';
 import { connectedRouterRedirect } from 'redux-auth-wrapper/history4/redirect';
 import connectedAuthWrapper from 'redux-auth-wrapper/connectedAuthWrapper';
 import jwtDecode from 'jwt-decode';
+import { convertDateToTimestamp } from './transforms';
 
 const locationHelper = locationHelperBuilder({});
 
@@ -10,7 +11,8 @@ function validateToken(state) {
   if (token) {
     try {
       const decoded = jwtDecode(token);
-      if (decoded.exp < new Date().getTime()) {
+      const now = convertDateToTimestamp(new Date());
+      if (decoded.exp < now) {
         return false;
       }
       return true;
