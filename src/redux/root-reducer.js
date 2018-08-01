@@ -10,6 +10,7 @@ import DatasetsReducer from './datasets/reducer';
 import TransactionsReducer from './transactions/reducer';
 import ErrorReducer from './errors/reducer';
 import UserReducer from './user/reducer';
+import BridgeReducer from './bridge/reducer';
 
 /**
  * This is the global reducer to which all reducers which are loaded at runtime are added.
@@ -36,6 +37,7 @@ const rootReducer = (asyncReducers, initialState) => {
     transactions: TransactionsReducer,
     error: ErrorReducer,
     user: UserReducer,
+    bridge: BridgeReducer,
     ...asyncReducers,
     ...missingReducers
   });

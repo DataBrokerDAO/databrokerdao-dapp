@@ -40,6 +40,9 @@ const EnlistScreen = Loadermanager(() =>
 const WalletScreen = Loadermanager(() =>
   import(/* webpackChunkName: 'lazy' */ './components/wallet/WalletScreen')
 );
+const DepositScreen = Loadermanager(() =>
+  import(/* webpackChunkName: 'lazy' */ './components/bridge/DepositScreen')
+);
 const StreamDetailsScreen = Loadermanager(() =>
   import(/* webpackChunkName: 'lazy' */ './components/details/stream/StreamDetailsScreen')
 );
@@ -86,6 +89,10 @@ export const App = () => (
                     <Route
                         path="/wallet"
                         component={withRouter(userIsAuthenticatedRedir(WalletScreen))}
+                    />
+                    <Route
+                        path="/deposit"
+                        component={withRouter(userIsAuthenticatedRedir(DepositScreen))}
                     />
                     <Route
                         path="/stream/:key"
