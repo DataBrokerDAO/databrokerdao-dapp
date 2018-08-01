@@ -145,7 +145,7 @@ class StreamDetailsScreen extends Component {
       return purchase.key === this.props.stream.key;
     });
     const purchased = purchase !== undefined;
-    const isOwner = this.props.stream.owner === localStorage.getItem('address');
+    const isOwner = false; // TODO PUT THIS BACK this.props.stream.owner === localStorage.getItem('address');
 
     const updateInterval =
       stream.updateinterval === 86400000

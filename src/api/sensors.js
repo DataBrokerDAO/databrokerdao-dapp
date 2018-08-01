@@ -9,7 +9,7 @@ import each from 'lodash/each';
  */
 export function fetchSensors(authenticatedAxiosClient, queryParams) {
   const { limit, start = 0, sort = 'asc', filterUrlQuery } = queryParams;
-  let url = `/sensorregistry/list?limit=${limit}&skip=${start}&sort=${sort}&${filterUrlQuery}&sortBy=stake`;
+  let url = `/sensorregistry/list?limit=${limit}&skip=${start}&sort=${sort}&${filterUrlQuery}&sortBy=item.stake`;
   return authenticatedAxiosClient.get(url).then(response => response);
 }
 
@@ -21,7 +21,7 @@ export function fetchSensors(authenticatedAxiosClient, queryParams) {
  */
 export function fetchSensor(authenticatedAxiosClient, key, queryParams) {
   // TODO: use query params
-  let url = `/sensorregistry/list/${key}`;
+  let url = `/sensor/${key}?abi=false`;
   return authenticatedAxiosClient.get(url).then(response => response);
 }
 
@@ -46,15 +46,14 @@ export function parseDatasets(sensors) {
  */
 export function parseDataset(sensor) {
   return {
-    id: sensor._id,
     key: sensor.key,
     name: sensor.name,
     price: sensor.price,
     stake: sensor.stake,
     example: sensor.example,
     owner: sensor.owner,
-    numberofchallenges: sensor.numberofchallenges,
-    challengesstake: sensor.challengesstake,
+    numberofchallenges: sensor.numberOfChallenges,
+    challengesstake: sensor.challengesStake,
     category: sensor.category,
     filetype: sensor.filetype,
     description: sensor.description,

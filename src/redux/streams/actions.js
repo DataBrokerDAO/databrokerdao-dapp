@@ -69,10 +69,10 @@ export const STREAMS_ACTIONS = {
       //Filter on type
       const filter = _filter ? _filter : state.streams.filter;
       if (filter.types && filter.types.length === 1)
-        filterUrlQuery = `type=${filter.types[0]}`;
+        filterUrlQuery = `item.type=${filter.types[0]}`;
       else
         filterUrlQuery = map(filter.types, type => {
-          return `type[]=${type}`;
+          return `item.type[]=${type}`;
         }).join('&');
 
       if (_filter) {
@@ -132,7 +132,6 @@ export const STREAMS_ACTIONS = {
 
               if (!itemAtSameCoordinates) {
                 parsedResponse[item.key] = {
-                  id: item._id,
                   key: item.key,
                   name: item.name,
                   type: item.type,
@@ -149,7 +148,7 @@ export const STREAMS_ACTIONS = {
                   },
                   owner: item.owner,
                   numberofchallenges: item.numberofchallenges,
-                  challengesstake: item.challengesstake
+                  challengesstake: item.challengesStake
                 };
               }
             });
@@ -181,13 +180,12 @@ export const STREAMS_ACTIONS = {
 
       const authenticatedAxiosClient = axios(null, true);
       authenticatedAxiosClient
-        .get(`/sensorregistry/list/${streamKey}`)
+        .get(`/sensor/${streamKey}?abi=false`)
         .then(response => {
           let parsedResponse = null;
-          if (response.data._id) {
+          if (response.status === 200) {
             parsedResponse = {
-              id: response.data._id,
-              key: response.data.key,
+              key: response.data.contractAddress,
               name: response.data.name,
               type: response.data.type,
               price: response.data.price,
@@ -202,8 +200,8 @@ export const STREAMS_ACTIONS = {
                 ]
               },
               owner: response.data.owner,
-              numberofchallenges: response.data.numberofchallenges,
-              challengesstake: response.data.challengesstake
+              numberofchallenges: response.data.numberOfChallenges,
+              challengesstake: response.data.challengesStake
             };
           } else {
             parsedResponse = {};
@@ -215,11 +213,11 @@ export const STREAMS_ACTIONS = {
           });
 
           // Get nearby streams
-          const urlParametersNearbyStreams = `limit=20&type=${
+          const urlParametersNearbyStreams = `limit=20&item.type=${
             parsedResponse.type
           }&near=${parsedResponse.geometry.coordinates[1]},${
             parsedResponse.geometry.coordinates[0]
-          },500&sort=stake`;
+          },500&sort=item.stake`;
           const authenticatedAxiosClient = axios(null, true);
           authenticatedAxiosClient
             .get(`/sensorregistry/list?${urlParametersNearbyStreams}`)
@@ -230,8 +228,7 @@ export const STREAMS_ACTIONS = {
                 if (item.key === streamKey) return;
 
                 parsedResponse.push({
-                  id: item._id,
-                  key: item.key,
+                  key: item.contractAddress,
                   name: item.name,
                   type: item.type,
                   price: item.price,
@@ -246,8 +243,8 @@ export const STREAMS_ACTIONS = {
                     ]
                   },
                   owner: item.owner,
-                  challenges: item.numberofchallenges,
-                  challengesstake: item.challengesstake
+                  challenges: item.numberOfChallenges,
+                  challengesstake: item.challengesStake
                 });
               });
 
@@ -303,7 +300,7 @@ export const STREAMS_ACTIONS = {
       const authenticatedAxiosClient = axios(null, true);
       authenticatedAxiosClient
         .get(
-          `/sensorregistry/list?limit=100&type[]=temperature&type[]=humidity&type[]=PM25&type[]=PM10&near=4.700518,50.879844,4000`
+          `/sensorregistry/list?limit=100&item.type[]=temperature&item.type[]=humidity&item.type[]=PM25&item.type[]=PM10&near=4.700518,50.879844,4000`
         )
         .then(response => {
           const parsedResponse = {};
@@ -318,8 +315,7 @@ export const STREAMS_ACTIONS = {
 
             if (!itemAtSameCoordinates) {
               parsedResponse[item.key] = {
-                id: item._id,
-                key: item.key,
+                key: item.contractAddress,
                 name: item.name,
                 type: item.type,
                 price: item.price,
@@ -462,8 +458,8 @@ export const STREAMS_ACTIONS = {
           // Time to approve the tokens
           let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
           let response = await authenticatedAxiosClient.post(url, {
-            spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-            value: amount.toString()
+            _spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
+            _value: amount.toString()
           });
           let uuid = response.data.uuid;
           let receipt = await asyncRetry(
@@ -475,9 +471,9 @@ export const STREAMS_ACTIONS = {
           //Tokens have been allocated - now we can make the purchase!
           url = `/sensorregistry/challenge`;
           response = await authenticatedAxiosClient.post(url, {
-            listing: stream.key,
-            stakeamount: amount,
-            metadata: metadataHash
+            _listing: stream.key,
+            _stakeamount: amount,
+            _metadata: metadataHash
           });
           uuid = response.data.uuid;
           receipt = await asyncRetry(

@@ -55,7 +55,7 @@ class DiscoverStreamsList extends Component {
     let listItems = map(streams, stream => {
       return (
         <StyledListItem
-          key={stream.id}
+          key={stream.key}
           onClick={event => this.onStreamListItemClick(stream)}
           leftIcon={<FontIcon key="data">data_usage</FontIcon>}
         >

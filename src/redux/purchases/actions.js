@@ -23,7 +23,7 @@ export const PURCHASES_ACTIONS = {
 
       function getStreamDetails(streamKey) {
         return authenticatedAxiosClient.get(
-          `/sensorregistry/list/${streamKey}`
+          `/sensorregistry/list?item.key${streamKey}`
         );
       }
 
@@ -114,8 +114,8 @@ export const PURCHASES_ACTIONS = {
           // Time to approve the tokens
           let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
           let response = await authenticatedAxiosClient.post(url, {
-            spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-            value: purchasePrice.toString()
+            _spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
+            _value: purchasePrice.toString()
           });
           let uuid = response.data.uuid;
           let receipt = await asyncRetry(
@@ -127,14 +127,14 @@ export const PURCHASES_ACTIONS = {
           //Tokens have been allocated - now we can make the purchase!
           url = `/purchaseregistry/purchaseaccess`;
           response = await authenticatedAxiosClient.post(url, {
-            sensor: stream.key,
-            endtime:
+            _sensor: stream.key,
+            _endtime:
               endTime !== 0
                 ? moment(endTime)
                     .unix()
                     .toString()
                 : '0',
-            metadata: metadataHash
+            _metadata: metadataHash
           });
           uuid = response.data.uuid;
           receipt = await asyncRetry(

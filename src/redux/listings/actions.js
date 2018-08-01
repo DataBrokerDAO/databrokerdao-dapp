@@ -22,7 +22,7 @@ export const LISTING_ACTIONS = {
 
       const address = localStorage.getItem('address');
       authenticatedAxiosClient
-        .get(`/sensorregistry/list?limit=10&owner=~${address}`)
+        .get(`/sensorregistry/list?limit=10&item.owner=~${address}`)
         .then(response => {
           const listings = response.data.items;
 
