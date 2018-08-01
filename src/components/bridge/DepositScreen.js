@@ -32,6 +32,12 @@ class DepositScreen extends Component {
       .toString();
   }
 
+  convertDtxToWei(weiValue) {
+    return BigNumber(weiValue)
+      .times(BigNumber(10).pow(18))
+      .toString();
+  }
+
   handleAmountChange = (value) => {
     this.setState({
       amountField: value,
@@ -39,11 +45,12 @@ class DepositScreen extends Component {
   }
 
   handleDepositClick = () => {
-    const amount = this.state.amountField;
+    let amount = this.state.amountField;
     const recipient = this.props.address;
     if (!amount || !recipient) {
       return;
     }
+    amount = this.convertDtxToWei(amount)
     this.props.requestDeposit(amount, recipient);
   }
 
