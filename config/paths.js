@@ -53,8 +53,8 @@ module.exports = {
   babelIncludes: [
     /@settlemint/,
     /ui-dapp/,
-    /eth-lib/,
-    /ethjs-unit/,
+    // /eth-lib/,
+    // /ethjs-unit/,
     /web3-provider-engine/,
     /multihashing-async/,
     /ipld-dag-pb/,
