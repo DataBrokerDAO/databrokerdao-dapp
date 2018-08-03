@@ -1,13 +1,9 @@
 import { ERROR_TYPES } from "../errors/actions";
-import { STREAMS_ACTIONS } from "../streams/actions";
-import * as DTXToken from "../../assets/DTXToken.json";
-import { getBalance, waitForEvent } from "./utils";
-import axios from '../../utils/axios';
+import * as bridgeAPI from "../../api/bridge";
+import { replace } from 'react-router-redux'
 
 export const BRIDGE_TYPES = {
-  SET_LOCATION: "SET_LOCATION",
-
-  METAMASK_CONNECTED: "METAMASK_CONNECTED",
+  PROVIDER_CONNECTED: "PROVIDER_CONNECTED",
 
   FETCH_SENDER_BALANCE: "FETCH_SENDER_BALANCE",
   FETCH_SENDER_BALANCE_SUCCESS: "FETCH_SENDER_BALANCE_SUCCESS",
@@ -19,131 +15,90 @@ export const BRIDGE_TYPES = {
   DEPOSIT_FAILURE: "DEPOSIT_FAILURE",
 };
 
-const Web3 = require("web3");
-async function getWeb3() {
-  return new Web3(window.web3.currentProvider);
-}
-async function fetchSender(web3) {
-  return (await web3.eth.getAccounts())[0];
-}
+async function connectToProvider() {
+  const web3 = await bridgeAPI.getMainNetWeb3();
+  const databrokerWeb3 = await bridgeAPI.getDatabrokerWeb3();
 
-const options = {
-  HOME_TOKEN: process.env.REACT_APP_HOME_TOKEN,
-  FOREIGN_TOKEN: process.env.REACT_APP_FOREIGN_TOKEN,
-  HOME_BRIDGE: process.env.REACT_APP_HOME_BRIDGE,
-  FOREIGN_URL: process.env.REACT_APP_RPC_URL
-}
+  const sender = await bridgeAPI.fetchAccount(web3);
 
-async function fetchDTXToken(web3, address) {
-  return await new web3.eth.Contract(DTXToken.abi, address);
-}
-
-export async function connectToMetaMask(dispatch) {
-  const web3 = await getWeb3();
-  const sender = await fetchSender(web3);
-
-  dispatch({
-    type: BRIDGE_TYPES.METAMASK_CONNECTED,
-    payload: { address: sender }
-  });
-
-  if (!options.HOME_TOKEN) {
-    throw new Error("REACT_APP_HOME_TOKEN env variable has not been set.");
+  if (!sender) {
+    throw new Error("Provider connected but no account found");
   }
 
-  const mainNetDTX = await fetchDTXToken(web3, options.HOME_TOKEN);
-  const databrokerWeb3 = await new Web3(new Web3.providers.HttpProvider(options.FOREIGN_URL))
-  const databrokerDTX = await fetchDTXToken(databrokerWeb3, options.FOREIGN_TOKEN);
+  const mainNetDTX = await bridgeAPI.fetchMainNetDTX(web3);
+  const databrokerDTX = await bridgeAPI.fetchDatabrokerDTX(databrokerWeb3);
 
   return { web3, sender, mainNetDTX, databrokerWeb3, databrokerDTX };
 }
 
-async function approveDeposit(web3, token, from, receiver, amount) {
-  const call = await token.methods.approveAndCall(options.HOME_BRIDGE, amount, receiver);
-  const gas = (await call.estimateGas({ from })) * 2;
-  const gasPrice = (await web3.eth.getGasPrice()) * 2;
-  return await call.send({
-      from,
-      gasPrice,
-      gas
+async function connect(dispatch) {
+  let result;
+  while (true) {
+    try {
+      result = await connectToProvider();
+      break;
+    } catch (err) {
+      console.error(err);
+      await bridgeAPI.timeout(5e3);
+    }
+  }
+
+  dispatch({
+    type: BRIDGE_TYPES.PROVIDER_CONNECTED,
+    payload: { address: result.sender }
+  });
+
+  return result;
+}
+
+const fetchSenderBalance = () => async dispatch => {
+  dispatch({ type: BRIDGE_TYPES.FETCH_SENDER_BALANCE });
+
+  const { sender, mainNetDTX } = await connect(dispatch);
+
+  const balance = await bridgeAPI.getBalanceOf(mainNetDTX, sender);
+  dispatch({
+    type: BRIDGE_TYPES.FETCH_SENDER_BALANCE_SUCCESS,
+    payload: { senderBalance: balance.toString(10) }
   });
 }
 
+const requestDeposit = (amount, recipient) => async dispatch => {
+  if (!amount || !recipient) {
+    return;
+  }
+  dispatch({ type: BRIDGE_TYPES.INIT_DEPOSIT, payload: { amount, recipient } });
+  dispatch(replace("/bridge/pending"));
+
+  const { web3, sender, mainNetDTX, databrokerDTX, databrokerWeb3 } = await connect(dispatch);
+
+  const senderBalance = await bridgeAPI.getBalanceOf(mainNetDTX, sender);
+
+  if (senderBalance < amount) {
+    throw new Error("Balance too low");
+  }
+
+  const currentBlockNum = await databrokerWeb3.eth.getBlockNumber();
+
+  try {
+    const tx = await bridgeAPI.approveDeposit(web3, mainNetDTX, sender, recipient, amount);
+    dispatch({ type: BRIDGE_TYPES.APPROVE_DEPOSIT_SUCCESS, payload: { tx } });
+  } catch (err) {
+    dispatch({ type: BRIDGE_TYPES.APPROVE_DEPOSIT_FAILURE });
+  }
+
+
+  try {
+    await bridgeAPI.waitForTransfer(databrokerDTX, recipient, amount, currentBlockNum);
+    dispatch({ type: BRIDGE_TYPES.DEPOSIT_SUCCESS });
+    dispatch(replace("/bridge/success"));
+  } catch (err) {
+    dispatch({ type: BRIDGE_TYPES.DEPOSIT_FAILURE });
+    dispatch(replace("/bridge/success"));
+  }
+}
 
 export const BRIDGE_ACTIONS = {
-  fetchSenderBalance: () => async dispatch => {
-    dispatch({ type: BRIDGE_TYPES.FETCH_SENDER_BALANCE });
-
-    const { web3, sender, mainNetDTX } = await connectToMetaMask(dispatch);
-
-    const balance = await getBalance(mainNetDTX, sender); 
-    dispatch({
-      type: BRIDGE_TYPES.FETCH_SENDER_BALANCE_SUCCESS,
-      payload: { senderBalance: balance.toString(10) }
-    });
-  },
-  requestDeposit: (amount, recipient) => async dispatch => {
-    if (!amount || !recipient) {
-      return;
-    }
-    dispatch({ type: BRIDGE_TYPES.INIT_DEPOSIT, payload: { amount } });
-
-    const { web3, sender, mainNetDTX, databrokerDTX, databrokerWeb3 } = await connectToMetaMask(dispatch);
-
-    const senderBalance = await getBalance(mainNetDTX, sender); 
-
-    if (senderBalance < amount) {
-      throw new Error("Balance too low");
-    }
-
-    const currentBlockNum = await databrokerWeb3.eth.getBlockNumber(); 
-
-    try {
-      const tx = await approveDeposit(web3, mainNetDTX, sender, recipient, amount);
-      dispatch({ type: BRIDGE_TYPES.APPROVE_DEPOSIT_SUCCESS, payload: { tx } });
-    } catch(err) {
-      dispatch({ type: BRIDGE_TYPES.APPROVE_DEPOSIT_FAILURE });
-    }
-
-
-    try {
-      await waitForEvent({
-        contract: databrokerDTX,
-        event: "Transfer",
-        fromBlock: currentBlockNum,
-        filter: { to: recipient, amount: amount },
-        timeoutMs: 5e5
-      });
-      dispatch({ type: BRIDGE_TYPES.DEPOSIT_SUCCESS });
-    } catch(err) {
-      dispatch({ type: BRIDGE_TYPES.DEPOSIT_FAILURE });
-    }
-
-    await BRIDGE_ACTIONS.fetchSenderBalance()(dispatch);
-  },
-  updateLocation: () => dispatch => {
-    if (navigator === "undefined") {
-      dispatch({
-        type: ERROR_TYPES.LOCATION_ERROR,
-        error: "geolocation is not supported"
-      });
-    } else {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords: location }) => {
-          const { latitude: lat, longitude: lng } = location;
-
-          dispatch(STREAMS_ACTIONS.setCenter({ lat, lng }));
-          dispatch({
-            type: BRIDGE_TYPES.SET_LOCATION,
-            location
-          });
-        },
-        ({ message: error }) =>
-          dispatch({
-            type: ERROR_TYPES.LOCATION_ERROR,
-            error
-          })
-      );
-    }
-  }
+  fetchSenderBalance,
+  requestDeposit
 };
