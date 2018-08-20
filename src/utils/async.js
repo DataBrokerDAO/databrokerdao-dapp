@@ -1,5 +1,6 @@
+const retry = require('./async_retry');
+
 export async function asyncRetry(authenticatedAxiosClient, url) {
-  const retry = require('async-retry');
   return await retry(
     async bail => {
       const res = await authenticatedAxiosClient.get(url);
