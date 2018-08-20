@@ -450,8 +450,8 @@ export const STREAMS_ACTIONS = {
         getMetadataHash()
       ]).then(async responses => {
         const deployedTokenContractAddress =
-          responses[0].data.items[0].contractaddress;
-        const spenderAddress = responses[1].data.base.key;
+          responses[0].data.items[0].contractAddress;
+        const spenderAddress = responses[1].data.base.contractAddress;
         const metadataHash = responses[2].data[0].hash;
 
         try {
@@ -472,7 +472,7 @@ export const STREAMS_ACTIONS = {
           url = `/sensorregistry/challenge`;
           response = await authenticatedAxiosClient.post(url, {
             _listing: stream.key,
-            _stakeamount: amount,
+            _stakeAmount: amount,
             _metadata: metadataHash
           });
           uuid = response.data.uuid;

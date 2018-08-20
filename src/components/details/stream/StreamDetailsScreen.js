@@ -145,7 +145,7 @@ class StreamDetailsScreen extends Component {
       return purchase.key === this.props.stream.key;
     });
     const purchased = purchase !== undefined;
-    const isOwner = false; // TODO PUT THIS BACK this.props.stream.owner === localStorage.getItem('address');
+    const isOwner = this.props.stream.owner === localStorage.getItem('address');
 
     const updateInterval =
       stream.updateinterval === 86400000
@@ -300,10 +300,8 @@ class StreamDetailsScreen extends Component {
                   }}
                 />
                 <StyledAttributeLabel>
-                  Challenges: {stream.numberofchallenges} ({Math.floor(
-                    convertWeiToDtx(stream.challengesstake)
-                  )}{' '}
-                  DTX)
+                  Challenges: {stream.numberofchallenges} (
+                  {Math.floor(convertWeiToDtx(stream.challengesstake))} DTX)
                 </StyledAttributeLabel>
               </StyledSensorAttribute>
             </div>
@@ -376,6 +374,7 @@ function mapStateToProps(state, ownProps) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  StreamDetailsScreen
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(StreamDetailsScreen);

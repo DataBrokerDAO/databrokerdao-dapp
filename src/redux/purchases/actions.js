@@ -1,6 +1,6 @@
-import each from 'lodash/each';
 import axios from '../../utils/axios';
 import moment from 'moment';
+import { BigNumber } from 'bignumber.js';
 import localStorage from '../../localstorage';
 import { asyncRetry } from '../../utils/async';
 
@@ -21,41 +21,52 @@ export const PURCHASES_ACTIONS = {
 
       const authenticatedAxiosClient = axios(null, true);
 
-      function getStreamDetails(streamKey) {
+      function getSensorDetails(purchase) {
+        return authenticatedAxiosClient.get(`/sensor/${purchase.sensor}`);
+      }
+
+      function getPurchaseDetails(purchase) {
         return authenticatedAxiosClient.get(
-          `/sensorregistry/list?item.key${streamKey}`
+          `/purchase/${purchase.contractAddress}`
         );
       }
 
       const email = localStorage.getItem('email');
       authenticatedAxiosClient
-        .get(`/purchaseregistry/list?email=${email}`)
-        .then(response => {
+        .get(`/purchaseregistry/list?item.email=${email}`)
+        .then(async response => {
           const purchases = response.data.items;
 
-          const streamDetailCalls = [];
-          each(purchases, purchase => {
-            streamDetailCalls.push(getStreamDetails(purchase.sensor));
-          });
+          const purchaseDetailCalls = purchases.map(getPurchaseDetails);
+          const purchaseDetails = await Promise.all(purchaseDetailCalls);
 
-          Promise.all(streamDetailCalls).then(streamDetails => {
-            const parsedResponse = [];
+          const sensorDetailCalls = purchases.map(getSensorDetails);
+          const sensorDetails = await Promise.all(sensorDetailCalls);
 
-            for (let i = 0; i < purchases.length; i++) {
-              parsedResponse.push({
-                key: purchases[i].sensor,
-                name: streamDetails[i].data.name,
-                type: streamDetails[i].data.type,
-                sensortype: streamDetails[i].data.sensortype,
-                endTime: purchases[i].endtime,
-                updateinterval: streamDetails[i].data.updateinterval
-              });
+          // Store the parsed responses in a dictionary to ensure a distinct set of keys,
+          // duplicate purchases should never be possible but it might due to race conditions
+          let parsedResponse = {};
+          for (let i = 0; i < purchases.length; i++) {
+            const key = sensorDetails[i].data.contractAddress;
+
+            // Only add purchases if they aren't expired yet
+            const endTimeMs = purchaseDetails[i].data.endTime * 1000;
+            if (endTimeMs > moment.now()) {
+              parsedResponse[key] = {
+                key,
+                name: sensorDetails[i].data.name,
+                type: sensorDetails[i].data.type,
+                updateinterval: sensorDetails[i].data.updateinterval,
+                sensortype: purchaseDetails[i].data.sensortype,
+                endTime: purchaseDetails[i].data.endTime
+              };
             }
+          }
+          parsedResponse = Object.values(parsedResponse);
 
-            dispatch({
-              type: PURCHASES_TYPES.FETCH_PURCHASES,
-              purchases: parsedResponse
-            });
+          dispatch({
+            type: PURCHASES_TYPES.FETCH_PURCHASES,
+            purchases: parsedResponse
           });
         })
         .catch(error => {
@@ -75,11 +86,10 @@ export const PURCHASES_ACTIONS = {
       // Multiply price for streams, use the indicated price for datasets that are a forever-purchase
 
       let purchasePrice;
-      let duration;
       if (endTime === 0) {
         purchasePrice = stream.price;
       } else {
-        duration = moment.duration(moment(endTime).diff(moment()));
+        const duration = moment.duration(moment(endTime).diff(moment()));
         purchasePrice = stream.price * duration;
       }
 
@@ -107,28 +117,26 @@ export const PURCHASES_ACTIONS = {
       ])
         .then(async responses => {
           const deployedTokenContractAddress =
-            responses[0].data.items[0].contractaddress;
-          const spenderAddress = responses[1].data.base.key;
+            responses[0].data.items[0].contractAddress;
+          const spenderAddress = responses[1].data.base.contractAddress;
           const metadataHash = responses[2].data[0].hash;
 
           // Time to approve the tokens
           let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
           let response = await authenticatedAxiosClient.post(url, {
             _spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-            _value: purchasePrice.toString()
+            _value: BigNumber(purchasePrice)
+              .times(BigNumber(10).pow(18))
+              .toString()
           });
           let uuid = response.data.uuid;
-          let receipt = await asyncRetry(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-          console.log(receipt);
+          await asyncRetry(authenticatedAxiosClient, `${url}/${uuid}`);
 
           //Tokens have been allocated - now we can make the purchase!
           url = `/purchaseregistry/purchaseaccess`;
           response = await authenticatedAxiosClient.post(url, {
             _sensor: stream.key,
-            _endtime:
+            _endTime:
               endTime !== 0
                 ? moment(endTime)
                     .unix()
@@ -137,11 +145,7 @@ export const PURCHASES_ACTIONS = {
             _metadata: metadataHash
           });
           uuid = response.data.uuid;
-          receipt = await asyncRetry(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-          console.log(receipt);
+          await asyncRetry(authenticatedAxiosClient, `${url}/${uuid}`);
 
           dispatch({
             type: PURCHASES_TYPES.PURCHASING_ACCESS,

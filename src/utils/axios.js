@@ -3,8 +3,13 @@ import localStorage from '../localstorage';
 
 //Note: I removed cachedToken from boilerplate, not clear what it was used for
 
-export default function getAxios(jwtToken=false, anonymous=false, noAuthorization=false) {
-  if(noAuthorization) //Useful for CORS requests where authorization header is not allowed (such as google maps reverse geocoding)
+export default function getAxios(
+  jwtToken = false,
+  anonymous = false,
+  noAuthorization = false
+) {
+  if (noAuthorization)
+    //Useful for CORS requests where authorization header is not allowed (such as google maps reverse geocoding)
     return axios.create({
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: {}
@@ -13,12 +18,14 @@ export default function getAxios(jwtToken=false, anonymous=false, noAuthorizatio
     return axios.create({
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: {
-        Authorization: localStorage.getItem('jwtToken')?localStorage.getItem('jwtToken'):jwtToken
+        Authorization: localStorage.getItem('jwtToken')
+          ? localStorage.getItem('jwtToken')
+          : jwtToken
       }
     });
-  }
-  else if(anonymous){
-    const anonymousJWTToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRJZCI6IjViNWFmNGM3MzFkNjIzZDViOTViYjY2ZiIsImlhdCI6MTUzMjY4ODEzNX0.yY4ZUTtdplejyPuQugXAXBcQ-pWshbPC2OicBZTZslc";
+  } else if (anonymous) {
+    const anonymousJWTToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRJZCI6IjViNzZhNmU4ODFkZmNlNzVhMzVjOGJkNSIsImlhdCI6MTUzNDc0NzA5MywiZXhwIjoxNTM0ODMzNDkzfQ.tBYLwKlrdsESZjWygXCtZt2qxeljKk50NVv5kOeHpcQ';
     return axios.create({
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: { Authorization: anonymousJWTToken }

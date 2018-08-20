@@ -75,6 +75,7 @@ export function login(values, { props, setSubmitting, setErrors }) {
       const { token, ethereum } = retrieveResponse.data;
       localStorage.setItem('address', ethereum.address);
       localStorage.setItem('email', values.email);
+      localStorage.setItem('jwtToken', token);
 
       dispatch({
         type: TOKEN_RECEIVED,
