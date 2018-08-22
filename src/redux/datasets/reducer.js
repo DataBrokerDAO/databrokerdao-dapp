@@ -11,6 +11,9 @@ export const DEFAULT_STATE = {
     sort: 'asc'
   },
   datasets: {},
+  rows: 10,
+  total: 0,
+  page: 1,
   fetchingDatasets: false,
   availableCategories: [],
   availableFiletypes: [],
@@ -28,6 +31,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case DATASET_TYPES.FETCH_DATASETS: {
       return Immutable.merge(state, {
         datasets: action.datasets,
+        total: action.total,
         fetchingDatasets: false
       });
     }
@@ -62,6 +66,16 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case DATASET_TYPES.FETCHING_CHALLENGES: {
       return Immutable.set(state, 'fetchingChallenges', action.value);
+    }
+    case DATASET_TYPES.UPDATE_CURRENT_PAGE: {
+      return Immutable.merge(state, {
+        page: action.page
+      });
+    }
+    case DATASET_TYPES.UPDATE_ROWS_PER_PAGE: {
+      return Immutable.merge(state, {
+        rows: action.rows
+      });
     }
     default:
       return state;

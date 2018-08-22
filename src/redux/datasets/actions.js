@@ -18,7 +18,9 @@ export const DATASET_TYPES = {
   DATASET_UPDATED_FILTER: 'DATASET_UPDATED_FILTER',
   FETCH_DATASET_COUNTER: 'FETCH_DATASET_COUNTER',
   FETCH_AVAILABLE_CATEGORIES: 'FETCH_AVAILABLE_CATEGORIES',
-  FETCH_AVAILABLE_FILETYPES: 'FETCH_AVAILABLE_FILETYPES'
+  FETCH_AVAILABLE_FILETYPES: 'FETCH_AVAILABLE_FILETYPES',
+  UPDATE_CURRENT_PAGE: 'UPDATE_CURRENT_PAGE',
+  UPDATE_ROWS_PER_PAGE: 'UPDATE_ROWS_PER_PAGE'
 };
 
 export const DATASET_ACTIONS = {
@@ -34,24 +36,28 @@ export const DATASET_ACTIONS = {
       const filter = _filter ? _filter : state.datasets.filter;
 
       // Start with filtering only the datasets
-      let filterUrlQuery = 'sensortype=DATASET&';
+      let filterUrlQuery = 'item.sensortype=DATASET&';
 
       // Filter on category
-      if (filter.categories && filter.categories.length === 1)
-        filterUrlQuery += `category=${filter.categories[0]}`;
+      if (filter.categories && filter.categories.length === 0)
+        filterUrlQuery += `item.category=none`;
+      else if (filter.categories && filter.categories.length === 1)
+        filterUrlQuery += `item.category=${filter.categories[0]}`;
       else
         filterUrlQuery += map(filter.categories, cat => {
-          return `category[]=${cat}`;
+          return `item.category[]=${cat}`;
         }).join('&');
 
       filterUrlQuery += '&';
 
       // Filter on filetype
-      if (filter.filetypes && filter.filetypes.length === 1)
-        filterUrlQuery += `filetype=${filter.filetypes[0]}`;
+      if (filter.filetypes && filter.filetypes.length === 0)
+        filterUrlQuery += `item.filetype=none`;
+      else if (filter.filetypes && filter.filetypes.length === 1)
+        filterUrlQuery += `item.filetype=${filter.filetypes[0]}`;
       else
         filterUrlQuery += map(filter.filetypes, type => {
-          return `filetype[]=${type}`;
+          return `item.filetype[]=${type}`;
         }).join('&');
 
       if (_filter) {
@@ -87,7 +93,8 @@ export const DATASET_ACTIONS = {
 
             dispatch({
               type: DATASET_TYPES.FETCH_DATASETS,
-              datasets: parsedResponse
+              datasets: parsedResponse,
+              total: response.data.total
             });
           })
           .catch(error => {
@@ -181,6 +188,22 @@ export const DATASET_ACTIONS = {
             id: 'energy'
           }
         }
+      });
+    };
+  },
+  updateCurrentPage: currentPage => {
+    return (dispatch, getState) => {
+      dispatch({
+        type: DATASET_TYPES.UPDATE_CURRENT_PAGE,
+        page: currentPage
+      });
+    };
+  },
+  updateRowsPerPage: rowsPerPage => {
+    return (dispatch, getState) => {
+      dispatch({
+        type: DATASET_TYPES.UPDATE_ROWS_PER_PAGE,
+        rows: rowsPerPage
       });
     };
   }

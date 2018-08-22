@@ -29,11 +29,13 @@ const StyledListItem = styled.span`
 `;
 
 class DatasetsList extends Component {
-  handlePagination = (start, limit) => {
+  handlePagination = (start, rowsPerPage, currentPage) => {
+    this.props.updateCurrentPage(currentPage);
+    this.props.updateRowsPerPage(rowsPerPage);
     this.props.fetchDatasets({
       ...this.props.filter,
       start,
-      limit
+      rowsPerPage
     });
   };
 
@@ -85,10 +87,8 @@ class DatasetsList extends Component {
               <DatasetDetails>
                 File type: {dataset.filetype}, Owner stake:{' '}
                 {convertWeiToDtx(dataset.stake)} DTX, Challenges:{' '}
-                {dataset.numberofchallenges} ({convertWeiToDtx(
-                  dataset.challengesstake
-                )}{' '}
-                DTX)
+                {dataset.numberofchallenges} (
+                {convertWeiToDtx(dataset.challengesstake)} DTX)
               </DatasetDetails>
             </div>
           </TableColumn>
@@ -135,8 +135,9 @@ class DatasetsList extends Component {
           <TablePagination
             style={{ marginLeft: 0 }}
             onPagination={this.handlePagination}
-            defaultRowsPerPage={10}
-            rows={size(this.props.datasets)}
+            rowsPerPage={this.props.rows}
+            rows={this.props.total}
+            page={this.props.page}
           />
         </DataTable>
       </StyledList>
@@ -146,16 +147,24 @@ class DatasetsList extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchDatasets: filter => dispatch(DATASET_ACTIONS.fetchDatasets(filter))
+    fetchDatasets: filter => dispatch(DATASET_ACTIONS.fetchDatasets(filter)),
+    updateCurrentPage: currentPage =>
+      dispatch(DATASET_ACTIONS.updateCurrentPage(currentPage)),
+    updateRowsPerPage: rowsPerPage =>
+      dispatch(DATASET_ACTIONS.updateRowsPerPage(rowsPerPage))
   };
 }
 
 const mapStateToProps = state => ({
   datasets: state.datasets.datasets,
   fetchingDatasets: state.datasets.fetchingDatasets,
-  filter: state.datasets.filter
+  filter: state.datasets.filter,
+  total: state.datasets.total,
+  rows: state.datasets.rows,
+  page: state.datasets.page
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  withRouter(DatasetsList)
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withRouter(DatasetsList));

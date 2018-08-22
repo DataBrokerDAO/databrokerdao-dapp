@@ -68,7 +68,9 @@ export const STREAMS_ACTIONS = {
 
       //Filter on type
       const filter = _filter ? _filter : state.streams.filter;
-      if (filter.types && filter.types.length === 1)
+      if (filter.types && filter.types.length === 0)
+        filterUrlQuery = `item.type=none`;
+      else if (filter.types && filter.types.length === 1)
         filterUrlQuery = `item.type=${filter.types[0]}`;
       else
         filterUrlQuery = map(filter.types, type => {

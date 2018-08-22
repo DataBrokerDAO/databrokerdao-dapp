@@ -51,7 +51,7 @@ export const PURCHASES_ACTIONS = {
 
             // Only add purchases if they aren't expired yet
             const endTimeMs = purchaseDetails[i].data.endTime * 1000;
-            if (endTimeMs > moment.now()) {
+            if (!endTimeMs || endTimeMs > moment.now()) {
               parsedResponse[key] = {
                 key,
                 name: sensorDetails[i].data.name,
