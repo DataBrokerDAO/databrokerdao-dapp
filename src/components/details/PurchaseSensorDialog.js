@@ -5,8 +5,6 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import { BigNumber } from 'bignumber.js';
 import { withRouter } from 'react-router-dom';
-import find from 'lodash/find';
-
 import RegisterForm from '../authentication/RegisterForm';
 import TransactionDialog from '../generic/TransactionDialog';
 import { register } from '../../redux/authentication/reducer';
@@ -18,8 +16,7 @@ const STEP_INTRO = 0,
   STEP_CONFIG = 2,
   STEP_PURCHASING = 3,
   STEP_SUCCESS = 4,
-  STEP_BALANCE_ERROR = 5,
-  STEP_PURCHASE_ERROR = 6;
+  STEP_BALANCE_ERROR = 5;
 
 class PurchaseStreamDialog extends Component {
   constructor(props) {
@@ -81,22 +78,12 @@ class PurchaseStreamDialog extends Component {
         this.setState({ stepIndex: STEP_BALANCE_ERROR });
       }
     } else if (step === STEP_PURCHASING) {
-      this.props.fetchPurchases();
-      const predicate = purchase => {
-        return purchase.key === this.props.stream.key;
-      };
-      if (find(this.props.purchases, predicate)) {
-        this.setState({ stepIndex: STEP_SUCCESS });
-      } else {
-        this.setState({ stepIndex: STEP_PURCHASE_ERROR });
-      }
+      this.setState({ stepIndex: STEP_SUCCESS });
     } else if (step === STEP_SUCCESS) {
       this.props.fetchPurchases();
       this.props.hideEventHandler();
     } else if (step === STEP_BALANCE_ERROR) {
       this.props.history.push(`/wallet`);
-    } else if (step === STEP_PURCHASE_ERROR) {
-      // Nothing to do
     }
   }
 
@@ -212,15 +199,6 @@ class PurchaseStreamDialog extends Component {
             blocks that have to be mined before your transaction can be
             confirmed.
           </p>
-        </div>
-        <div
-          style={{
-            display:
-              this.state.stepIndex === STEP_PURCHASE_ERROR ? 'block' : 'none'
-          }}
-        >
-          <h1>Something went wrong with your purchase</h1>
-          <p>Either refresh your page or make the purchase again.</p>
         </div>
         <div
           style={{

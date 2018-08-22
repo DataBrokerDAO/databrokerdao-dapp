@@ -1,5 +1,5 @@
 import axios from '../../utils/axios';
-import { asyncRetry } from '../../utils/async';
+import { transactionReceipt } from '../../utils/wait-for-it';
 
 export const WALLET_TYPES = {
   FETCH_WALLET: 'FETCH_WALLET',
@@ -46,7 +46,7 @@ export const WALLET_ACTIONS = {
         });
 
         let uuid = response.data.uuid;
-        let receipt = await asyncRetry(
+        let receipt = await transactionReceipt(
           authenticatedAxiosClient,
           `${url}/${uuid}`
         );

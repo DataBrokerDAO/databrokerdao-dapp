@@ -2,7 +2,7 @@ import axios from '../../utils/axios';
 import moment from 'moment';
 import { BigNumber } from 'bignumber.js';
 import localStorage from '../../localstorage';
-import { asyncRetry } from '../../utils/async';
+import { transactionReceipt, sensorPurchase } from '../../utils/wait-for-it';
 
 export const PURCHASES_TYPES = {
   FETCH_PURCHASES: 'FETCH_PURCHASES',
@@ -130,7 +130,7 @@ export const PURCHASES_ACTIONS = {
               .toString()
           });
           let uuid = response.data.uuid;
-          await asyncRetry(authenticatedAxiosClient, `${url}/${uuid}`);
+          await transactionReceipt(authenticatedAxiosClient, `${url}/${uuid}`);
 
           //Tokens have been allocated - now we can make the purchase!
           url = `/purchaseregistry/purchaseaccess`;
@@ -145,7 +145,12 @@ export const PURCHASES_ACTIONS = {
             _metadata: metadataHash
           });
           uuid = response.data.uuid;
-          await asyncRetry(authenticatedAxiosClient, `${url}/${uuid}`);
+          await transactionReceipt(authenticatedAxiosClient, `${url}/${uuid}`);
+
+          // Await for the purchase to be synced before dispatching we're done
+          const email = localStorage.getItem('email');
+          const sensor = stream.key;
+          await sensorPurchase(authenticatedAxiosClient, sensor, email);
 
           dispatch({
             type: PURCHASES_TYPES.PURCHASING_ACCESS,

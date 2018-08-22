@@ -2,7 +2,7 @@ import each from 'lodash/each';
 import axios from '../../utils/axios';
 import { BigNumber } from 'bignumber.js';
 import localStorage from '../../localstorage';
-import { asyncRetry } from '../../utils/async';
+import { transactionReceipt } from '../../utils/wait-for-it';
 
 export const LISTING_TYPES = {
   FETCH_LISTINGS: 'FETCH_LISTINGS',
@@ -97,7 +97,7 @@ export const LISTING_ACTIONS = {
               .toString()
           });
           let uuid = response.data.uuid;
-          let receipt = await asyncRetry(
+          let receipt = await transactionReceipt(
             authenticatedAxiosClient,
             `${url}/${uuid}`
           );
@@ -117,7 +117,7 @@ export const LISTING_ACTIONS = {
             }
           );
           uuid = response.data.uuid;
-          receipt = await asyncRetry(
+          receipt = await transactionReceipt(
             authenticatedAxiosClient,
             `${url}/${uuid}`
           );

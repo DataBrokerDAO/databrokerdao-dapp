@@ -3,7 +3,7 @@ import find from 'lodash/find';
 import map from 'lodash/map';
 import axios from '../../utils/axios';
 import { fetchSensors } from '../../api/sensors';
-import { asyncRetry } from '../../utils/async';
+import { transactionReceipt } from '../../utils/wait-for-it';
 
 const APIKey = 'AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
 
@@ -462,7 +462,7 @@ export const STREAMS_ACTIONS = {
             _value: amount.toString()
           });
           let uuid = response.data.uuid;
-          let receipt = await asyncRetry(
+          let receipt = await transactionReceipt(
             authenticatedAxiosClient,
             `${url}/${uuid}`
           );
@@ -476,7 +476,7 @@ export const STREAMS_ACTIONS = {
             _metadata: metadataHash
           });
           uuid = response.data.uuid;
-          receipt = await asyncRetry(
+          receipt = await transactionReceipt(
             authenticatedAxiosClient,
             `${url}/${uuid}`
           );
