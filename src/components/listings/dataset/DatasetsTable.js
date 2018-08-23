@@ -13,7 +13,10 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
-import { LISTING_ACTIONS, LISTING_TYPES } from '../../redux/listings/actions';
+import {
+  LISTING_ACTIONS,
+  LISTING_TYPES
+} from '../../../redux/listings/actions';
 
 const StyledListItem = styled.span`
   cursor: pointer;

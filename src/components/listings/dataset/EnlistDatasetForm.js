@@ -4,43 +4,60 @@ import Yup from 'yup';
 import styled from 'styled-components';
 import { Button } from 'react-md';
 
-import EnhancedTextField from '../generic/EnhancedTextField';
-import EnhancedTextArea from '../generic/EnhancedTextArea';
-import EnhancedSelectField from '../generic/EnhancedSelectField';
-import EnlistConfirmationDialog from './EnlistConfirmationDialog';
+import EnhancedTextField from '../../generic/EnhancedTextField';
+import EnhancedTextArea from '../../generic/EnhancedTextArea';
+import EnhancedSelectField from '../../generic/EnhancedSelectField';
+import EnlistDatasetConfirmationDialog from './EnlistDatasetConfirmationDialog';
+import moment from 'moment';
 
 export default class EnlistForm extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      ConfirmationDialogVisible: false
+      DatasetConfirmationDialogVisible: false
     };
   }
 
   toggleConfirmationDialog() {
     this.setState({
-      ConfirmationDialogVisible: !this.state.ConfirmationDialogVisible
+      DatasetConfirmationDialogVisible: !this.state
+        .DatasetConfirmationDialogVisible
     });
   }
 
   render() {
-    const streamTypes = [
+    const datasetCategories = [
       {
-        label: 'Temperature',
-        value: 'temperature'
+        label: 'Health',
+        value: 'health'
       },
       {
-        label: 'Humidity',
-        value: 'humidity'
+        label: 'Energy',
+        value: 'energy'
       },
       {
-        label: 'PM2.5',
-        value: 'PM25'
+        label: 'Agriculture',
+        value: 'agriculture'
       },
       {
-        label: 'PM10',
-        value: 'PM10'
+        label: 'Environment',
+        value: 'environment'
+      }
+    ];
+
+    const datasetFiletypes = [
+      {
+        label: 'CSV',
+        value: 'csv'
+      },
+      {
+        label: 'JSON',
+        value: 'json'
+      },
+      {
+        label: 'XLS',
+        value: 'xls'
       }
     ];
 
@@ -75,7 +92,7 @@ export default class EnlistForm extends Component {
               <EnhancedTextField
                 id="name"
                 fieldname="name"
-                label="Stream name"
+                label="Name"
                 className="md-cell md-cell--bottom"
                 onChange={setFieldValue}
                 onBlur={setFieldTouched}
@@ -87,11 +104,27 @@ export default class EnlistForm extends Component {
             <StyledColumn>
               <EnhancedSelectField
                 id="type"
-                fieldname="type"
-                label="Stream type"
+                fieldname="category"
+                label="Category"
                 className="md-cell"
                 onChange={setFieldValue}
-                menuItems={streamTypes}
+                menuItems={datasetCategories}
+                simplifiedMenu={true}
+                onBlur={setFieldTouched}
+                style={{ width: '100%', paddingTop: '3px' }}
+                error={errors.type}
+                touched={touched.type}
+                valueInState={true}
+              />
+            </StyledColumn>
+            <StyledColumn>
+              <EnhancedSelectField
+                id="type"
+                fieldname="filetype"
+                label="Filetype"
+                className="md-cell"
+                onChange={setFieldValue}
+                menuItems={datasetFiletypes}
                 simplifiedMenu={true}
                 onBlur={setFieldTouched}
                 style={{ width: '100%', paddingTop: '3px' }}
@@ -102,48 +135,9 @@ export default class EnlistForm extends Component {
             </StyledColumn>
             <StyledColumn>
               <EnhancedTextField
-                id="lat"
-                fieldname="lat"
-                label="Latitude"
-                className="md-cell md-cell--bottom"
-                onChange={setFieldValue}
-                onBlur={setFieldTouched}
-                error={errors.lat}
-                touched={touched.lat}
-                style={{ width: '100%' }}
-              />
-            </StyledColumn>
-            <StyledColumn>
-              <EnhancedTextField
-                id="lng"
-                fieldname="lng"
-                label="Longitude"
-                className="md-cell md-cell--bottom"
-                onChange={setFieldValue}
-                onBlur={setFieldTouched}
-                error={errors.lng}
-                touched={touched.lng}
-                style={{ width: '100%' }}
-              />
-            </StyledColumn>
-            <StyledColumn>
-              <EnhancedTextField
-                id="updateinterval"
-                fieldname="updateinterval"
-                label="Update interval (seconds)"
-                className="md-cell md-cell--bottom"
-                onChange={setFieldValue}
-                onBlur={setFieldTouched}
-                error={errors.updateinterval}
-                touched={touched.updateinterval}
-                style={{ width: '100%' }}
-              />
-            </StyledColumn>
-            <StyledColumn>
-              <EnhancedTextField
                 id="price"
                 fieldname="price"
-                label="Price per second (DTX)"
+                label="Price (DTX)"
                 className="md-cell md-cell--bottom"
                 onChange={setFieldValue}
                 onBlur={setFieldTouched}
@@ -162,6 +156,19 @@ export default class EnlistForm extends Component {
                 onBlur={setFieldTouched}
                 error={errors.stake}
                 touched={touched.stake}
+                style={{ width: '100%' }}
+              />
+            </StyledColumn>
+            <StyledColumn>
+              <EnhancedTextField
+                id="url"
+                fieldname="url"
+                label="Download Url"
+                className="md-cell md-cell--bottom"
+                onChange={setFieldValue}
+                onBlur={setFieldTouched}
+                error={errors.name}
+                touched={touched.name}
                 style={{ width: '100%' }}
               />
             </StyledColumn>
@@ -196,10 +203,10 @@ export default class EnlistForm extends Component {
               </Button>
             </StyledColumn>
           </StyledForm>
-          {this.state.stream && (
-            <EnlistConfirmationDialog
-              visible={this.state.ConfirmationDialogVisible}
-              stream={this.state.stream}
+          {this.state.dataset && (
+            <EnlistDatasetConfirmationDialog
+              visible={this.state.DatasetConfirmationDialogVisible}
+              dataset={this.state.dataset}
               hideEventHandler={() => this.toggleConfirmationDialog()}
             />
           )}
@@ -210,27 +217,18 @@ export default class EnlistForm extends Component {
     const EnhancedForm = withFormik({
       mapPropsToValues: () => ({
         name: '',
-        lat: '',
-        lng: '',
-        type: '',
+        category: '',
+        filetype: '',
         example: '',
-        updateinterval: '',
         price: '',
         stake: ''
       }),
       validationSchema: Yup.object().shape({
         name: Yup.string().required('Stream name is required'),
-        type: Yup.string().required('Type is required'),
-        lat: Yup.number()
-          .typeError('Latitude must be a number')
-          .required('Latitude is required'),
-        lng: Yup.number()
-          .typeError('Longitude must be a number')
-          .required('Longitude is required'),
+        category: Yup.string().required('Category is required'),
+        filetype: Yup.string().required('Filetype is required'),
+        url: Yup.string().required('Download url is required'),
         example: Yup.string().required('Example is required'),
-        updateinterval: Yup.number()
-          .typeError('Update must be a number')
-          .required('Update interval is required'),
         price: Yup.number()
           .typeError('Price must be a number')
           .required('Price is required'),
@@ -241,13 +239,19 @@ export default class EnlistForm extends Component {
       handleSubmit: (values, { setSubmitting }) => {
         setSubmitting(false);
         this.setState({
-          stream: {
+          dataset: {
             name: values.name,
-            type: values.type,
-            lat: values.lat,
-            lng: values.lng,
+            category: values.category,
+            filetype: values.filetype,
+            sensorid: [
+              values.name,
+              values.category,
+              values.filetype,
+              moment.now()
+            ].join('_'),
+            sensortype: 'DATASET',
+            url: values.url,
             example: values.example,
-            updateinterval: values.updateinterval,
             price: values.price,
             stake: values.stake
           }

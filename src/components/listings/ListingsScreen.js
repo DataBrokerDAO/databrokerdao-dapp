@@ -6,12 +6,15 @@ import CenteredCard from '../generic/CenteredCard';
 import CardContent from '../generic/CardContent';
 import ToolbarSpacer from '../generic/ToolbarSpacer';
 import TitleCTAButton from '../generic/TitleCTAButton';
-import StreamsTable from './StreamsTable';
-import DatasetsTable from './DatasetsTable';
+import StreamsTable from './stream/StreamsTable';
+import DatasetsTable from './dataset/DatasetsTable';
 
 export default class ListingsScreen extends Component {
   onEnlistStreamClicked() {
-    this.props.history.push(`/enlist`);
+    this.props.history.push(`/stream/enlist`);
+  }
+  onEnlistDatasetClicked() {
+    this.props.history.push(`/dataset/enlist`);
   }
 
   render() {
@@ -52,7 +55,7 @@ export default class ListingsScreen extends Component {
                 flat
                 primary
                 swapTheming
-                onClick={event => this.onEnlistPurchaseClicked()}
+                onClick={event => this.onEnlistDatasetClicked()}
               >
                 Enlist dataset
               </TitleCTAButton>
