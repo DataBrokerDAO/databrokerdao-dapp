@@ -10,7 +10,7 @@ export async function sensorPurchase(authenticatedAxiosClient, sensor, email) {
         const purchases = response.data.items;
         for (let i = 0; i < purchases.length; i++) {
           if (purchases[i].sensor === sensor) {
-            return true;
+            return purchases[i];
           }
         }
       } else {

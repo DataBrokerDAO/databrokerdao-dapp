@@ -180,7 +180,12 @@ export const PURCHASES_ACTIONS = {
           // Await for the purchase to be synced before dispatching we're done
           const email = localStorage.getItem('email');
           const sensor = stream.key;
-          await sensorPurchase(authenticatedAxiosClient, sensor, email);
+          const purchase = await sensorPurchase(
+            authenticatedAxiosClient,
+            sensor,
+            email
+          );
+          console.log(purchase);
 
           dispatch({
             type: PURCHASES_TYPES.PURCHASING_ACCESS,

@@ -5,24 +5,42 @@ import localStorage from '../../localstorage';
 import { transactionReceipt } from '../../utils/wait-for-it';
 
 export const LISTING_TYPES = {
-  FETCH_LISTINGS: 'FETCH_LISTINGS',
-  FETCHING_LISTINGS: 'FETCHING_LISTINGS',
-  ENLISTING_STREAM: 'ENLISTING_STREAM'
+  FETCHING_STREAM_LISTINGS: 'FETCHING_STREAM_LISTINGS',
+  FETCHED_STREAM_LISTINGS: 'FETCHED_STREAM_LISTINGS',
+  ENLISTING_STREAM: 'ENLISTING_STREAM',
+  FETCHING_DATASET_LISTINGS: 'FETCHING_DATASET_LISTINGS',
+  FETCHED_DATASET_LISTINGS: 'FETCHED_DATASET_LISTINGS',
+  ENLISTING_DATASET: 'ENLISTING_DATASET',
+  UPDATE_CURRENT_PAGE_DATASETS: 'UPDATE_CURRENT_PAGE_DATASETS',
+  UPDATE_CURRENT_PAGE_STREAMS: 'UPDATE_CURRENT_PAGE_STREAMS',
+  UPDATE_ROWS_PER_PAGE_DATASETS: 'UPDATE_ROWS_PER_PAGE_DATASETS',
+  UPDATE_ROWS_PER_PAGE_STREAMS: 'UPDATE_ROWS_PER_PAGE_STREAMS'
 };
 
 export const LISTING_ACTIONS = {
-  fetchListings: () => {
+  fetchListings: (skip = 0, limit = 10, endTime = null) => {
+    const sensortype = endTime === 0 ? 'DATASET' : '!DATASET';
+
     return (dispatch, getState) => {
-      dispatch({
-        type: LISTING_TYPES.FETCHING_LISTINGS,
-        value: true
-      });
+      if (endTime === 0) {
+        dispatch({
+          type: LISTING_TYPES.FETCHING_DATASET_LISTINGS,
+          value: true
+        });
+      } else {
+        dispatch({
+          type: LISTING_TYPES.FETCHING_STREAM_LISTINGS,
+          value: true
+        });
+      }
 
       const authenticatedAxiosClient = axios(null, true);
 
       const address = localStorage.getItem('address');
       authenticatedAxiosClient
-        .get(`/sensorregistry/list?limit=10&item.owner=~${address}`)
+        .get(
+          `/sensorregistry/list?skip=${skip}&limit=${limit}&item.sensortype=${sensortype}&item.owner=~${address}`
+        )
         .then(response => {
           const listings = response.data.items;
 
@@ -32,14 +50,25 @@ export const LISTING_ACTIONS = {
               key: listing.key,
               name: listing.name,
               type: listing.type,
+              filetype: listing.filetype,
+              category: listing.category,
               updateinterval: listing.updateinterval
             });
           });
 
-          dispatch({
-            type: LISTING_TYPES.FETCH_LISTINGS,
-            listings: parsedResponse
-          });
+          if (endTime === 0) {
+            dispatch({
+              type: LISTING_TYPES.FETCHED_DATASET_LISTINGS,
+              datasets: parsedResponse,
+              total: response.data.total
+            });
+          } else {
+            dispatch({
+              type: LISTING_TYPES.FETCHED_STREAM_LISTINGS,
+              streams: parsedResponse,
+              total: response.data.total
+            });
+          }
         })
         .catch(error => {
           console.log(error);
@@ -121,7 +150,6 @@ export const LISTING_ACTIONS = {
             authenticatedAxiosClient,
             `${url}/${uuid}`
           );
-          console.log(receipt);
 
           dispatch({
             type: LISTING_TYPES.ENLISTING_STREAM,
@@ -131,6 +159,16 @@ export const LISTING_ACTIONS = {
           console.log('Failed enlisting with error: ', error);
         }
       });
+    };
+  },
+  updateCurrentPage: (type, page) => {
+    return (dispatch, getState) => {
+      dispatch({ type, page });
+    };
+  },
+  updateRowsPerPage: (type, rows) => {
+    return (dispatch, getState) => {
+      dispatch({ type, rows });
     };
   }
 };

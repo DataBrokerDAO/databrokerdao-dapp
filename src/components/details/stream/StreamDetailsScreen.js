@@ -10,6 +10,7 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import find from 'lodash/find';
+import merge from 'lodash/merge';
 import moment from 'moment';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
@@ -366,8 +367,9 @@ function mapStateToProps(state, ownProps) {
   return {
     stream: state.streams.streams[ownProps.match.params.key],
     availableStreamTypes: state.streams.availableStreamTypes,
-    purchases: state.purchases.purchases,
-    fetchingPurchases: state.purchases.fetchingPurchases,
+    purchases: merge(state.purchases.streams, state.purchases.datasets),
+    fetchingPurchases:
+      state.purchases.fetchingStreams || state.purchases.fetchingDatasets,
     token: state.auth.token, //Used to verify if a user is signed in, if not we don't have to get purchases from API
     nearbyStreams: state.streams.nearbyStreams,
     formattedAddress: state.streams.formattedAddress

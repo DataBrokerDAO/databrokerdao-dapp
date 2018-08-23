@@ -13,10 +13,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
-import {
-  PURCHASES_ACTIONS,
-  PURCHASES_TYPES
-} from '../../redux/purchases/actions';
+import { LISTING_ACTIONS, LISTING_TYPES } from '../../redux/listings/actions';
 
 const StyledListItem = styled.span`
   cursor: pointer;
@@ -43,13 +40,13 @@ class DatasetsTable extends Component {
   }
 
   componentDidMount() {
-    if (this.props.token) this.props.fetchPurchases(0, 10, 0);
+    if (this.props.token) this.props.fetchDatasetListings(0, 10, 0);
   }
 
   handlePagination = (start, rowsPerPage, currentPage) => {
     this.props.updateCurrentPage(currentPage);
     this.props.updateRowsPerPage(rowsPerPage);
-    this.props.fetchPurchases(start, rowsPerPage, 0);
+    this.props.fetchDatasetListings(start, rowsPerPage, 0);
   };
 
   onViewDatasetDetails(dataset) {
@@ -62,9 +59,7 @@ class DatasetsTable extends Component {
     }
 
     if (this.props.datasets.length === 0) {
-      return (
-        <p>When you purchase access to a dataset, it will be listed here.</p>
-      );
+      return <p />;
     }
 
     return (
@@ -80,7 +75,7 @@ class DatasetsTable extends Component {
           {this.renderDatasetListItems(this.props.datasets)}
         </TableBody>
         <TablePagination
-          visible={!this.state.fetchingDatasets}
+          visible={!this.state.fetchingDatasetListings}
           style={{ marginLeft: 0 }}
           onPagination={this.handlePagination}
           rowsPerPage={this.props.rowsDatasets}
@@ -106,7 +101,7 @@ class DatasetsTable extends Component {
       </StyledTableRow>
     ));
 
-    if (this.props.fetchingDatasets)
+    if (this.props.fetchingDatasetListings)
       return (
         <StyledListItem className="disabled">Loading datasets</StyledListItem>
       );
@@ -118,19 +113,19 @@ class DatasetsTable extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchPurchases: (skip, limit, endTime) =>
-      dispatch(PURCHASES_ACTIONS.fetchPurchases(skip, limit, endTime)),
+    fetchDatasetListings: (skip, limit, endTime) =>
+      dispatch(LISTING_ACTIONS.fetchListings(skip, limit, endTime)),
     updateCurrentPage: currentPage =>
       dispatch(
-        PURCHASES_ACTIONS.updateCurrentPage(
-          PURCHASES_TYPES.UPDATE_CURRENT_PAGE_DATASETS,
+        LISTING_ACTIONS.updateCurrentPage(
+          LISTING_TYPES.UPDATE_CURRENT_PAGE_DATASETS,
           currentPage
         )
       ),
     updateRowsPerPage: rowsPerPage =>
       dispatch(
-        PURCHASES_ACTIONS.updateRowsPerPage(
-          PURCHASES_TYPES.UPDATE_CURRENT_PAGE_DATASETS,
+        LISTING_ACTIONS.updateRowsPerPage(
+          LISTING_TYPES.UPDATE_ROWS_PER_PAGE_DATASETS,
           rowsPerPage
         )
       )
@@ -138,12 +133,12 @@ function mapDispatchToProps(dispatch) {
 }
 
 const mapStateToProps = state => ({
-  datasets: state.purchases.datasets,
-  fetchingDatasets: state.purchases.fetchingDatasets,
+  datasets: state.listings.datasets,
+  fetchingDatasetListings: state.listings.fetchingDatasetListings,
   token: state.auth.token, //Used to verify if a user is signed in, if not we don't have to get purchases from API
-  totalDatasets: state.purchases.totalDatasets,
-  rowsDatasets: state.purchases.rowsDatasets,
-  pageDatasets: state.purchases.pageDatasets
+  totalDatasets: state.listings.totalDatasets,
+  rowsDatasets: state.listings.rowsDatasets,
+  pageDatasets: state.listings.pageDatasets
 });
 
 export default connect(
