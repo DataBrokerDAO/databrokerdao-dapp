@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import size from 'lodash/size';
 import map from 'lodash/map';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';

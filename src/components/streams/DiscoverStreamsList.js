@@ -72,10 +72,8 @@ class DiscoverStreamsList extends Component {
             <StreamName>{stream.name}</StreamName>
             <StakeDetails>
               Stake: {this.convertWeiToDtx(stream.stake)}, Challenges:{' '}
-              {stream.numberofchallenges} ({this.convertWeiToDtx(
-                stream.challengesstake
-              )}{' '}
-              DTX)
+              {stream.numberofchallenges} (
+              {this.convertWeiToDtx(stream.challengesstake)} DTX)
             </StakeDetails>
           </div>
         </StyledListItem>
@@ -84,7 +82,7 @@ class DiscoverStreamsList extends Component {
 
     if (this.props.fetchingStreams)
       return (
-        <StyledListItem className="disabled">loading streams</StyledListItem>
+        <StyledListItem className="disabled">loading streams...</StyledListItem>
       );
     else if (listItems.length > 0) return listItems;
     else
@@ -110,4 +108,7 @@ const mapStateToProps = state => ({
   fetchingStreams: state.streams.fetchingStreams
 });
 
-export default connect(mapStateToProps, null)(withRouter(DiscoverStreamsList));
+export default connect(
+  mapStateToProps,
+  null
+)(withRouter(DiscoverStreamsList));

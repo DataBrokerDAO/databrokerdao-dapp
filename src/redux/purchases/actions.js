@@ -5,19 +5,37 @@ import localStorage from '../../localstorage';
 import { transactionReceipt, sensorPurchase } from '../../utils/wait-for-it';
 
 export const PURCHASES_TYPES = {
-  FETCH_PURCHASES: 'FETCH_PURCHASES',
-  FETCHING_PURCHASES: 'FETCHING_PURCHASES',
+  FETCHING_DATASETS: 'FETCHING_DATASETS',
+  FETCHING_STREAMS: 'FETCHING_STREAMS',
+  FETCHED_DATASETS: 'FETCHED_DATASETS',
+  FETCHED_STREAMS: 'FETCHED_STREAMS',
   PURCHASE_ACCESS: 'PURCHASE_ACCESS',
-  PURCHASING_ACCESS: 'PURCHASING_ACCESS'
+  PURCHASING_ACCESS: 'PURCHASING_ACCESS',
+  UPDATE_CURRENT_PAGE_DATASETS: 'UPDATE_CURRENT_PAGE_DATASETS',
+  UPDATE_CURRENT_PAGE_STREAMS: 'UPDATE_CURRENT_PAGE_STREAMS',
+  UPDATE_ROWS_PER_PAGE_DATASETS: 'UPDATE_ROWS_PER_PAGE_DATASETS',
+  UPDATE_ROWS_PER_PAGE_STREAMS: 'UPDATE_ROWS_PER_PAGE_STREAMS'
 };
 
 export const PURCHASES_ACTIONS = {
-  fetchPurchases: () => {
+  fetchPurchases: (skip = 0, limit = 10, endTime = null) => {
+    if (endTime === null) {
+      const ts = Math.ceil(moment.now() / 1000);
+      endTime = `>${ts}`;
+    }
+
     return (dispatch, getState) => {
-      dispatch({
-        type: PURCHASES_TYPES.FETCHING_PURCHASES,
-        value: true
-      });
+      if (endTime === 0) {
+        dispatch({
+          type: PURCHASES_TYPES.FETCHING_DATASETS,
+          value: true
+        });
+      } else {
+        dispatch({
+          type: PURCHASES_TYPES.FETCHING_STREAMS,
+          value: true
+        });
+      }
 
       const authenticatedAxiosClient = axios(null, true);
 
@@ -33,7 +51,9 @@ export const PURCHASES_ACTIONS = {
 
       const email = localStorage.getItem('email');
       authenticatedAxiosClient
-        .get(`/purchaseregistry/list?item.email=${email}`)
+        .get(
+          `/purchaseregistry/list?item.email=${email}&skip=${skip}&limit=${limit}&item.endTime=${endTime}`
+        )
         .then(async response => {
           const purchases = response.data.items;
 
@@ -43,31 +63,41 @@ export const PURCHASES_ACTIONS = {
           const sensorDetailCalls = purchases.map(getSensorDetails);
           const sensorDetails = await Promise.all(sensorDetailCalls);
 
-          // Store the parsed responses in a dictionary to ensure a distinct set of keys,
-          // duplicate purchases should never be possible but it might due to race conditions
-          let parsedResponse = {};
+          // Warning: do not store the parsed response in a dict,
+          // it breaks paging
+          let parsedResponse = [];
           for (let i = 0; i < purchases.length; i++) {
             const key = sensorDetails[i].data.contractAddress;
 
             // Only add purchases if they aren't expired yet
             const endTimeMs = purchaseDetails[i].data.endTime * 1000;
             if (!endTimeMs || endTimeMs > moment.now()) {
-              parsedResponse[key] = {
+              parsedResponse.push({
                 key,
                 name: sensorDetails[i].data.name,
                 type: sensorDetails[i].data.type,
+                filetype: sensorDetails[i].data.filetype,
+                category: sensorDetails[i].data.category,
                 updateinterval: sensorDetails[i].data.updateinterval,
                 sensortype: purchaseDetails[i].data.sensortype,
                 endTime: purchaseDetails[i].data.endTime
-              };
+              });
             }
           }
-          parsedResponse = Object.values(parsedResponse);
 
-          dispatch({
-            type: PURCHASES_TYPES.FETCH_PURCHASES,
-            purchases: parsedResponse
-          });
+          if (endTime === 0) {
+            dispatch({
+              type: PURCHASES_TYPES.FETCHED_DATASETS,
+              datasets: parsedResponse,
+              total: response.data.total
+            });
+          } else {
+            dispatch({
+              type: PURCHASES_TYPES.FETCHED_STREAMS,
+              streams: parsedResponse,
+              total: response.data.total
+            });
+          }
         })
         .catch(error => {
           console.log(error);
@@ -160,6 +190,16 @@ export const PURCHASES_ACTIONS = {
         .catch(error => {
           console.log(error);
         });
+    };
+  },
+  updateCurrentPage: (type, page) => {
+    return (dispatch, getState) => {
+      dispatch({ type, page });
+    };
+  },
+  updateRowsPerPage: (type, rows) => {
+    return (dispatch, getState) => {
+      dispatch({ type, rows });
     };
   }
 };

@@ -6,7 +6,9 @@ import Toolbar from '../generic/Toolbar';
 import CenteredCard from '../generic/CenteredCard';
 import CardContent from '../generic/CardContent';
 import ToolbarSpacer from '../generic/ToolbarSpacer';
-import PurchasesTable from './PurchasesTable';
+import StreamsTable from './StreamsTable';
+import DatasetsTable from './DatasetsTable';
+
 // import DeliveryExplainerDialog from './DeliveryExplainerDialog';
 
 export default class PurchasesScreen extends Component {
@@ -31,7 +33,7 @@ export default class PurchasesScreen extends Component {
         <ToolbarSpacer />
         <CenteredCard>
           <CardContent>
-            <h1>
+            <h1 style={{ 'margin-bottom': '30px' }}>
               Purchases{' '}
               {/*<span
                 className="clickable"
@@ -43,7 +45,10 @@ export default class PurchasesScreen extends Component {
                 />
               </span>*/}
             </h1>
-            <PurchasesTable />
+            <h2>Streams</h2>
+            <StreamsTable />
+            <h2>Datasets</h2>
+            <DatasetsTable />
           </CardContent>
         </CenteredCard>
         {/*<DeliveryExplainerDialog

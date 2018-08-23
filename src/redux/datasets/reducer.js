@@ -11,16 +11,16 @@ export const DEFAULT_STATE = {
     sort: 'asc'
   },
   datasets: {},
-  rows: 10,
-  total: 0,
-  page: 1,
   fetchingDatasets: false,
   availableCategories: [],
   availableFiletypes: [],
   fetchDatasetCounter: 0,
   challengingDataset: false,
   challenges: [],
-  fetchingChallenges: false
+  fetchingChallenges: false,
+  rows: 10,
+  total: 0,
+  page: 1
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
