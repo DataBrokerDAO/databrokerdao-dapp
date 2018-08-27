@@ -20,14 +20,8 @@ import {
   PURCHASES_TYPES
 } from '../../redux/purchases/actions';
 
-const StyledListItem = styled.span`
-  cursor: pointer;
-  border-top: 1px solid #e0e0e0;
-  margin: 0;
-
-  &:first-child {
-    border: none;
-  }
+const StyledParagraph = styled.p`
+  padding: 24px 24px 24px 0px;
 `;
 
 const LeftTableColumn = styled(TableColumn)`
@@ -69,12 +63,14 @@ class StreamsTable extends Component {
 
   render() {
     if (this.props.fetchingStreams && this.props.streams.length === 0) {
-      return <p>Loading streams...</p>;
+      return <StyledParagraph>Loading streams...</StyledParagraph>;
     }
 
     if (this.props.streams.length === 0) {
       return (
-        <p>When you purchase access to a stream, it will be listed here.</p>
+        <StyledParagraph>
+          When you purchase access to a stream, it will be listed here.
+        </StyledParagraph>
       );
     }
 
@@ -136,13 +132,7 @@ class StreamsTable extends Component {
       </StyledTableRow>
     ));
 
-    if (this.props.fetchingStreams)
-      return (
-        <StyledListItem className="disabled">Loading streams...</StyledListItem>
-      );
-    else if (listItems.length > 0) return listItems;
-    else
-      return <StyledListItem className="disabled">No streams</StyledListItem>;
+    if (listItems.length > 0) return listItems;
   }
 }
 

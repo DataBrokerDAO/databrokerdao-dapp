@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { TabsContainer, Tabs, Tab } from 'react-md';
 import Toolbar from '../generic/Toolbar';
 import CenteredCard from '../generic/CenteredCard';
 import CardContent from '../generic/CardContent';
@@ -14,28 +15,19 @@ export default class PurchasesScreen extends Component {
         <ToolbarSpacer />
         <CenteredCard>
           <CardContent>
-            <h1 style={{ 'margin-bottom': '30px' }}>
-              Purchases{' '}
-              {/*<span
-                className="clickable"
-                onClick={event => this.toggleDeliveryExplainer()}
-              >
-                <FontAwesomeIcon
-                  icon={faQuestionCircle}
-                  style={{ marginLeft: '4px' }}
-                />
-              </span>*/}
-            </h1>
-            <h2>Streams</h2>
-            <StreamsTable />
-            <h2 style={{ 'margin-top': '20px' }}>Datasets</h2>
-            <DatasetsTable />
+            <h1 style={{ 'margin-bottom': '30px' }}>Purchases</h1>
+            <TabsContainer>
+              <Tabs inactiveTabClassName="md-text--secondary">
+                <Tab id="tab-streams" label="Streams">
+                  <StreamsTable />
+                </Tab>
+                <Tab id="tab-datasets" label="Datasets">
+                  <DatasetsTable />
+                </Tab>
+              </Tabs>
+            </TabsContainer>
           </CardContent>
         </CenteredCard>
-        {/*<DeliveryExplainerDialog
-          visible={this.state.DeliveryExplainerVisible}
-          hideEventHandler={() => this.toggleDeliveryExplainer()}
-        />*/}
       </div>
     );
   }

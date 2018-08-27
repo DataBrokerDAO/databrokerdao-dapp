@@ -19,14 +19,8 @@ import {
   LISTING_TYPES
 } from '../../../redux/listings/actions';
 
-const StyledListItem = styled.span`
-  cursor: pointer;
-  border-top: 1px solid #e0e0e0;
-  margin: 0;
-
-  &:first-child {
-    border: none;
-  }
+const StyledParagraph = styled.p`
+  padding: 24px 24px 24px 0px;
 `;
 
 const LeftTableColumn = styled(TableColumn)`
@@ -64,11 +58,15 @@ class StreamsTable extends Component {
 
   render() {
     if (this.props.fetchingStreams && this.props.streams.length === 0) {
-      return <p>Loading streams...</p>;
+      return <StyledParagraph>Loading streams...</StyledParagraph>;
     }
 
     if (this.props.streams.length === 0) {
-      return <p />;
+      return (
+        <StyledParagraph>
+          Earn money by selling access to your data streams.
+        </StyledParagraph>
+      );
     }
 
     return (
@@ -113,13 +111,7 @@ class StreamsTable extends Component {
       </StyledTableRow>
     ));
 
-    if (this.props.fetchingStreamListings)
-      return (
-        <StyledListItem className="disabled">Loading streams...</StyledListItem>
-      );
-    else if (listItems.length > 0) return listItems;
-    else
-      return <StyledListItem className="disabled">No streams</StyledListItem>;
+    return listItems;
   }
 }
 

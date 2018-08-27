@@ -11,21 +11,13 @@ import map from 'lodash/map';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import FontAwesomeIcon from '@fortawesome/react-fontawesome';
-import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
 import {
   PURCHASES_ACTIONS,
   PURCHASES_TYPES
 } from '../../redux/purchases/actions';
 
-const StyledListItem = styled.span`
-  cursor: pointer;
-  border-top: 1px solid #e0e0e0;
-  margin: 0;
-
-  &:first-child {
-    border: none;
-  }
+const StyledParagraph = styled.p`
+  padding: 24px 24px 24px 0px;
 `;
 
 const LeftTableColumn = styled(TableColumn)`
@@ -58,12 +50,14 @@ class DatasetsTable extends Component {
 
   render() {
     if (this.props.fetchingDatasets && this.props.datasets.length === 0) {
-      return <p>Loading datasets...</p>;
+      return <StyledParagraph>Loading datasets...</StyledParagraph>;
     }
 
     if (this.props.datasets.length === 0) {
       return (
-        <p>When you purchase access to a dataset, it will be listed here.</p>
+        <StyledParagraph>
+          When you purchase access to a dataset, it will be listed here.
+        </StyledParagraph>
       );
     }
 
@@ -106,13 +100,7 @@ class DatasetsTable extends Component {
       </StyledTableRow>
     ));
 
-    if (this.props.fetchingDatasets)
-      return (
-        <StyledListItem className="disabled">Loading datasets</StyledListItem>
-      );
-    else if (listItems.length > 0) return listItems;
-    else
-      return <StyledListItem className="disabled">No datasets</StyledListItem>;
+    return listItems;
   }
 }
 

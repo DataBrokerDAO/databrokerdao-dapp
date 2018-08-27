@@ -18,14 +18,8 @@ import {
   LISTING_TYPES
 } from '../../../redux/listings/actions';
 
-const StyledListItem = styled.span`
-  cursor: pointer;
-  border-top: 1px solid #e0e0e0;
-  margin: 0;
-
-  &:first-child {
-    border: none;
-  }
+const StyledParagraph = styled.p`
+  padding: 24px 24px 24px 0px;
 `;
 
 const LeftTableColumn = styled(TableColumn)`
@@ -58,11 +52,15 @@ class DatasetsTable extends Component {
 
   render() {
     if (this.props.fetchingDatasets && this.props.datasets.length === 0) {
-      return <p>Loading datasets...</p>;
+      return <StyledParagraph>Loading datasets...</StyledParagraph>;
     }
 
     if (this.props.datasets.length === 0) {
-      return <p />;
+      return (
+        <StyledParagraph>
+          Earn money by selling access to your datasets.
+        </StyledParagraph>
+      );
     }
 
     return (
@@ -104,13 +102,7 @@ class DatasetsTable extends Component {
       </StyledTableRow>
     ));
 
-    if (this.props.fetchingDatasetListings)
-      return (
-        <StyledListItem className="disabled">Loading datasets</StyledListItem>
-      );
-    else if (listItems.length > 0) return listItems;
-    else
-      return <StyledListItem className="disabled">No datasets</StyledListItem>;
+    return listItems;
   }
 }
 
