@@ -49,6 +49,13 @@ class DatasetsTable extends Component {
   }
 
   render() {
+    if (!this.props.token) {
+      return (
+        <StyledParagraph>
+          Please login to see your purchased datasets.
+        </StyledParagraph>
+      );
+    }
     if (this.props.fetchingDatasets && this.props.datasets.length === 0) {
       return <StyledParagraph>Loading datasets...</StyledParagraph>;
     }

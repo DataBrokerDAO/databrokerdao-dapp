@@ -159,4 +159,7 @@ const mapStateToProps = state => ({
   token: state.auth.token
 });
 
-export default connect(mapStateToProps, null)(withRouter(Toolbar));
+export default connect(
+  mapStateToProps,
+  null
+)(withRouter(Toolbar));

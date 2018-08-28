@@ -18,7 +18,7 @@ import Icon from '../generic/Icon';
 import { DATASET_ACTIONS } from '../../redux/datasets/actions';
 
 const StyledParagraph = styled.p`
-  padding: 24px 24px 24px 48px;
+  padding: 124px 24px 24px 48px;
 `;
 
 class DatasetsList extends Component {

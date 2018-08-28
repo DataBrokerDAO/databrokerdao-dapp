@@ -79,7 +79,7 @@ export default class ListingsScreen extends Component {
                 tabId="tab-listings"
                 inactiveTabClassName="md-text--secondary"
               >
-                <Tab id="tab-streams" label="Streams" visi>
+                <Tab id="tab-streams" label="Streams">
                   <StreamsTable />
                 </Tab>
                 <Tab id="tab-datasets" label="Datasets">

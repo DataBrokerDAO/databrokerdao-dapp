@@ -15,7 +15,7 @@ export default class PurchasesScreen extends Component {
         <ToolbarSpacer />
         <CenteredCard>
           <CardContent>
-            <h1 style={{ 'margin-bottom': '30px' }}>Purchases</h1>
+            <h1 style={{ marginBottom: '30px' }}>Purchases</h1>
             <TabsContainer>
               <Tabs inactiveTabClassName="md-text--secondary">
                 <Tab id="tab-streams" label="Streams">

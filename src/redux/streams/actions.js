@@ -8,6 +8,7 @@ import { transactionReceipt } from '../../utils/wait-for-it';
 const APIKey = 'AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
 
 export const STREAMS_TYPES = {
+  FETCH_ERROR: 'FETCH_ERROR',
   FETCH_STREAMS: 'FETCH_STREAMS',
   FETCHING_STREAMS: 'FETCHING_STREAMS',
   FETCH_STREAM: 'FETCH_STREAM',
@@ -160,7 +161,9 @@ export const STREAMS_ACTIONS = {
             });
           })
           .catch(error => {
-            console.log(error);
+            dispatch({
+              type: STREAMS_TYPES.FETCH_ERROR
+            });
           });
       })(fetchStreamCounter);
       dispatch({

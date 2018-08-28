@@ -2,6 +2,7 @@ import React from 'react';
 import { withFormik } from 'formik';
 import { Button, CircularProgress } from 'react-md';
 import EnhancedTextField from '../generic/EnhancedTextField';
+import { Link } from 'react-router-dom';
 
 const PureLoginForm = ({
   values,
@@ -54,12 +55,14 @@ const PureLoginForm = ({
           Login
         </Button>
       )}
-      {/*!isSubmitting && (
-        <span className="login-prompt">
-          No account yet?<br />
-          <Link to="/account/register">Register here.</Link>
+      {!isSubmitting && (
+        <span
+          style={{ marginTop: '30px', float: 'left' }}
+          className="login-prompt"
+        >
+          No account yet? <Link to="/account/register">Register here.</Link>
         </span>
-      )*/}
+      )}
     </div>
   </form>
 );

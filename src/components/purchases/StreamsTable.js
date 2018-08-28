@@ -62,6 +62,14 @@ class StreamsTable extends Component {
   }
 
   render() {
+    if (!this.props.token) {
+      return (
+        <StyledParagraph>
+          Please login to see your purchased streams.
+        </StyledParagraph>
+      );
+    }
+
     if (this.props.fetchingStreams && this.props.streams.length === 0) {
       return <StyledParagraph>Loading streams...</StyledParagraph>;
     }

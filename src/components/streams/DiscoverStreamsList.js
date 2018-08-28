@@ -10,6 +10,12 @@ import { BigNumber } from 'bignumber.js';
 import Icon from '../generic/Icon';
 
 class DiscoverStreamsList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: false
+    };
+  }
   onStreamListItemClick(stream) {
     this.props.history.push(`/stream/${stream.key}`);
   }
@@ -80,7 +86,13 @@ class DiscoverStreamsList extends Component {
       );
     });
 
-    if (this.props.fetchingStreams)
+    if (this.props.error) {
+      return (
+        <StyledListItem className="disabled">
+          Unable to load streams
+        </StyledListItem>
+      );
+    } else if (this.props.fetchingStreams)
       return (
         <StyledListItem className="disabled">loading streams...</StyledListItem>
       );
@@ -105,7 +117,8 @@ class DiscoverStreamsList extends Component {
 
 const mapStateToProps = state => ({
   streams: state.streams.streams,
-  fetchingStreams: state.streams.fetchingStreams
+  fetchingStreams: state.streams.fetchingStreams,
+  error: state.streams.error
 });
 
 export default connect(

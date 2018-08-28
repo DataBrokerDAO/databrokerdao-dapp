@@ -25,7 +25,8 @@ export const DEFAULT_STATE = {
   fetchingNearbyStreams: false,
   challenges: [],
   fetchingChallenges: false,
-  formattedAddress: null
+  formattedAddress: null,
+  error: false
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
@@ -36,7 +37,8 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case STREAMS_TYPES.FETCH_STREAMS: {
       return Immutable.merge(state, {
         streams: action.streams,
-        fetchingStreams: false
+        fetchingStreams: false,
+        error: false
       });
     }
     case STREAMS_TYPES.FETCH_LANDING_STREAMS: {
@@ -87,6 +89,12 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case STREAMS_TYPES.FETCH_FILTER_ADDRESS: {
       return Immutable.set(state, 'filterAddress', action.filterAddress);
+    }
+    case STREAMS_TYPES.FETCH_ERROR: {
+      return Immutable.merge(state, {
+        error: true,
+        fetchingStreams: false
+      });
     }
     default:
       return state;
