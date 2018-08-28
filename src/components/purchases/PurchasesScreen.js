@@ -17,7 +17,10 @@ export default class PurchasesScreen extends Component {
           <CardContent>
             <h1 style={{ marginBottom: '30px' }}>Purchases</h1>
             <TabsContainer>
-              <Tabs inactiveTabClassName="md-text--secondary">
+              <Tabs
+                tabId="tabs-purchases"
+                inactiveTabClassName="md-text--secondary"
+              >
                 <Tab id="tab-streams" label="Streams">
                   <StreamsTable />
                 </Tab>
