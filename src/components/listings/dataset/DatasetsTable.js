@@ -11,8 +11,7 @@ import map from 'lodash/map';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import FontAwesomeIcon from '@fortawesome/react-fontawesome';
-import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
+
 import {
   LISTING_ACTIONS,
   LISTING_TYPES

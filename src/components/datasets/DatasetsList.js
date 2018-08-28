@@ -17,14 +17,8 @@ import {
 import Icon from '../generic/Icon';
 import { DATASET_ACTIONS } from '../../redux/datasets/actions';
 
-const StyledListItem = styled.span`
-  cursor: pointer;
-  border-top: 1px solid #e0e0e0;
-  margin: 0;
-
-  &:first-child {
-    border: none;
-  }
+const StyledParagraph = styled.p`
+  padding: 24px 24px 24px 48px;
 `;
 
 class DatasetsList extends Component {
@@ -40,6 +34,40 @@ class DatasetsList extends Component {
 
   onListItemClick(dataset) {
     this.props.history.push(`/dataset/${dataset.key}`);
+  }
+
+  render() {
+    const StyledList = styled.div`
+      padding-top: 65px;
+      width: 100%;
+    `;
+
+    if (this.props.fetchingDatasets)
+      return <StyledParagraph>Loading datasets...</StyledParagraph>;
+
+    if (this.props.datasets.length === 0)
+      return (
+        <StyledParagraph>
+          There are currently no datasets on offer
+        </StyledParagraph>
+      );
+
+    return (
+      <StyledList>
+        <DataTable plain>
+          <TableBody>
+            {this.renderDatasetListItems(this.props.datasets)}
+          </TableBody>
+          <TablePagination
+            style={{ marginLeft: 0 }}
+            onPagination={this.handlePagination}
+            rowsPerPage={this.props.rows}
+            rows={this.props.total}
+            page={this.props.page}
+          />
+        </DataTable>
+      </StyledList>
+    );
   }
 
   renderDatasetListItems(datasets) {
@@ -102,45 +130,7 @@ class DatasetsList extends Component {
       );
     });
 
-    if (this.props.fetchingDatasets)
-      return (
-        <StyledListItem className="disabled">loading datasets</StyledListItem>
-      );
-    else if (listItems.length > 0) return listItems;
-    else
-      return <StyledListItem className="disabled">no datasets</StyledListItem>;
-  }
-
-  render() {
-    const StyledList = styled.div`
-      padding-top: 65px;
-      width: 100%;
-    `;
-
-    if (this.props.fetchingDatasets)
-      return (
-        <StyledListItem className="disabled">loading datasets</StyledListItem>
-      );
-
-    if (this.props.datasets.length === 0)
-      return <StyledListItem className="disabled">no datasets</StyledListItem>;
-
-    return (
-      <StyledList>
-        <DataTable plain>
-          <TableBody>
-            {this.renderDatasetListItems(this.props.datasets)}
-          </TableBody>
-          <TablePagination
-            style={{ marginLeft: 0 }}
-            onPagination={this.handlePagination}
-            rowsPerPage={this.props.rows}
-            rows={this.props.total}
-            page={this.props.page}
-          />
-        </DataTable>
-      </StyledList>
-    );
+    return listItems;
   }
 }
 

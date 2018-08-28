@@ -98,6 +98,11 @@ export const DATASET_ACTIONS = {
             });
           })
           .catch(error => {
+            dispatch({
+              type: DATASET_TYPES.FETCH_DATASETS,
+              datasets: [],
+              total: 0
+            });
             console.log(error);
           });
       })(fetchDatasetCounter);

@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 
 import Toolbar from '../generic/Toolbar';
+import ToolbarSpacer from '../generic/ToolbarSpacer';
 import Sidebar from './Sidebar';
 import DatasetsList from './DatasetsList';
 
 class DatasetsScreen extends Component {
-  componentDidMount() {
-  }
+  componentDidMount() {}
 
   constructor(props) {
     super(props);
@@ -26,6 +26,7 @@ class DatasetsScreen extends Component {
         <Toolbar showTabs={true} />
         <Sidebar setWidthHandler={width => this.setSidebarWidth(width)} />
         <div style={{ height: '100vh', overflowY: 'auto' }}>
+          <ToolbarSpacer />
           <DatasetsList />
         </div>
       </div>
