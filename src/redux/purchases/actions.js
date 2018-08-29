@@ -1,8 +1,12 @@
 import axios from '../../utils/axios';
 import moment from 'moment';
-import { BigNumber } from 'bignumber.js';
 import localStorage from '../../localstorage';
-import { transactionReceipt, sensorPurchase } from '../../utils/wait-for-it';
+import {
+  dtxApproval,
+  sensorPurchase,
+  sensorRegistered,
+  prepareDtxSpendFromPurchaseRegistry
+} from '../../api/util';
 
 export const PURCHASES_TYPES = {
   FETCHING_DATASETS: 'FETCHING_DATASETS',
@@ -25,17 +29,13 @@ export const PURCHASES_ACTIONS = {
     }
 
     return (dispatch, getState) => {
-      if (endTime === 0) {
-        dispatch({
-          type: PURCHASES_TYPES.FETCHING_DATASETS,
-          value: true
-        });
-      } else {
-        dispatch({
-          type: PURCHASES_TYPES.FETCHING_STREAMS,
-          value: true
-        });
-      }
+      const fetchDataset = endTime === 0;
+      dispatch({
+        type: fetchDataset
+          ? PURCHASES_TYPES.FETCHING_DATASETS
+          : PURCHASES_TYPES.FETCHING_STREAMS,
+        value: true
+      });
 
       const authenticatedAxiosClient = axios(null, true);
 
@@ -85,19 +85,13 @@ export const PURCHASES_ACTIONS = {
             }
           }
 
-          if (endTime === 0) {
-            dispatch({
-              type: PURCHASES_TYPES.FETCHED_DATASETS,
-              datasets: parsedResponse,
-              total: response.data.total
-            });
-          } else {
-            dispatch({
-              type: PURCHASES_TYPES.FETCHED_STREAMS,
-              streams: parsedResponse,
-              total: response.data.total
-            });
-          }
+          dispatch({
+            type: fetchDataset
+              ? PURCHASES_TYPES.FETCHED_DATASETS
+              : PURCHASES_TYPES.FETCHED_STREAMS,
+            items: parsedResponse,
+            total: response.data.total
+          });
         })
         .catch(error => {
           console.log(error);
@@ -111,10 +105,9 @@ export const PURCHASES_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
+      const authenticatedAxiosClient = axios(true);
 
       // Multiply price for streams, use the indicated price for datasets that are a forever-purchase
-
       let purchasePrice;
       if (endTime === 0) {
         purchasePrice = stream.price;
@@ -123,69 +116,28 @@ export const PURCHASES_ACTIONS = {
         purchasePrice = stream.price * duration;
       }
 
-      function getDtxTokenRegistry() {
-        return authenticatedAxiosClient.get('/dtxtokenregistry/list');
-      }
+      const metadata = {
+        data: {
+          sensortype: stream.sensortype || 'STREAM', // default to stream type, since old streams are not enlisted with the sensortype property.
+          email: localStorage.getItem('email')
+        }
+      };
 
-      function getPurchaseRegistry() {
-        return authenticatedAxiosClient.get('/purchaseregistry/list');
-      }
-
-      function getMetadataHash() {
-        return authenticatedAxiosClient.post('/ipfs/add/json', {
-          data: {
-            sensortype: stream.sensortype || 'STREAM', // default to stream type, since old streams are not enlisted with the sensortype property.
-            email: localStorage.getItem('email')
-          }
-        });
-      }
-
-      Promise.all([
-        getDtxTokenRegistry(),
-        getPurchaseRegistry(),
-        getMetadataHash()
-      ])
+      prepareDtxSpendFromPurchaseRegistry(metadata)
         .then(async responses => {
-          const deployedTokenContractAddress =
-            responses[0].data.items[0].contractAddress;
-          const spenderAddress = responses[1].data.base.contractAddress;
-          const metadataHash = responses[2].data[0].hash;
+          const deployedTokenContractAddress = responses[0];
+          const spenderAddress = responses[1];
+          const metadataHash = responses[2];
 
-          // Time to approve the tokens
-          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
-          let response = await authenticatedAxiosClient.post(url, {
-            _spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-            _value: BigNumber(purchasePrice)
-              .times(BigNumber(10).pow(18))
-              .toString()
-          });
-          let uuid = response.data.uuid;
-          await transactionReceipt(authenticatedAxiosClient, `${url}/${uuid}`);
-
-          //Tokens have been allocated - now we can make the purchase!
-          url = `/purchaseregistry/purchaseaccess`;
-          response = await authenticatedAxiosClient.post(url, {
-            _sensor: stream.key,
-            _endTime:
-              endTime !== 0
-                ? moment(endTime)
-                    .unix()
-                    .toString()
-                : '0',
-            _metadata: metadataHash
-          });
-          uuid = response.data.uuid;
-          await transactionReceipt(authenticatedAxiosClient, `${url}/${uuid}`);
-
-          // Await for the purchase to be synced before dispatching we're done
-          const email = localStorage.getItem('email');
-          const sensor = stream.key;
-          const purchase = await sensorPurchase(
-            authenticatedAxiosClient,
-            sensor,
-            email
+          await dtxApproval(
+            deployedTokenContractAddress,
+            spenderAddress,
+            purchasePrice
           );
-          console.log(purchase);
+
+          await sensorPurchase(stream.key, endTime, metadataHash);
+
+          await sensorRegistered(stream.key, localStorage.getItem('email'));
 
           dispatch({
             type: PURCHASES_TYPES.PURCHASING_ACCESS,

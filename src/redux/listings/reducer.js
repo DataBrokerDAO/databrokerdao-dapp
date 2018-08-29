@@ -24,7 +24,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case LISTING_TYPES.FETCHED_STREAM_LISTINGS: {
       return Immutable.merge(state, {
-        streams: action.streams,
+        streams: action.items,
         totalStreams: action.total,
         fetchingStreamListings: false
       });
@@ -37,7 +37,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case LISTING_TYPES.FETCHED_DATASET_LISTINGS: {
       return Immutable.merge(state, {
-        datasets: action.datasets,
+        datasets: action.items,
         totalDatasets: action.total,
         fetchingDatasetListings: false
       });

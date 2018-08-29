@@ -3,7 +3,11 @@ import find from 'lodash/find';
 import map from 'lodash/map';
 import axios from '../../utils/axios';
 import { fetchSensors } from '../../api/sensors';
-import { transactionReceipt } from '../../utils/wait-for-it';
+import {
+  dtxApproval,
+  prepareDtxSpendFromSensorRegistry,
+  sensorChallenge
+} from '../../api/util';
 
 const APIKey = 'AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
 
@@ -108,13 +112,13 @@ export const STREAMS_ACTIONS = {
 
       const limit = 5000;
 
-      const authenticatedAxiosClient = axios(null, true);
+      const anonymousAxiosClient = axios(null, true);
       //const response = JSON.parse(EXAMPLE_STREAMS_API_RESPONSE);
       const fetchStreamCounter = state.streams.fetchStreamCounter + 1;
 
       //Counter to keep track of calls so when response arrives we can take the latest
       (counter => {
-        fetchSensors(authenticatedAxiosClient, {
+        fetchSensors(anonymousAxiosClient, {
           limit,
           filterUrlQuery
         })
@@ -183,8 +187,8 @@ export const STREAMS_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
-      authenticatedAxiosClient
+      const anonymousAxiosClient = axios(null, true);
+      anonymousAxiosClient
         .get(`/sensor/${streamKey}?abi=false`)
         .then(response => {
           let parsedResponse = null;
@@ -223,8 +227,8 @@ export const STREAMS_ACTIONS = {
           }&near=${parsedResponse.geometry.coordinates[1]},${
             parsedResponse.geometry.coordinates[0]
           },500&sort=item.stake`;
-          const authenticatedAxiosClient = axios(null, true);
-          authenticatedAxiosClient
+          const anonymousAxiosClient = axios(null, true);
+          anonymousAxiosClient
             .get(`/sensorregistry/list?${urlParametersNearbyStreams}`)
             .then(response => {
               let parsedResponse = [];
@@ -261,7 +265,7 @@ export const STREAMS_ACTIONS = {
 
           //Get challenges
           const urlParametersChallenges = `listing=${streamKey}`;
-          authenticatedAxiosClient
+          anonymousAxiosClient
             .get(`/challengeregistry/list?listing=${urlParametersChallenges}`)
             .then(response => {
               console.log(response);
@@ -302,8 +306,8 @@ export const STREAMS_ACTIONS = {
   },
   fetchLandingStreams: () => {
     return (dispatch, getState) => {
-      const authenticatedAxiosClient = axios(null, true);
-      authenticatedAxiosClient
+      const anonymousAxiosClient = axios(null, true);
+      anonymousAxiosClient
         .get(
           `/sensorregistry/list?limit=100&item.type[]=temperature&item.type[]=humidity&item.type[]=PM25&item.type[]=PM10&near=4.700518,50.879844,4000`
         )
@@ -431,61 +435,20 @@ export const STREAMS_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
-
-      function getDtxTokenRegistry() {
-        return authenticatedAxiosClient.get('/dtxtokenregistry/list');
-      }
-
-      function getStreamRegistry() {
-        return authenticatedAxiosClient.get('/sensorregistry/list');
-      }
-
-      function getMetadataHash() {
-        return authenticatedAxiosClient.post('/ipfs/add/json', {
-          data: {
-            reason: reason
-          }
-        });
-      }
-
-      Promise.all([
-        getDtxTokenRegistry(),
-        getStreamRegistry(),
-        getMetadataHash()
-      ]).then(async responses => {
-        const deployedTokenContractAddress =
-          responses[0].data.items[0].contractAddress;
-        const spenderAddress = responses[1].data.base.contractAddress;
-        const metadataHash = responses[2].data[0].hash;
+      const metadata = { data: { reason } };
+      prepareDtxSpendFromSensorRegistry(metadata).then(async responses => {
+        const deployedTokenContractAddress = responses[0];
+        const spenderAddress = responses[1];
+        const metadataHash = responses[2];
 
         try {
-          // Time to approve the tokens
-          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
-          let response = await authenticatedAxiosClient.post(url, {
-            _spender: spenderAddress, // The contract that will spend the tokens (some function of the contract will)
-            _value: amount.toString()
-          });
-          let uuid = response.data.uuid;
-          let receipt = await transactionReceipt(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
+          await dtxApproval(
+            deployedTokenContractAddress,
+            spenderAddress,
+            amount
           );
-          console.log(receipt);
 
-          //Tokens have been allocated - now we can make the purchase!
-          url = `/sensorregistry/challenge`;
-          response = await authenticatedAxiosClient.post(url, {
-            _listing: stream.key,
-            _stakeAmount: amount,
-            _metadata: metadataHash
-          });
-          uuid = response.data.uuid;
-          receipt = await transactionReceipt(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-          console.log(receipt);
+          await sensorChallenge(stream.key, amount, metadataHash);
 
           dispatch({
             type: STREAMS_TYPES.CHALLENGING_STREAM,

@@ -16,6 +16,14 @@ export function parseNumberWithoutDecimal(number, decimal) {
   return baseNumber;
 }
 
+export function convertDtxToWei(dtxValue) {
+  if (dtxValue) {
+    return BigNumber(dtxValue)
+      .times(BigNumber(10).pow(18))
+      .toString();
+  }
+}
+
 export function convertWeiToDtx(dtxValue) {
   if (dtxValue) {
     return BigNumber(dtxValue)

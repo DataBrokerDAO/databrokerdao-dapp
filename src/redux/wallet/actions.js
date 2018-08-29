@@ -1,5 +1,5 @@
 import axios from '../../utils/axios';
-import { transactionReceipt } from '../../utils/wait-for-it';
+import { dtxMint } from '../../api/util';
 
 export const WALLET_TYPES = {
   FETCH_WALLET: 'FETCH_WALLET',
@@ -15,15 +15,15 @@ export const WALLET_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
+      const authenticatedAxiosClient = axios(true);
       authenticatedAxiosClient
         .get('/wallet/balance')
         .then(response => {
-          const wallet = response.data.DTX;
+          const dtxWallet = response.data.DTX;
 
           dispatch({
             type: WALLET_TYPES.FETCH_WALLET,
-            wallet
+            wallet: dtxWallet
           });
         })
         .catch(error => {
@@ -39,25 +39,14 @@ export const WALLET_ACTIONS = {
       });
 
       try {
-        const authenticatedAxiosClient = axios(null, true);
-        let url = '/dtxminter/mint';
-        let response = await authenticatedAxiosClient.post(url, {
-          _amount: amount
-        });
-
-        let uuid = response.data.uuid;
-        let receipt = await transactionReceipt(
-          authenticatedAxiosClient,
-          `${url}/${uuid}`
-        );
-        console.log(receipt);
-
+        await dtxMint(amount);
         dispatch({
           type: WALLET_TYPES.MINTING_TOKENS,
           value: false
         });
 
-        response = await authenticatedAxiosClient.get('/wallet/balance');
+        const authenticatedAxiosClient = axios(true);
+        const response = await authenticatedAxiosClient.get('/wallet/balance');
         const wallet = response.data.DTX;
 
         dispatch({

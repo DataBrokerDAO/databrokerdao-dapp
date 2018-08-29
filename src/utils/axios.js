@@ -1,6 +1,5 @@
 import axios from 'axios';
 import localStorage from '../localstorage';
-import { logout } from '../redux/authentication/reducer';
 
 //Note: I removed cachedToken from boilerplate, not clear what it was used for
 
@@ -17,7 +16,7 @@ export default function getAxios(
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: {}
     });
-  else if (localStorage.getItem('jwtToken') || jwtToken) {
+  else if (jwtToken) {
     instance = axios.create({
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: {

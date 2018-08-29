@@ -22,7 +22,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case PURCHASES_TYPES.FETCHED_STREAMS: {
       return Immutable.merge(state, {
-        streams: action.streams,
+        streams: action.items,
         totalStreams: action.total,
         fetchingStreams: false
       });
@@ -32,7 +32,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case PURCHASES_TYPES.FETCHED_DATASETS: {
       return Immutable.merge(state, {
-        datasets: action.datasets,
+        datasets: action.items,
         totalDatasets: action.total,
         fetchingDatasets: false
       });

@@ -94,7 +94,7 @@ class DatasetsTable extends Component {
 
   renderDatasetListItems(datasets) {
     let listItems = map(datasets, (dataset, index) => (
-      <StyledTableRow key={dataset.key}>
+      <StyledTableRow key={index + dataset.key}>
         <LeftTableColumn onClick={() => this.onViewDatasetDetails(dataset)}>
           {dataset.name}
         </LeftTableColumn>

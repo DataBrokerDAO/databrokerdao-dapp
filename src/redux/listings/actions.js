@@ -1,8 +1,11 @@
 import each from 'lodash/each';
 import axios from '../../utils/axios';
-import { BigNumber } from 'bignumber.js';
 import localStorage from '../../localstorage';
-import { transactionReceipt } from '../../utils/wait-for-it';
+import {
+  prepareDtxSpendFromSensorRegistry,
+  dtxApproval,
+  sensorEnlisting
+} from '../../api/util';
 
 export const LISTING_TYPES = {
   ENLISTING_STREAM: 'ENLISTING_STREAM',
@@ -20,24 +23,20 @@ export const LISTING_TYPES = {
 
 export const LISTING_ACTIONS = {
   fetchListings: (skip = 0, limit = 10, endTime = null) => {
-    const sensortype = endTime === 0 ? 'DATASET' : '!DATASET';
+    const fetchDataset = endTime === 0;
+    const sensortype = fetchDataset ? 'DATASET' : '!DATASET';
 
     return (dispatch, getState) => {
-      if (endTime === 0) {
-        dispatch({
-          type: LISTING_TYPES.FETCHING_DATASET_LISTINGS,
-          value: true
-        });
-      } else {
-        dispatch({
-          type: LISTING_TYPES.FETCHING_STREAM_LISTINGS,
-          value: true
-        });
-      }
-
-      const authenticatedAxiosClient = axios(null, true);
+      dispatch({
+        type: fetchDataset
+          ? LISTING_TYPES.FETCHING_DATASET_LISTINGS
+          : LISTING_TYPES.FETCHING_STREAM_LISTINGS,
+        value: true
+      });
 
       const address = localStorage.getItem('address');
+      const authenticatedAxiosClient = axios(true);
+
       authenticatedAxiosClient
         .get(
           `/sensorregistry/list?skip=${skip}&limit=${limit}&item.sensortype=${sensortype}&item.owner=~${address}`
@@ -57,19 +56,13 @@ export const LISTING_ACTIONS = {
             });
           });
 
-          if (endTime === 0) {
-            dispatch({
-              type: LISTING_TYPES.FETCHED_DATASET_LISTINGS,
-              datasets: parsedResponse,
-              total: response.data.total
-            });
-          } else {
-            dispatch({
-              type: LISTING_TYPES.FETCHED_STREAM_LISTINGS,
-              streams: parsedResponse,
-              total: response.data.total
-            });
-          }
+          dispatch({
+            type: fetchDataset
+              ? LISTING_TYPES.FETCHED_DATASET_LISTINGS
+              : LISTING_TYPES.FETCHED_STREAM_LISTINGS,
+            items: parsedResponse,
+            total: response.data.total
+          });
         })
         .catch(error => {
           console.log(error);
@@ -83,84 +76,45 @@ export const LISTING_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
-
-      function getDtxTokenRegistry() {
-        return authenticatedAxiosClient.get('/dtxtokenregistry/list');
-      }
-
-      function getStreamRegistry() {
-        return authenticatedAxiosClient.get('/sensorregistry/list');
-      }
-
-      function getMetadataHash() {
-        return authenticatedAxiosClient.post('/ipfs/add/json', {
-          data: {
-            name: stream.name,
-            geo: {
-              lat: stream.lat,
-              lng: stream.lng
-            },
-            type: stream.type,
-            sensorid: stream.sensorid,
-            example: stream.example,
-            updateinterval: stream.updateinterval * 1000
-          }
-        });
-      }
-
-      Promise.all([
-        getDtxTokenRegistry(),
-        getStreamRegistry(),
-        getMetadataHash()
-      ]).then(async responses => {
-        const deployedTokenContractAddress =
-          responses[0].data.items[0].contractAddress;
-        const spenderAddress = responses[1].data.base.contractAddress;
-        const metadataHash = responses[2].data[0].hash;
-
-        try {
-          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
-          let response = await authenticatedAxiosClient.post(url, {
-            _spender: spenderAddress,
-            _value: BigNumber(stream.stake)
-              .times(BigNumber(10).pow(18))
-              .toString()
-          });
-          let uuid = response.data.uuid;
-          let receipt = await transactionReceipt(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-          console.log(receipt);
-
-          url = `/sensorregistry/enlist`;
-          response = await authenticatedAxiosClient.post(
-            `/sensorregistry/enlist`,
-            {
-              _stakeAmount: BigNumber(stream.stake)
-                .times(BigNumber(10).pow(18))
-                .toString(),
-              _price: BigNumber(stream.price)
-                .times(BigNumber(10).pow(18))
-                .toString(),
-              _metadata: metadataHash
-            }
-          );
-          uuid = response.data.uuid;
-          receipt = await transactionReceipt(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-
-          dispatch({
-            type: LISTING_TYPES.ENLISTING_STREAM,
-            value: false
-          });
-        } catch (error) {
-          console.log('Failed enlisting with error: ', error);
+      const metadata = {
+        data: {
+          name: stream.name,
+          geo: {
+            lat: stream.lat,
+            lng: stream.lng
+          },
+          type: stream.type,
+          sensorid: stream.sensorid,
+          example: stream.example,
+          updateinterval: stream.updateinterval * 1000
         }
-      });
+      };
+
+      prepareDtxSpendFromSensorRegistry(metadata)
+        .then(async responses => {
+          const deployedTokenContractAddress = responses[0];
+          const spenderAddress = responses[1];
+          const metadataHash = responses[2];
+
+          try {
+            await dtxApproval(
+              deployedTokenContractAddress,
+              spenderAddress,
+              stream.stake
+            );
+            await sensorEnlisting(stream.stake, stream.price, metadataHash);
+
+            dispatch({
+              type: LISTING_TYPES.ENLISTING_STREAM,
+              value: false
+            });
+          } catch (error) {
+            console.log('Failed enlisting stream with error: ', error);
+          }
+        })
+        .catch(error => {
+          console.log('Failed preparing enlist call: ', error);
+        });
     };
   },
   enlistDataset: dataset => {
@@ -170,82 +124,44 @@ export const LISTING_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
-
-      function getDtxTokenRegistry() {
-        return authenticatedAxiosClient.get('/dtxtokenregistry/list');
-      }
-
-      function getStreamRegistry() {
-        return authenticatedAxiosClient.get('/sensorregistry/list');
-      }
-
-      function getMetadataHash() {
-        return authenticatedAxiosClient.post('/ipfs/add/json', {
-          data: {
-            name: dataset.name,
-            category: dataset.category,
-            filetype: dataset.filetype,
-            example: dataset.example,
-            sensorid: dataset.sensorid,
-            sensortype: dataset.sensortype,
-            credentials: { url: dataset.url }
-          }
-        });
-      }
-
-      Promise.all([
-        getDtxTokenRegistry(),
-        getStreamRegistry(),
-        getMetadataHash()
-      ]).then(async responses => {
-        const deployedTokenContractAddress =
-          responses[0].data.items[0].contractAddress;
-        const spenderAddress = responses[1].data.base.contractAddress;
-        const metadataHash = responses[2].data[0].hash;
-
-        try {
-          let url = `/dtxtoken/${deployedTokenContractAddress}/approve`;
-          let response = await authenticatedAxiosClient.post(url, {
-            _spender: spenderAddress,
-            _value: BigNumber(dataset.stake)
-              .times(BigNumber(10).pow(18))
-              .toString()
-          });
-          let uuid = response.data.uuid;
-          let receipt = await transactionReceipt(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-          console.log(receipt);
-
-          url = `/sensorregistry/enlist`;
-          response = await authenticatedAxiosClient.post(
-            `/sensorregistry/enlist`,
-            {
-              _stakeAmount: BigNumber(dataset.stake)
-                .times(BigNumber(10).pow(18))
-                .toString(),
-              _price: BigNumber(dataset.price)
-                .times(BigNumber(10).pow(18))
-                .toString(),
-              _metadata: metadataHash
-            }
-          );
-          uuid = response.data.uuid;
-          receipt = await transactionReceipt(
-            authenticatedAxiosClient,
-            `${url}/${uuid}`
-          );
-
-          dispatch({
-            type: LISTING_TYPES.ENLISTING_DATASET,
-            value: false
-          });
-        } catch (error) {
-          console.log('Failed enlisting with error: ', error);
+      const metadata = {
+        data: {
+          name: dataset.name,
+          category: dataset.category,
+          filetype: dataset.filetype,
+          example: dataset.example,
+          sensorid: dataset.sensorid,
+          sensortype: dataset.sensortype,
+          credentials: { url: dataset.url }
         }
-      });
+      };
+
+      prepareDtxSpendFromSensorRegistry(metadata)
+        .then(async responses => {
+          const deployedTokenContractAddress = responses[0];
+          const spenderAddress = responses[1];
+          const metadataHash = responses[2];
+
+          try {
+            await dtxApproval(
+              deployedTokenContractAddress,
+              spenderAddress,
+              dataset.stake
+            );
+
+            await sensorEnlisting(dataset.stake, dataset.price, metadataHash);
+
+            dispatch({
+              type: LISTING_TYPES.ENLISTING_DATASET,
+              value: false
+            });
+          } catch (error) {
+            console.log('Failed enlisting dataset with error: ', error);
+          }
+        })
+        .catch(error => {
+          console.log('Failed preparing enlist call: ', error);
+        });
     };
   },
   updateCurrentPage: (type, page) => {

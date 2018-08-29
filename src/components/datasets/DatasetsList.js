@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import map from 'lodash/map';
+import isEmpty from 'lodash/isEmpty';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import { convertWeiToDtx } from '../../utils/transforms';
@@ -45,7 +46,7 @@ class DatasetsList extends Component {
     if (this.props.fetchingDatasets)
       return <StyledParagraph>Loading datasets...</StyledParagraph>;
 
-    if (this.props.datasets.length === 0)
+    if (isEmpty(this.props.datasets))
       return (
         <StyledParagraph>
           There are currently no datasets on offer
