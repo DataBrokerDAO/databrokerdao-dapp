@@ -5,9 +5,9 @@ import { withRouter } from 'react-router-dom';
 
 import RegisterForm from '../../authentication/RegisterForm';
 import TransactionDialog from '../../generic/TransactionDialog';
-import { register } from '../../../redux/authentication/reducer';
 import { WALLET_ACTIONS } from '../../../redux/wallet/actions';
 import { LISTING_ACTIONS } from '../../../redux/listings/actions';
+import { AUTH_ACTIONS } from '../../../redux/authentication/actions';
 
 const STEP_INTRO = 1,
   STEP_REGISTRATION = 2,
@@ -155,7 +155,8 @@ const mapStateToProps = state => ({
 
 function mapDispatchToProps(dispatch) {
   return {
-    register: (values, settings) => dispatch(register(values, settings)),
+    register: (values, settings) =>
+      dispatch(AUTH_ACTIONS.register(values, settings)),
     enlistStream: stream => dispatch(LISTING_ACTIONS.enlistStream(stream)),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())
   };

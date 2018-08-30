@@ -7,21 +7,15 @@ import Toolbar from '../generic/Toolbar';
 import CenteredCard from '../generic/CenteredCard';
 import CardContent from '../generic/CardContent';
 import ToolbarSpacer from '../generic/ToolbarSpacer';
-import { logout } from '../../redux/authentication/reducer';
+import { AUTH_ACTIONS } from '../../redux/authentication/actions';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import TitleCTAButton from '../generic/TitleCTAButton';
-// import TransactionsTable from './TransactionsTable';
 import localStorage from '../../localstorage';
+import { convertWeiToDtx } from '../../utils/transforms';
 
 class WalletScreen extends Component {
   componentDidMount() {
     this.props.fetchWallet();
-  }
-
-  convertWeiToDtx(dtxValue) {
-    return BigNumber(dtxValue)
-      .div(BigNumber(10).pow(18))
-      .toString();
   }
 
   fundWallet() {
@@ -37,7 +31,7 @@ class WalletScreen extends Component {
     const email = localStorage.getItem('email');
     let DTXBalance = '(loading)';
     if (!this.props.fetchingWallet && this.props.balance) {
-      DTXBalance = this.convertWeiToDtx(this.props.balance);
+      DTXBalance = convertWeiToDtx(this.props.balance);
     }
 
     const StyledTitleContainer = styled.div`
@@ -113,7 +107,7 @@ const mapStateToProps = state => ({
 
 function mapDispatchToProps(dispatch) {
   return {
-    logout: () => dispatch(logout()),
+    logout: () => dispatch(AUTH_ACTIONS.logout()),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
     mintTokens: amount => dispatch(WALLET_ACTIONS.mintTokens(amount))
   };

@@ -21,8 +21,6 @@ export default function getAxios(
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: {
         Authorization: localStorage.getItem('jwtToken')
-          ? localStorage.getItem('jwtToken')
-          : jwtToken
       }
     });
   } else if (anonymous) {
@@ -38,19 +36,18 @@ export default function getAxios(
     });
   }
 
-  instance.interceptors.response.use(
-    response => {
-      return response;
-    },
-    error => {
-      const originalRequest = error.config;
-      if (error.response.status === 401 && !originalRequest._retry) {
-        console.log('LOGGING OUT DUE TO 401');
-        localStorage.removeItem('jwtToken');
-      }
-      return Promise.reject(error);
-    }
-  );
+  // instance.interceptors.response.use(
+  //   response => {
+  //     return response;
+  //   },
+  //   error => {
+  //     const originalRequest = error.config;
+  //     if (error.response.status === 401 && !originalRequest._retry) {
+  //       console.log('RECEIVED 401');
+  //     }
+  //     return Promise.reject(error);
+  //   }
+  // );
 
   return instance;
 }

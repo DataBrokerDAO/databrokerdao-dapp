@@ -15,12 +15,10 @@ export const WALLET_ACTIONS = {
         value: true
       });
 
-      const authenticatedAxiosClient = axios(true);
-      authenticatedAxiosClient
+      axios(true)
         .get('/wallet/balance')
         .then(response => {
           const dtxWallet = response.data.DTX;
-
           dispatch({
             type: WALLET_TYPES.FETCH_WALLET,
             wallet: dtxWallet
@@ -45,8 +43,7 @@ export const WALLET_ACTIONS = {
           value: false
         });
 
-        const authenticatedAxiosClient = axios(true);
-        const response = await authenticatedAxiosClient.get('/wallet/balance');
+        const response = await axios(true).get('/wallet/balance');
         const wallet = response.data.DTX;
 
         dispatch({

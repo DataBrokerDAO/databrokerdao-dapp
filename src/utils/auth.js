@@ -3,24 +3,28 @@ import { connectedRouterRedirect } from 'redux-auth-wrapper/history4/redirect';
 import connectedAuthWrapper from 'redux-auth-wrapper/connectedAuthWrapper';
 import jwtDecode from 'jwt-decode';
 import { convertDateToTimestamp } from './transforms';
+import localStorage from '../localstorage';
 
 const locationHelper = locationHelperBuilder({});
 
 function validateToken(state) {
-  const token = state.auth.token;
-  if (token) {
+  let valid = false;
+
+  if (state.auth.token) {
     try {
-      const decoded = jwtDecode(token);
+      const decoded = jwtDecode(state.auth.token);
       const now = convertDateToTimestamp(new Date());
-      if (decoded.exp < now) {
-        return false;
-      }
-      return true;
+      valid = decoded.exp > now;
     } catch (e) {
-      return false;
+      // Do nothing
     }
   }
-  return false;
+
+  if (!valid) {
+    localStorage.removeItem('jwtToken');
+  }
+
+  return valid;
 }
 
 const userIsAuthenticatedDefaults = {

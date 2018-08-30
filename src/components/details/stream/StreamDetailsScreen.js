@@ -9,8 +9,6 @@ import IconSeparator from 'react-md/lib/Helpers/IconSeparator';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import find from 'lodash/find';
-import merge from 'lodash/merge';
 import moment from 'moment';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
@@ -47,7 +45,7 @@ class StreamDetailsScreen extends Component {
     //In case this stream was not in state yet, load it (in case it was: refresh to get latest version)
     this.props.fetchStream();
     this.props.fetchAvailableStreamTypes();
-    if (this.props.token) this.props.fetchPurchases();
+    if (this.props.token) this.props.fetchIsPurchased();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -142,11 +140,12 @@ class StreamDetailsScreen extends Component {
     );
     const stake = convertWeiToDtx(stream.stake);
 
-    const purchase = find(this.props.purchases, purchase => {
-      return purchase.key === this.props.stream.key;
-    });
-    const purchased = purchase !== undefined;
-    const isOwner = this.props.stream.owner === localStorage.getItem('address');
+    const address = localStorage.getItem('address');
+    const purchase = this.props.purchase;
+    const purchased = purchase !== null;
+    const isOwner =
+      address &&
+      this.props.stream.owner.toUpperCase() === address.toUpperCase();
 
     const updateInterval =
       stream.updateinterval === 86400000
@@ -259,6 +258,19 @@ class StreamDetailsScreen extends Component {
                   {this.props.formattedAddress}
                 </StyledAttributeLabel>
               </StyledSensorAttribute>
+              {isOwner && (
+                <StyledSensorAttribute>
+                  <Icon
+                    icon="staking"
+                    style={{
+                      fill: 'rgba(0,0,0,0.54)',
+                      width: '20px',
+                      height: '20px'
+                    }}
+                  />
+                  <StyledAttributeLabel>Owner: you</StyledAttributeLabel>
+                </StyledSensorAttribute>
+              )}
             </div>
           </CardContent>
         </CenteredCard>
@@ -352,27 +364,28 @@ class StreamDetailsScreen extends Component {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
+  const sensor = ownProps.match.params.key;
   return {
-    fetchStream: () =>
-      dispatch(
-        STREAMS_ACTIONS.fetchStream(dispatch, ownProps.match.params.key)
-      ),
+    fetchStream: () => dispatch(STREAMS_ACTIONS.fetchStream(dispatch, sensor)),
     fetchAvailableStreamTypes: () =>
       dispatch(STREAMS_ACTIONS.fetchAvailableStreamTypes()),
-    fetchPurchases: () => dispatch(PURCHASES_ACTIONS.fetchPurchases())
+    fetchIsPurchased: () =>
+      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor))
   };
 }
 
 function mapStateToProps(state, ownProps) {
   return {
-    stream: state.streams.streams[ownProps.match.params.key],
-    availableStreamTypes: state.streams.availableStreamTypes,
-    purchases: merge(state.purchases.streams, state.purchases.datasets),
-    fetchingPurchases:
-      state.purchases.fetchingStreams || state.purchases.fetchingDatasets,
     token: state.auth.token, //Used to verify if a user is signed in, if not we don't have to get purchases from API
+    formattedAddress: state.streams.formattedAddress,
+
+    stream: state.streams.streams[ownProps.match.params.key],
     nearbyStreams: state.streams.nearbyStreams,
-    formattedAddress: state.streams.formattedAddress
+    availableStreamTypes: state.streams.availableStreamTypes,
+
+    purchase: state.purchases.purchase,
+    fetchingPurchase: state.purchases.fetchingPurchase,
+    fetchingPurchaseError: state.purchases.fetchingPurchaseError
   };
 }
 

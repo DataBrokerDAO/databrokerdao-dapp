@@ -6,11 +6,14 @@ import CenteredCard from '../generic/CenteredCard';
 import CardContent from '../generic/CardContent';
 import ToolbarSpacer from '../generic/ToolbarSpacer';
 import TitleCTAButton from '../generic/TitleCTAButton';
-import StreamsTable from './stream/StreamsTable';
-import DatasetsTable from './dataset/DatasetsTable';
+import StreamsTable from '../sensors/StreamsTable';
+import DatasetsTable from '../sensors/DatasetsTable';
 import { TabsContainer, Tabs, Tab } from 'react-md';
 
-export default class ListingsScreen extends Component {
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
+
+class ListingsScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -21,6 +24,7 @@ export default class ListingsScreen extends Component {
   onEnlistStreamClicked() {
     this.props.history.push(`/stream/enlist`);
   }
+
   onEnlistDatasetClicked() {
     this.props.history.push(`/dataset/enlist`);
   }
@@ -47,28 +51,30 @@ export default class ListingsScreen extends Component {
           <CardContent>
             <StyledTitleContainer>
               <h1 style={{ marginBottom: '30px' }}>Listings</h1>
-              {!this.state.activeTabIndex && (
-                <TitleCTAButton
-                  flat
-                  primary
-                  swapTheming
-                  onClick={event => this.onEnlistStreamClicked()}
-                  id="tab-streams-btn"
-                >
-                  Enlist stream
-                </TitleCTAButton>
-              )}
-              {this.state.activeTabIndex === 1 && (
-                <TitleCTAButton
-                  flat
-                  primary
-                  swapTheming
-                  onClick={event => this.onEnlistDatasetClicked()}
-                  id="tab-datasets-btn"
-                >
-                  Enlist dataset
-                </TitleCTAButton>
-              )}
+              {this.props.token &&
+                this.state.activeTabIndex === 0 && (
+                  <TitleCTAButton
+                    flat
+                    primary
+                    swapTheming
+                    onClick={event => this.onEnlistStreamClicked()}
+                    id="tab-streams-btn"
+                  >
+                    Enlist stream
+                  </TitleCTAButton>
+                )}
+              {this.props.token &&
+                this.state.activeTabIndex === 1 && (
+                  <TitleCTAButton
+                    flat
+                    primary
+                    swapTheming
+                    onClick={event => this.onEnlistDatasetClicked()}
+                    id="tab-datasets-btn"
+                  >
+                    Enlist dataset
+                  </TitleCTAButton>
+                )}
             </StyledTitleContainer>
 
             <TabsContainer
@@ -80,10 +86,16 @@ export default class ListingsScreen extends Component {
                 inactiveTabClassName="md-text--secondary"
               >
                 <Tab id="tab-streams" label="Streams">
-                  <StreamsTable />
+                  <StreamsTable
+                    listed={true}
+                    msgEmpty="Earn money by selling access to your streams."
+                  />
                 </Tab>
                 <Tab id="tab-datasets" label="Datasets">
-                  <DatasetsTable />
+                  <DatasetsTable
+                    listed={true}
+                    msgEmpty="Earn money by selling access to your datasets."
+                  />
                 </Tab>
               </Tabs>
             </TabsContainer>
@@ -93,3 +105,12 @@ export default class ListingsScreen extends Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  token: state.auth.token
+});
+
+export default connect(
+  mapStateToProps,
+  {}
+)(withRouter(ListingsScreen));

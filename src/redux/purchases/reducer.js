@@ -1,64 +1,47 @@
 import Immutable from 'seamless-immutable';
 import { PURCHASES_TYPES } from './actions.js';
+import { AUTH_TYPES } from '../authentication/actions.js';
 
 export const DEFAULT_STATE = {
-  streams: [],
-  fetchingStreams: false,
-  rowsStreams: 10,
-  totalStreams: 0,
-  pageStreams: 1,
-  datasets: [],
-  fetchingDatasets: false,
-  rowsDatasets: 10,
-  totalDatasets: 0,
-  pageDatasets: 1,
-  purchasingAccess: false
+  purchasingAccess: false,
+
+  fetchingPurchase: false,
+  fetchingPurchaseError: null,
+  purchase: null
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
-    case PURCHASES_TYPES.FETCHING_STREAMS: {
-      return Immutable.set(state, 'fetchingStreams', action.value);
-    }
-    case PURCHASES_TYPES.FETCHED_STREAMS: {
-      return Immutable.merge(state, {
-        streams: action.items,
-        totalStreams: action.total,
-        fetchingStreams: false
-      });
-    }
-    case PURCHASES_TYPES.FETCHING_DATASETS: {
-      return Immutable.set(state, 'fetchingDatasets', action.value);
-    }
-    case PURCHASES_TYPES.FETCHED_DATASETS: {
-      return Immutable.merge(state, {
-        datasets: action.items,
-        totalDatasets: action.total,
-        fetchingDatasets: false
-      });
-    }
-    case PURCHASES_TYPES.UPDATE_CURRENT_PAGE_DATASETS: {
-      return Immutable.merge(state, {
-        pageDatasets: action.page
-      });
-    }
-    case PURCHASES_TYPES.UPDATE_ROWS_PER_PAGE_DATASETS: {
-      return Immutable.merge(state, {
-        rowsDatasets: action.rows
-      });
-    }
-    case PURCHASES_TYPES.UPDATE_CURRENT_PAGE_STREAMS: {
-      return Immutable.merge(state, {
-        pageStreams: action.page
-      });
-    }
-    case PURCHASES_TYPES.UPDATE_ROWS_PER_PAGE_STREAMS: {
-      return Immutable.merge(state, {
-        rowsStreams: action.rows
-      });
-    }
     case PURCHASES_TYPES.PURCHASING_ACCESS: {
-      return Immutable.set(state, 'purchasingAccess', action.value);
+      return Immutable.merge(state, {
+        purchasingAccess: action.value
+      });
+    }
+    case PURCHASES_TYPES.PURCHASING_ACCESS_ERROR: {
+      return Immutable.merge(state, {
+        purchasingAccess: false,
+        error: action.error
+      });
+    }
+    case PURCHASES_TYPES.FETCHING_PURCHASE: {
+      return Immutable.merge(state, {
+        fetchingPurchase: action.value,
+        purchase: action.purchase || null
+      });
+    }
+    case PURCHASES_TYPES.FETCHING_PURCHASE_ERROR: {
+      return Immutable.merge(state, {
+        fetchingPurchaseError: action.error,
+        fetchingPurchase: false,
+        purchase: null
+      });
+    }
+    case AUTH_TYPES.TOKEN_RECEIVED: {
+      return Immutable.merge(state, {
+        fetchingSensorError: null,
+        fetchingStreamsError: null,
+        fetchingDatasetsError: null
+      });
     }
     default:
       return state;

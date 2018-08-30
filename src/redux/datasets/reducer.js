@@ -12,12 +12,17 @@ export const DEFAULT_STATE = {
   },
   datasets: {},
   fetchingDatasets: false,
+  fetchingDatasetsError: null,
+  fetchDatasetCounter: 0,
+
   availableCategories: [],
   availableFiletypes: [],
-  fetchDatasetCounter: 0,
+
   challengingDataset: false,
   challenges: [],
   fetchingChallenges: false,
+  fetchingChallengesError: null,
+
   rows: 10,
   total: 0,
   page: 1
@@ -26,19 +31,32 @@ export const DEFAULT_STATE = {
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
     case DATASET_TYPES.FETCHING_DATASETS: {
-      return Immutable.set(state, 'fetchingDatasets', action.value);
-    }
-    case DATASET_TYPES.FETCH_DATASETS: {
       return Immutable.merge(state, {
-        datasets: action.datasets,
-        total: action.total,
-        fetchingDatasets: false
+        fetchingDatasets: action.value,
+        datasets: action.datasets || {},
+        total: action.total || 0
       });
     }
-    case DATASET_TYPES.FETCH_DATASET: {
-      const newDatasets = Immutable.asMutable(state, { deep: true }).datasets;
-      newDatasets[action.dataset.key] = action.dataset;
-      return Immutable.merge(state, { datasets: newDatasets });
+    case DATASET_TYPES.FETCHING_DATASETS_ERROR: {
+      return Immutable.merge(state, {
+        fetchingDatasetsError: action.error,
+        fetchingDatasets: false,
+        datasets: [],
+        total: 0
+      });
+    }
+    case DATASET_TYPES.FETCHING_DATASET: {
+      return Immutable.merge(state, {
+        fetchingDataset: action.value,
+        dataset: action.dataset || null
+      });
+    }
+    case DATASET_TYPES.FETCHING_DATASET_ERROR: {
+      return Immutable.merge(state, {
+        fetchingDatasetError: action.error,
+        fetchingDataset: false,
+        dataset: null
+      });
     }
     case DATASET_TYPES.FETCH_AVAILABLE_FILETYPES: {
       return Immutable.merge(state, {
@@ -59,13 +77,18 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case DATASET_TYPES.CHALLENGING_DATASET: {
       return Immutable.set(state, 'challengingDataset', action.value);
     }
-    case DATASET_TYPES.FETCH_CHALLENGES: {
+    case DATASET_TYPES.FETCHING_CHALLENGES: {
       return Immutable.merge(state, {
-        challenges: action.challenges
+        fetchingChallenges: action.value,
+        challenges: action.challenges || []
       });
     }
-    case DATASET_TYPES.FETCHING_CHALLENGES: {
-      return Immutable.set(state, 'fetchingChallenges', action.value);
+    case DATASET_TYPES.FETCHING_CHALLENGES_ERROR: {
+      return Immutable.merge(state, {
+        fetchingChallengesError: action.error,
+        fetchingChallenges: false,
+        challenges: []
+      });
     }
     case DATASET_TYPES.UPDATE_CURRENT_PAGE: {
       return Immutable.merge(state, {

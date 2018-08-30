@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { DialogContainer } from 'react-md';
 import { connect } from 'react-redux';
-
 import LoginForm from './LoginForm';
-import { login } from '../../redux/authentication/reducer';
+import { AUTH_ACTIONS } from '../../redux/authentication/actions';
 
 class LoginDialog extends Component {
   componentDidMount() {
@@ -41,11 +40,7 @@ class LoginDialog extends Component {
         aria-labelledby="Log In"
       >
         <h1>Log In</h1>
-        <LoginForm
-          login={(values, settings) =>
-            this.props.dispatch(login(values, settings))
-          }
-        />
+        <LoginForm login={this.props.login} />
       </DialogContainer>
     );
   }
@@ -53,7 +48,7 @@ class LoginDialog extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    dispatch
+    login: (values, settings) => dispatch(AUTH_ACTIONS.login(values, settings))
   };
 }
 

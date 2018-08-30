@@ -9,92 +9,40 @@ import {
 } from '../../api/util';
 
 export const PURCHASES_TYPES = {
-  FETCHING_DATASETS: 'FETCHING_DATASETS',
-  FETCHING_STREAMS: 'FETCHING_STREAMS',
-  FETCHED_DATASETS: 'FETCHED_DATASETS',
-  FETCHED_STREAMS: 'FETCHED_STREAMS',
-  PURCHASE_ACCESS: 'PURCHASE_ACCESS',
+  FETCHING_PURCHASE: 'FETCHING_PURCHASE',
+  FETCHING_PURCHASE_ERROR: 'FETCHING_PURCHASE_ERROR',
   PURCHASING_ACCESS: 'PURCHASING_ACCESS',
-  UPDATE_CURRENT_PAGE_DATASETS: 'UPDATE_CURRENT_PAGE_DATASETS',
-  UPDATE_CURRENT_PAGE_STREAMS: 'UPDATE_CURRENT_PAGE_STREAMS',
-  UPDATE_ROWS_PER_PAGE_DATASETS: 'UPDATE_ROWS_PER_PAGE_DATASETS',
-  UPDATE_ROWS_PER_PAGE_STREAMS: 'UPDATE_ROWS_PER_PAGE_STREAMS'
+  PURCHASING_ACCESS_ERROR: 'PURCHASING_ACCESS_ERROR'
 };
 
 export const PURCHASES_ACTIONS = {
-  fetchPurchases: (skip = 0, limit = 10, endTime = null) => {
-    if (endTime === null) {
-      const ts = Math.ceil(moment.now() / 1000);
-      endTime = `>${ts}`;
-    }
-
+  fetchPurchase: (key, sensor) => {
     return (dispatch, getState) => {
-      const fetchDataset = endTime === 0;
       dispatch({
-        type: fetchDataset
-          ? PURCHASES_TYPES.FETCHING_DATASETS
-          : PURCHASES_TYPES.FETCHING_STREAMS,
+        type: PURCHASES_TYPES.FETCHING_PURCHASE,
         value: true
       });
 
-      const authenticatedAxiosClient = axios(null, true);
+      const url = key
+        ? `/purchase/${key}`
+        : `/purchaseregistry/list?item.sensor=~${sensor}`;
 
-      function getSensorDetails(purchase) {
-        return authenticatedAxiosClient.get(`/sensor/${purchase.sensor}`);
-      }
-
-      function getPurchaseDetails(purchase) {
-        return authenticatedAxiosClient.get(
-          `/purchase/${purchase.contractAddress}`
-        );
-      }
-
-      const email = localStorage.getItem('email');
-      authenticatedAxiosClient
-        .get(
-          `/purchaseregistry/list?item.email=${email}&skip=${skip}&limit=${limit}&item.endTime=${endTime}`
-        )
+      axios(true)
+        .get(url)
         .then(async response => {
-          const purchases = response.data.items;
-
-          const purchaseDetailCalls = purchases.map(getPurchaseDetails);
-          const purchaseDetails = await Promise.all(purchaseDetailCalls);
-
-          const sensorDetailCalls = purchases.map(getSensorDetails);
-          const sensorDetails = await Promise.all(sensorDetailCalls);
-
-          // Warning: do not store the parsed response in a dict,
-          // it breaks paging
-          let parsedResponse = [];
-          for (let i = 0; i < purchases.length; i++) {
-            const key = sensorDetails[i].data.contractAddress;
-
-            // Only add purchases if they aren't expired yet
-            const endTimeMs = purchaseDetails[i].data.endTime * 1000;
-            if (!endTimeMs || endTimeMs > moment.now()) {
-              parsedResponse.push({
-                key,
-                name: sensorDetails[i].data.name,
-                type: sensorDetails[i].data.type,
-                filetype: sensorDetails[i].data.filetype,
-                category: sensorDetails[i].data.category,
-                updateinterval: sensorDetails[i].data.updateinterval,
-                sensortype: purchaseDetails[i].data.sensortype,
-                endTime: purchaseDetails[i].data.endTime
-              });
-            }
-          }
-
+          const purchase =
+            response.data.total === 1 ? response.data.items[0] : null;
           dispatch({
-            type: fetchDataset
-              ? PURCHASES_TYPES.FETCHED_DATASETS
-              : PURCHASES_TYPES.FETCHED_STREAMS,
-            items: parsedResponse,
-            total: response.data.total
+            type: PURCHASES_TYPES.FETCHING_PURCHASE,
+            value: false,
+            purchase
           });
         })
         .catch(error => {
-          console.log(error);
+          dispatch({
+            type: PURCHASES_TYPES.FETCHING_PURCHASE_ERROR,
+            error
+          });
         });
     };
   },
@@ -104,8 +52,6 @@ export const PURCHASES_ACTIONS = {
         type: PURCHASES_TYPES.PURCHASING_ACCESS,
         value: true
       });
-
-      const authenticatedAxiosClient = axios(true);
 
       // Multiply price for streams, use the indicated price for datasets that are a forever-purchase
       let purchasePrice;
@@ -123,30 +69,40 @@ export const PURCHASES_ACTIONS = {
         }
       };
 
-      prepareDtxSpendFromPurchaseRegistry(metadata)
-        .then(async responses => {
-          const deployedTokenContractAddress = responses[0];
-          const spenderAddress = responses[1];
-          const metadataHash = responses[2];
+      try {
+        prepareDtxSpendFromPurchaseRegistry(metadata)
+          .then(async responses => {
+            const deployedTokenContractAddress = responses[0];
+            const spenderAddress = responses[1];
+            const metadataHash = responses[2];
 
-          await dtxApproval(
-            deployedTokenContractAddress,
-            spenderAddress,
-            purchasePrice
-          );
+            await dtxApproval(
+              deployedTokenContractAddress,
+              spenderAddress,
+              purchasePrice
+            );
 
-          await sensorPurchase(stream.key, endTime, metadataHash);
+            await sensorPurchase(stream.key, endTime, metadataHash);
 
-          await sensorRegistered(stream.key, localStorage.getItem('email'));
+            await sensorRegistered(stream.key, localStorage.getItem('email'));
 
-          dispatch({
-            type: PURCHASES_TYPES.PURCHASING_ACCESS,
-            value: false
+            dispatch({
+              type: PURCHASES_TYPES.PURCHASING_ACCESS,
+              value: false
+            });
+          })
+          .catch(error => {
+            dispatch({
+              type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
+              error
+            });
           });
-        })
-        .catch(error => {
-          console.log(error);
+      } catch (error) {
+        dispatch({
+          type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
+          error
         });
+      }
     };
   },
   updateCurrentPage: (type, page) => {

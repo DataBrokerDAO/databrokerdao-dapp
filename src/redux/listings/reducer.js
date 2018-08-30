@@ -1,65 +1,38 @@
 import Immutable from 'seamless-immutable';
 import { LISTING_TYPES } from './actions.js';
+import { AUTH_TYPES } from '../authentication/actions.js';
 
 export const DEFAULT_STATE = {
-  streams: [],
-  fetchingStreams: false,
-  rowsStreams: 10,
-  totalStreams: 0,
-  pageStreams: 1,
-
-  datasets: [],
-  fetchingDatasets: false,
-  rowsDatasets: 10,
-  totalDatasets: 0,
-  pageDatasets: 1,
-
-  enlistingStream: false
+  enlistingStream: false,
+  enlistingStreamError: null,
+  enlistingDataset: false,
+  enlistingDatasetError: null
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
-    case LISTING_TYPES.FETCHING_STREAM_LISTINGS: {
-      return Immutable.set(state, 'fetchingStreamListings', action.value);
-    }
-    case LISTING_TYPES.FETCHED_STREAM_LISTINGS: {
-      return Immutable.merge(state, {
-        streams: action.items,
-        totalStreams: action.total,
-        fetchingStreamListings: false
-      });
-    }
     case LISTING_TYPES.ENLISTING_STREAM: {
-      return Immutable.set(state, 'enlistingStream', action.value);
+      return Immutable.merge(state, { enlistingStream: action.value });
     }
-    case LISTING_TYPES.FETCHING_DATASET_LISTINGS: {
-      return Immutable.set(state, 'fetchingDatasetListings', action.value);
-    }
-    case LISTING_TYPES.FETCHED_DATASET_LISTINGS: {
+    case LISTING_TYPES.ENLISTING_STREAM_ERROR: {
       return Immutable.merge(state, {
-        datasets: action.items,
-        totalDatasets: action.total,
-        fetchingDatasetListings: false
+        enlistingStream: false,
+        enlistingStreamError: action.value
       });
     }
-    case LISTING_TYPES.UPDATE_CURRENT_PAGE_DATASETS: {
+    case LISTING_TYPES.ENLISTING_DATASET: {
+      return Immutable.merge(state, { enlistingDataset: action.value });
+    }
+    case LISTING_TYPES.ENLISTING_DATASET_ERROR: {
       return Immutable.merge(state, {
-        pageDatasets: action.page
+        enlistingDataset: false,
+        enlistingDatasetError: action.value
       });
     }
-    case LISTING_TYPES.UPDATE_ROWS_PER_PAGE_DATASETS: {
+    case AUTH_TYPES.TOKEN_RECEIVED: {
       return Immutable.merge(state, {
-        rowsDatasets: action.rows
-      });
-    }
-    case LISTING_TYPES.UPDATE_CURRENT_PAGE_STREAMS: {
-      return Immutable.merge(state, {
-        pageStreams: action.page
-      });
-    }
-    case LISTING_TYPES.UPDATE_ROWS_PER_PAGE_STREAMS: {
-      return Immutable.merge(state, {
-        rowsStreams: action.rows
+        enlistingStreamError: null,
+        enlistingDatasetError: null
       });
     }
     default:

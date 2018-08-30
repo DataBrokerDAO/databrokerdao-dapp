@@ -3,7 +3,6 @@ import moment from 'moment';
 import { convertDtxToWei } from '../utils/transforms';
 import { default as retry } from '../utils/async_retry';
 
-const authenticatedAxiosClient = axios(true);
 const anonymousAxiosClient = axios(null, true);
 
 export function getDtxTokenAddress() {
@@ -38,6 +37,7 @@ export async function dtxApproval(
   amountInDtx
 ) {
   const url = `/dtxtoken/${dtxTokenAddress}/approve`;
+  const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _spender: spenderAddress,
     _value: convertDtxToWei(amountInDtx)
@@ -50,6 +50,7 @@ export async function dtxApproval(
 
 export async function sensorEnlisting(stakeInDtx, priceInDtx, metadataHash) {
   const url = '/sensorregistry/enlist';
+  const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(
     `/sensorregistry/enlist`,
     {
@@ -64,6 +65,7 @@ export async function sensorEnlisting(stakeInDtx, priceInDtx, metadataHash) {
 
 export async function sensorPurchase(sensorKey, endTime, metadataHash) {
   const url = `/purchaseregistry/purchaseaccess`;
+  const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _sensor: sensorKey,
     _endTime:
@@ -81,6 +83,7 @@ export async function sensorPurchase(sensorKey, endTime, metadataHash) {
 
 export async function sensorChallenge(sensorKey, amount, metadataHash) {
   const url = '/sensorregistry/challenge';
+  const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _listing: sensorKey,
     _stakeAmount: amount,
@@ -96,6 +99,7 @@ export async function sensorChallenge(sensorKey, amount, metadataHash) {
 
 export async function dtxMint(amount) {
   const url = '/dtxminter/mint';
+  const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _amount: amount
   });
@@ -113,22 +117,23 @@ export async function sensorRegistered(sensorKey, email) {
 }
 
 export function prepareDtxSpendFromSensorRegistry(metadata) {
-  return Promise.all(
+  return Promise.all([
     getDtxTokenAddress(),
     getSensorRegistryAddress(),
     hashMetaData(metadata)
-  );
+  ]);
 }
 
 export function prepareDtxSpendFromPurchaseRegistry(metadata) {
-  return Promise.all(
+  return Promise.all([
     getDtxTokenAddress(),
     getPurchaseRegistryAddress(),
     hashMetaData(metadata)
-  );
+  ]);
 }
 
 async function sensor(sensor, email) {
+  const authenticatedAxiosClient = axios(true);
   return await retry(
     async bail => {
       const url = `/purchaseregistry/list?item.email=${email}`;
@@ -157,6 +162,7 @@ async function sensor(sensor, email) {
 }
 
 async function transactionReceipt(url) {
+  const authenticatedAxiosClient = axios(true);
   return await retry(
     async bail => {
       const res = await authenticatedAxiosClient.get(url);

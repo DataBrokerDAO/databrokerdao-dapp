@@ -43,7 +43,7 @@ class DatasetsList extends Component {
       width: 100%;
     `;
 
-    if (this.props.fetchingDatasets)
+    if (isEmpty(this.props.datasets) && this.props.fetchingDatasets)
       return <StyledParagraph>Loading datasets...</StyledParagraph>;
 
     if (isEmpty(this.props.datasets))
@@ -113,6 +113,7 @@ class DatasetsList extends Component {
                 Price: {convertWeiToDtx(dataset.price)} DTX
               </DatasetPrice>
               <DatasetDetails>
+                {dataset.owned ? 'Owner: you, ' : ''}
                 File type: {dataset.filetype}, Owner stake:{' '}
                 {convertWeiToDtx(dataset.stake)} DTX, Challenges:{' '}
                 {dataset.numberofchallenges} (
@@ -122,7 +123,13 @@ class DatasetsList extends Component {
           </TableColumn>
           <TableColumn style={{ minWidth: '200px' }}>
             <div>
-              <TitleCTAButton flat primary swapTheming onClick={event => {}}>
+              <TitleCTAButton
+                disabled={dataset.purchased || dataset.owned}
+                flat
+                primary
+                swapTheming
+                onClick={event => {}}
+              >
                 Purchase access
               </TitleCTAButton>
             </div>

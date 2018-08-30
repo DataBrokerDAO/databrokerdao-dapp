@@ -7,9 +7,9 @@ import { BigNumber } from 'bignumber.js';
 import { withRouter } from 'react-router-dom';
 import RegisterForm from '../authentication/RegisterForm';
 import TransactionDialog from '../generic/TransactionDialog';
-import { register } from '../../redux/authentication/reducer';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { PURCHASES_ACTIONS } from '../../redux/purchases/actions';
+import { AUTH_ACTIONS } from '../../redux/authentication/actions';
 
 const STEP_INTRO = 0,
   STEP_REGISTRATION = 1,
@@ -232,7 +232,8 @@ const mapStateToProps = state => ({
 
 function mapDispatchToProps(dispatch) {
   return {
-    register: (values, settings) => dispatch(register(values, settings)),
+    register: (values, settings) =>
+      dispatch(AUTH_ACTIONS.register(values, settings)),
     purchaseAccess: (stream, endTime) =>
       dispatch(PURCHASES_ACTIONS.purchaseAccess(stream, endTime)),
     fetchPurchases: () => dispatch(PURCHASES_ACTIONS.fetchPurchases()),

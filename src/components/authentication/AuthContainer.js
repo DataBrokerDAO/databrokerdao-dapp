@@ -77,4 +77,29 @@ class AuthContainer extends Component {
   }
 }
 
+// function mapDispatchToProps(dispatch) {
+//   return {
+//     fetchPurchases: (skip, limit, endTime) =>
+//       dispatch(PURCHASES_ACTIONS.fetchPurchases(skip, limit, endTime)),
+//     updateCurrentPage: currentPage =>
+//       dispatch(
+//         PURCHASES_ACTIONS.updateCurrentPage(
+//           PURCHASES_TYPES.UPDATE_CURRENT_PAGE_DATASETS,
+//           currentPage
+//         )
+//       ),
+//     updateRowsPerPage: rowsPerPage =>
+//       dispatch(
+//         PURCHASES_ACTIONS.updateRowsPerPage(
+//           PURCHASES_TYPES.UPDATE_CURRENT_PAGE_DATASETS,
+//           rowsPerPage
+//         )
+//       )
+//   };
+// }
+
+// const mapStateToProps = state => ({
+//   token: state.auth.token
+// });
+
 export default connect()(AuthContainer);

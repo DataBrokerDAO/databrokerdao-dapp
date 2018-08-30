@@ -1,5 +1,26 @@
 import each from 'lodash/each';
 
+export function fetchSensorMeta(authenticatedAxiosClient, sensor, owner) {
+  return Promise.all([
+    new Promise((resolve, reject) => {
+      authenticatedAxiosClient
+        .get(
+          `purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${owner}`
+        )
+        .then(resolve)
+        .catch(reject);
+    }),
+    new Promise((resolve, reject) => {
+      authenticatedAxiosClient
+        .get(
+          `sensorregistry/list?item.owner=~${owner}&item.contractAddress=~${sensor}`
+        )
+        .then(resolve)
+        .catch(reject);
+    })
+  ]);
+}
+
 /**
  * API
  */
@@ -46,7 +67,7 @@ export function parseDatasets(sensors) {
  */
 export function parseDataset(sensor) {
   return {
-    key: sensor.key,
+    key: sensor.key || sensor.contractAddress,
     name: sensor.name,
     price: sensor.price,
     stake: sensor.stake,

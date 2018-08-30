@@ -8,7 +8,6 @@ import {
 import IconSeparator from 'react-md/lib/Helpers/IconSeparator';
 import styled from 'styled-components';
 import { connect } from 'react-redux';
-import find from 'lodash/find';
 import { BigNumber } from 'bignumber.js';
 import moment from 'moment';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome';
@@ -46,7 +45,7 @@ class DatasetDetailsScreen extends Component {
     this.props.fetchAvailableCategories();
     this.props.fetchAvailableFiletypes();
 
-    if (this.props.token) this.props.fetchPurchases();
+    if (this.props.token) this.props.fetchIsPurchased();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -110,14 +109,14 @@ class DatasetDetailsScreen extends Component {
       dataset,
       availableCategories,
       availableFiletypes,
-      fetchingPurchases
+      fetchingPurchase
     } = this.props;
 
     if (
       !dataset ||
       !availableCategories ||
       !availableFiletypes ||
-      fetchingPurchases
+      fetchingPurchase
     )
       return (
         <div>
@@ -154,11 +153,11 @@ class DatasetDetailsScreen extends Component {
 
     const stake = convertWeiToDtx(dataset.stake);
 
-    const purchase = find(this.props.purchases, purchase => {
-      return purchase.key === dataset.key;
-    });
-    const purchased = purchase !== undefined;
-    const isOwner = dataset.owner === localStorage.getItem('address');
+    const address = localStorage.getItem('address');
+    const purchase = this.props.purchase;
+    const purchased = purchase !== null;
+    const isOwner =
+      address && dataset.owner.toUpperCase() === address.toUpperCase();
 
     // Update interval: only needed when set has an update interval
     const updateInterval = dataset.updateinterval
@@ -177,7 +176,7 @@ class DatasetDetailsScreen extends Component {
       <ListItem
         id="challenge-list-item"
         key="challenge-list-item"
-        primaryText="Challenge dataset"
+        primaryText="Challenge"
         onClick={event => this.toggleChallengeDialog(event)}
       />
     ];
@@ -280,6 +279,19 @@ class DatasetDetailsScreen extends Component {
                   </StyledAttributeLabel>
                 </StyledSensorAttribute>
               )}
+              {isOwner && (
+                <StyledSensorAttribute>
+                  <Icon
+                    icon="staking"
+                    style={{
+                      fill: 'rgba(0,0,0,0.54)',
+                      width: '20px',
+                      height: '20px'
+                    }}
+                  />
+                  <StyledAttributeLabel>Owner: you</StyledAttributeLabel>
+                </StyledSensorAttribute>
+              )}
             </div>
           </CardContent>
         </CenteredCard>
@@ -322,10 +334,8 @@ class DatasetDetailsScreen extends Component {
                   }}
                 />
                 <StyledAttributeLabel>
-                  Challenges: {dataset.numberofchallenges} ({Math.floor(
-                    convertWeiToDtx(dataset.challengesstake)
-                  )}{' '}
-                  DTX)
+                  Challenges: {dataset.numberofchallenges} (
+                  {Math.floor(convertWeiToDtx(dataset.challengesstake))} DTX)
                 </StyledAttributeLabel>
               </StyledSensorAttribute>
             </div>
@@ -365,30 +375,33 @@ class DatasetDetailsScreen extends Component {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
+  const sensor = ownProps.match.params.key;
   return {
     fetchDataset: () =>
-      dispatch(
-        DATASET_ACTIONS.fetchDataset(dispatch, ownProps.match.params.key)
-      ),
+      dispatch(DATASET_ACTIONS.fetchDataset(dispatch, sensor)),
     fetchAvailableCategories: () =>
       dispatch(DATASET_ACTIONS.fetchAvailableCategories()),
     fetchAvailableFiletypes: () =>
       dispatch(DATASET_ACTIONS.fetchAvailableFiletypes()),
-    fetchPurchases: () => dispatch(PURCHASES_ACTIONS.fetchPurchases())
+    fetchIsPurchased: () =>
+      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor))
   };
 }
 
 function mapStateToProps(state, ownProps) {
   return {
-    dataset: state.datasets.datasets[ownProps.match.params.key],
+    token: state.auth.token,
     availableCategories: state.datasets.availableCategories,
     availableFiletypes: state.datasets.availableFiletypes,
-    purchases: state.purchases.purchases,
-    fetchingPurchases: state.purchases.fetchingPurchases,
-    token: state.auth.token //Used to verify if a user is signed in, if not we don't have to get purchases from API
+    dataset: state.datasets.dataset,
+
+    purchase: state.purchases.purchase,
+    fetchingPurchase: state.purchases.fetchingPurchase,
+    fetchingPurchaseError: state.purchases.fetchingPurchaseError
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  DatasetDetailsScreen
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DatasetDetailsScreen);

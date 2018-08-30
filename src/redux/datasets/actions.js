@@ -7,14 +7,20 @@ import {
   parseDataset
 } from '../../api/sensors';
 import { fetchChallenges } from '../../api/challenges';
+import { fetchSensorMeta } from '../../api/sensors';
 
 export const DATASET_TYPES = {
   FETCHING_DATASETS: 'FETCHING_DATASETS',
-  FETCH_DATASETS: 'FETCH_DATASETS',
-  FETCH_DATASET: 'FETCH_DATASET',
-  CHALLENGING_DATASET: 'CHALLENGING_DATASET',
-  FETCH_CHALLENGES: 'FETCH_CHALLENGES',
+  FETCHING_DATASETS_ERROR: 'FETCHING_DATASETS_ERROR',
+
+  FETCHING_DATASET: 'FETCHING_DATASET',
+  FETCHING_DATASET_ERROR: 'FETCHING_DATASET_ERROR',
+
   FETCHING_CHALLENGES: 'FETCHING_CHALLENGES',
+  FETCHING_CHALLENGES_ERROR: 'FETCHING_CHALLENGES_ERROR',
+
+  CHALLENGING_DATASET: 'CHALLENGING_DATASET',
+
   DATASET_UPDATED_FILTER: 'DATASET_UPDATED_FILTER',
   FETCH_DATASET_COUNTER: 'FETCH_DATASET_COUNTER',
   FETCH_AVAILABLE_CATEGORIES: 'FETCH_AVAILABLE_CATEGORIES',
@@ -69,13 +75,13 @@ export const DATASET_ACTIONS = {
 
       const { limit, start, sort } = filter;
 
-      const authenticatedAxiosClient = axios(null, true);
+      const anonymousAxiosClient = axios(null, true);
       const fetchDatasetCounter = state.datasets.fetchDatasetCounter + 1;
 
       // Counter to keep track of calls so when response arrives we can take the latest
       (counter => {
         fetchSensors(
-          authenticatedAxiosClient,
+          anonymousAxiosClient,
           {
             limit,
             start,
@@ -84,26 +90,36 @@ export const DATASET_ACTIONS = {
           },
           true
         )
-          .then(response => {
+          .then(async response => {
             if (counter !== getState().datasets.fetchDatasetCounter) {
               return;
             }
-
             const parsedResponse = parseDatasets(response.data.items);
-
             dispatch({
-              type: DATASET_TYPES.FETCH_DATASETS,
+              type: DATASET_TYPES.FETCHING_DATASETS,
+              value: false,
               datasets: parsedResponse,
               total: response.data.total
             });
+
+            // Dispatch an update with decorated purchase | ownership info
+            if (localStorage.getItem('jwtToken')) {
+              const authenticatedAxiosClient = axios(true);
+              await decorateMetaInfo(authenticatedAxiosClient, parsedResponse);
+
+              dispatch({
+                type: DATASET_TYPES.FETCHING_DATASETS,
+                value: false,
+                datasets: parsedResponse,
+                total: response.data.total
+              });
+            }
           })
           .catch(error => {
             dispatch({
-              type: DATASET_TYPES.FETCH_DATASETS,
-              datasets: [],
-              total: 0
+              type: DATASET_TYPES.FETCHING_DATASETS_ERROR,
+              error
             });
-            console.log(error);
           });
       })(fetchDatasetCounter);
       dispatch({
@@ -115,7 +131,7 @@ export const DATASET_ACTIONS = {
   fetchDataset: (dispatch, dataset) => {
     return (dispatch, getState) => {
       dispatch({
-        type: DATASET_TYPES.FETCHING_CHALLENGES,
+        type: DATASET_TYPES.FETCHING_DATASET,
         value: true
       });
 
@@ -123,30 +139,38 @@ export const DATASET_ACTIONS = {
 
       fetchSensor(authenticatedAxiosClient, dataset)
         .then(response => {
-          let parsedResponse = response.data_id
+          let parsedResponse = response.data.sensorid
             ? parseDataset(response.data)
             : {};
 
           dispatch({
-            type: DATASET_TYPES.FETCH_DATASET,
+            type: DATASET_TYPES.FETCHING_DATASET,
+            value: false,
             dataset: parsedResponse
           });
 
-          // Get challenges
+          dispatch({
+            type: DATASET_TYPES.FETCHING_CHALLENGES,
+            value: true
+          });
+
           const urlParametersChallenges = `listing=${dataset}`;
           fetchChallenges(
             authenticatedAxiosClient,
             urlParametersChallenges
           ).then(response => {
-            const parsedResponse = [];
             dispatch({
-              type: DATASET_TYPES.FETCH_CHALLENGES,
-              challenges: parsedResponse
+              type: DATASET_TYPES.FETCHING_CHALLENGES,
+              value: false,
+              challenges: response
             });
           });
         })
         .catch(error => {
-          console.log(error);
+          dispatch({
+            type: DATASET_TYPES.FETCHING_CHALLENGES_ERROR,
+            error
+          });
         });
     };
   },
@@ -213,3 +237,23 @@ export const DATASET_ACTIONS = {
     };
   }
 };
+
+async function decorateMetaInfo(axios, datasets) {
+  const owner = localStorage.getItem('address');
+  if (!owner) {
+    return;
+  }
+
+  const metaPromises = [];
+  for (let sensor of Object.keys(datasets)) {
+    metaPromises.push(fetchSensorMeta(axios, sensor, owner));
+  }
+  const result = await Promise.all(metaPromises);
+
+  let index = 0;
+  for (let sensor of Object.keys(datasets)) {
+    datasets[sensor].purchased = result[index][0].data.total === 1;
+    datasets[sensor].owned = result[index][1].data.total === 1;
+    index++;
+  }
+}

@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 import { routerReducer } from 'react-router-redux';
 
-import { reducer as auth } from './authentication/reducer';
+import AuthReducer from './authentication/reducer';
 import StreamsReducer from './streams/reducer';
 import PurchasesReducer from './purchases/reducer';
 import WalletReducer from './wallet/reducer';
@@ -10,6 +10,7 @@ import DatasetsReducer from './datasets/reducer';
 import TransactionsReducer from './transactions/reducer';
 import ErrorReducer from './errors/reducer';
 import UserReducer from './user/reducer';
+import SensorsReducer from './sensors/reducer';
 
 /**
  * This is the global reducer to which all reducers which are loaded at runtime are added.
@@ -27,12 +28,13 @@ const rootReducer = (asyncReducers, initialState) => {
 
   return combineReducers({
     routing: routerReducer,
-    auth,
+    auth: AuthReducer,
     streams: StreamsReducer,
     purchases: PurchasesReducer,
     wallet: WalletReducer,
     listings: ListingsReducer,
     datasets: DatasetsReducer,
+    sensors: SensorsReducer,
     transactions: TransactionsReducer,
     error: ErrorReducer,
     user: UserReducer,
