@@ -44,7 +44,6 @@ export async function dtxApproval(
   });
 
   const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
-
   return receipt;
 }
 
@@ -105,8 +104,22 @@ export async function dtxMint(amount) {
   return receipt;
 }
 
-export async function sensorRegistered(sensorKey, email) {
-  const s = await sensor(sensorKey, email);
+export async function sensorEnlistingCount(owner, type) {
+  const authenticatedAxiosClient = axios(true);
+  const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}`;
+  const response = await authenticatedAxiosClient.get(url);
+  if (response.data && response.data.items) {
+    return response.data.total;
+  }
+}
+
+export async function sensorEnlistingRegistered(count, owner) {
+  const s = await enlisting(count, owner);
+  return s;
+}
+
+export async function sensorPurchaseRegistered(sensorKey, email) {
+  const s = await purchase(sensorKey, email);
   return s;
 }
 
@@ -126,7 +139,7 @@ export function prepareDtxSpendFromPurchaseRegistry(metadata) {
   ]);
 }
 
-async function sensor(sensor, email) {
+async function purchase(sensor, email) {
   const authenticatedAxiosClient = axios(true);
   return await retry(
     async bail => {
@@ -155,22 +168,50 @@ async function sensor(sensor, email) {
   );
 }
 
+async function enlisting(count, owner) {
+  const authenticatedAxiosClient = axios(true);
+  return await retry(
+    async bail => {
+      const url = `/sensorregistry/list?item.owner=~${owner}`;
+      const response = await authenticatedAxiosClient.get(url);
+      if (response.data.total >= count) {
+        return true;
+      }
+
+      throw new Error('Sensor not yet enlisted');
+    },
+    {
+      factor: 1,
+      minTimeout: 1000,
+      maxTimeout: 1000,
+      retries: 120
+    }
+  );
+}
+
 async function transactionReceipt(url) {
   const authenticatedAxiosClient = axios(true);
   return await retry(
     async bail => {
       const res = await authenticatedAxiosClient.get(url);
 
-      if (!(res.data && res.data.receipt)) {
-        throw new Error('Tx not mined yet');
+      if (res.data) {
+        if (res.data.receipt) {
+          if (res.data.receipt.status === 1) {
+            return res.data.receipt;
+          } else {
+            bail(new Error(`Tx with hash ${res.data.hash} was reverted`));
+            return;
+          }
+        }
+
+        if (res.data.error) {
+          bail(new Error(`Tx errored:  ${res.data.error}`));
+          return;
+        }
       }
 
-      if (res.data.receipt.status === 0) {
-        bail(new Error(`Tx with hash ${res.data.hash} was reverted`));
-        return;
-      }
-
-      return res.data.receipt;
+      throw new Error('Tx not mined yet');
     },
     {
       factor: 1,

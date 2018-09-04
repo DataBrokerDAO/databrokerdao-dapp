@@ -12,13 +12,19 @@ import { TabsContainer, Tabs, Tab } from 'react-md';
 
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+import get from 'lodash/get';
 
 class ListingsScreen extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
-      activeTabIndex: 0
+      activeTabIndex: get(props, 'location.hash') === '#tab-datasets' ? 1 : 0
     };
+  }
+
+  componentDidMount() {
+    this.handleTabChange(this.state.activeTabIndex);
   }
 
   onEnlistStreamClicked() {

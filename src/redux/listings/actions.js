@@ -1,7 +1,9 @@
 import {
   prepareDtxSpendFromSensorRegistry,
   dtxApproval,
-  sensorEnlisting
+  sensorEnlisting,
+  sensorEnlistingRegistered,
+  sensorEnlistingCount
 } from '../../api/util';
 
 import { ERROR_TYPES } from '../errors/actions';
@@ -47,7 +49,13 @@ export const LISTING_ACTIONS = {
               spenderAddress,
               stream.stake
             );
+
+            // This is not pretty but we don't have a sensor key, so good enough for now.
+            // It will wait until there's current count + 1 listings for the owner
+            const owner = localStorage.getItem('address');
+            const count = await sensorEnlistingCount(owner, '!DATASET');
             await sensorEnlisting(stream.stake, stream.price, metadataHash);
+            await sensorEnlistingRegistered(count + 1, owner);
 
             dispatch({
               type: LISTING_TYPES.ENLISTING_STREAM,
@@ -112,7 +120,12 @@ export const LISTING_ACTIONS = {
               dataset.stake
             );
 
+            // This is not pretty but we don't have a sensor key, so good enough for now.
+            // It will wait until there's current count + 1 listings for the owner
+            const owner = localStorage.getItem('address');
+            const count = await sensorEnlistingCount(owner, 'DATASET');
             await sensorEnlisting(dataset.stake, dataset.price, metadataHash);
+            await sensorEnlistingRegistered(count + 1, owner);
 
             dispatch({
               type: LISTING_TYPES.ENLISTING_DATASET,

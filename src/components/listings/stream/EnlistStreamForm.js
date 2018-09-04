@@ -237,6 +237,7 @@ export default class EnlistForm extends Component {
           .required('Price is required'),
         stake: Yup.number()
           .typeError('Stake must be a number')
+          .min(50, 'Minimum stake amount 50 DTX')
           .required('Stake is required')
       }),
       handleSubmit: (values, { setSubmitting }) => {

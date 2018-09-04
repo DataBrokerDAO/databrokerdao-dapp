@@ -19,7 +19,7 @@ class WalletScreen extends Component {
   }
 
   fundWallet() {
-    const amount = BigNumber(500)
+    const amount = BigNumber(5000)
       .times(BigNumber(10).pow(18))
       .toString();
     this.props.mintTokens(amount);
@@ -74,7 +74,7 @@ class WalletScreen extends Component {
               >
                 {this.props.mintingTokens
                   ? '(funding in progress)'
-                  : 'Fund wallet (+ 500 DTX)'}
+                  : 'Fund wallet (+ 5000 DTX)'}
               </TitleCTAButton>
             </StyledTitleContainer>
             <DesktopAddress>Address: {address}</DesktopAddress>

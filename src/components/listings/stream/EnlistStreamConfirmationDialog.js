@@ -63,6 +63,7 @@ class EnlistConfirmationDialog extends Component {
       this.setState({ stepIndex: STEP_SUCCESS });
     else if (step === STEP_SUCCESS) {
       this.props.hideEventHandler();
+      this.props.history.push(`/listings#tab-streams`);
     } else if (step === STEP_BALANCE_ERROR) {
       this.props.history.push(`/wallet`);
     }

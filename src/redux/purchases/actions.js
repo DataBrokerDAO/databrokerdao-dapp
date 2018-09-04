@@ -4,7 +4,7 @@ import localStorage from '../../localstorage';
 import {
   dtxApproval,
   sensorPurchase,
-  sensorRegistered,
+  sensorPurchaseRegistered,
   prepareDtxSpendFromPurchaseRegistry
 } from '../../api/util';
 
@@ -92,7 +92,10 @@ export const PURCHASES_ACTIONS = {
 
             await sensorPurchase(stream.key, endTime, metadataHash);
 
-            await sensorRegistered(stream.key, localStorage.getItem('email'));
+            await sensorPurchaseRegistered(
+              stream.key,
+              localStorage.getItem('email')
+            );
 
             dispatch({
               type: PURCHASES_TYPES.PURCHASING_ACCESS,
