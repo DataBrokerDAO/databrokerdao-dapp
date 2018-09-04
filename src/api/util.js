@@ -147,10 +147,10 @@ async function sensor(sensor, email) {
       throw new Error('Sensor not yet purchased');
     },
     {
-      factor: 2,
+      factor: 1,
       minTimeout: 1000,
-      maxTimeout: 5000, // ms
-      retries: 12 // This means we'll wait a little over 1 min. max
+      maxTimeout: 1000,
+      retries: 120
     }
   );
 }
@@ -173,9 +173,9 @@ async function transactionReceipt(url) {
       return res.data.receipt;
     },
     {
-      factor: 2,
+      factor: 1,
       minTimeout: 1000,
-      maxTimeout: 5000, // ms
+      maxTimeout: 1000,
       retries: 120
     }
   );
