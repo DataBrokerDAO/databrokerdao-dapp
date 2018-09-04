@@ -9,6 +9,8 @@ import {
   sensorChallenge
 } from '../../api/util';
 
+import { ERROR_TYPES } from '../errors/actions';
+
 const APIKey = 'AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
 
 export const STREAMS_TYPES = {
@@ -165,6 +167,12 @@ export const STREAMS_ACTIONS = {
             });
           })
           .catch(error => {
+            if (error && error.response && error.response.status === 401) {
+              dispatch({
+                type: ERROR_TYPES.AUTHENTICATION_ERROR,
+                error
+              });
+            }
             dispatch({
               type: STREAMS_TYPES.FETCH_ERROR
             });
@@ -300,6 +308,12 @@ export const STREAMS_ACTIONS = {
           }
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           console.log(error);
         });
     };
@@ -347,6 +361,12 @@ export const STREAMS_ACTIONS = {
           });
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           console.log(error);
         });
     };
@@ -455,6 +475,12 @@ export const STREAMS_ACTIONS = {
             value: false
           });
         } catch (error) {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           console.log(error);
         }
       });

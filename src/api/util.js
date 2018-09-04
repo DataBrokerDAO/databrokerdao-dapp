@@ -90,10 +90,7 @@ export async function sensorChallenge(sensorKey, amount, metadataHash) {
     _metadata: metadataHash
   });
 
-  const receipt = await transactionReceipt(
-    authenticatedAxiosClient,
-    `${url}/${response.data.uuid}`
-  );
+  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
   return receipt;
 }
 
@@ -104,10 +101,7 @@ export async function dtxMint(amount) {
     _amount: amount
   });
 
-  const receipt = await transactionReceipt(
-    authenticatedAxiosClient,
-    `${url}/${response.data.uuid}`
-  );
+  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
   return receipt;
 }
 
@@ -166,6 +160,7 @@ async function transactionReceipt(url) {
   return await retry(
     async bail => {
       const res = await authenticatedAxiosClient.get(url);
+
       if (!(res.data && res.data.receipt)) {
         throw new Error('Tx not mined yet');
       }

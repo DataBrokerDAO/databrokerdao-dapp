@@ -27,7 +27,7 @@ class DatasetsTable extends React.Component {
         ? localStorage.getItem('email')
         : null;
 
-    this.props.fetchDatasets(0, 10, owner, email);
+    if (this.props.token) this.props.fetchDatasets(0, 10, owner, email);
   }
 
   handlePagination = (start, rowsPerPage, currentPage) => {

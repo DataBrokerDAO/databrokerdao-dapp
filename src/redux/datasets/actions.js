@@ -8,6 +8,7 @@ import {
 } from '../../api/sensors';
 import { fetchChallenges } from '../../api/challenges';
 import { fetchSensorMeta } from '../../api/sensors';
+import { ERROR_TYPES } from '../errors/actions';
 
 export const DATASET_TYPES = {
   FETCHING_DATASETS: 'FETCHING_DATASETS',
@@ -105,7 +106,20 @@ export const DATASET_ACTIONS = {
             // Dispatch an update with decorated purchase | ownership info
             if (localStorage.getItem('jwtToken')) {
               const authenticatedAxiosClient = axios(true);
-              await decorateMetaInfo(authenticatedAxiosClient, parsedResponse);
+              try {
+                await decorateMetaInfo(
+                  authenticatedAxiosClient,
+                  parsedResponse
+                );
+              } catch (error) {
+                // Only signal the authentication error - nothing else, it's only meta data
+                if (error && error.response && error.response.status === 401) {
+                  dispatch({
+                    type: ERROR_TYPES.AUTHENTICATION_ERROR,
+                    error
+                  });
+                }
+              }
 
               dispatch({
                 type: DATASET_TYPES.FETCHING_DATASETS,
@@ -116,6 +130,12 @@ export const DATASET_ACTIONS = {
             }
           })
           .catch(error => {
+            if (error && error.response && error.response.status === 401) {
+              dispatch({
+                type: ERROR_TYPES.AUTHENTICATION_ERROR,
+                error
+              });
+            }
             dispatch({
               type: DATASET_TYPES.FETCHING_DATASETS_ERROR,
               error
@@ -167,6 +187,12 @@ export const DATASET_ACTIONS = {
           });
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           dispatch({
             type: DATASET_TYPES.FETCHING_CHALLENGES_ERROR,
             error

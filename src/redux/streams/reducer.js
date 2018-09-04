@@ -1,6 +1,7 @@
 import Immutable from 'seamless-immutable';
 
 import { STREAMS_TYPES } from './actions.js';
+import { ERROR_TYPES } from '../errors/actions.js';
 
 export const DEFAULT_STATE = {
   filter: {
@@ -91,6 +92,12 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
       return Immutable.set(state, 'filterAddress', action.filterAddress);
     }
     case STREAMS_TYPES.FETCH_ERROR: {
+      return Immutable.merge(state, {
+        error: true,
+        fetchingStreams: false
+      });
+    }
+    case ERROR_TYPES.AUTHENTICATION_ERROR: {
       return Immutable.merge(state, {
         error: true,
         fetchingStreams: false

@@ -1,5 +1,6 @@
 import axios from '../../utils/axios';
 import { dtxMint } from '../../api/util';
+import { ERROR_TYPES } from '../errors/actions';
 
 export const WALLET_TYPES = {
   FETCH_WALLET: 'FETCH_WALLET',
@@ -25,6 +26,12 @@ export const WALLET_ACTIONS = {
           });
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           console.log(error);
         });
     };
@@ -38,17 +45,16 @@ export const WALLET_ACTIONS = {
 
       try {
         await dtxMint(amount);
+        const response = await axios(true).get('/wallet/balance?force=true');
+
         dispatch({
           type: WALLET_TYPES.MINTING_TOKENS,
           value: false
         });
 
-        const response = await axios(true).get('/wallet/balance');
-        const wallet = response.data.DTX;
-
         dispatch({
           type: WALLET_TYPES.FETCH_WALLET,
-          wallet
+          wallet: response.data.DTX
         });
       } catch (error) {
         console.log(error);

@@ -1,6 +1,7 @@
 import localStorage from '../../localstorage';
 import { AUTH_TYPES } from './actions';
 import Immutable from 'seamless-immutable';
+import { ERROR_TYPES } from '../errors/actions';
 
 export const DEFAULT_STATE = {
   token: localStorage.getItem('jwtToken') || false,
@@ -21,7 +22,8 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
         roles: action.payload.roles
       });
     }
-    case AUTH_TYPES.LOGOUT: {
+    case AUTH_TYPES.LOGOUT:
+    case ERROR_TYPES.AUTHENTICATION_ERROR: {
       return Immutable.merge(state, {
         token: null
       });

@@ -4,6 +4,8 @@ import {
   sensorEnlisting
 } from '../../api/util';
 
+import { ERROR_TYPES } from '../errors/actions';
+
 export const LISTING_TYPES = {
   ENLISTING_STREAM: 'ENLISTING_STREAM',
   ENLISTING_STREAM_ERROR: 'ENLISTING_STREAM_ERROR',
@@ -53,12 +55,24 @@ export const LISTING_ACTIONS = {
             });
           })
           .catch(error => {
+            if (error && error.response && error.response.status === 401) {
+              dispatch({
+                type: ERROR_TYPES.AUTHENTICATION_ERROR,
+                error
+              });
+            }
             dispatch({
               type: LISTING_TYPES.ENLISTING_STREAM_ERROR,
               value: error
             });
           });
       } catch (error) {
+        if (error && error.response && error.response.status === 401) {
+          dispatch({
+            type: ERROR_TYPES.AUTHENTICATION_ERROR,
+            error
+          });
+        }
         dispatch({
           type: LISTING_TYPES.ENLISTING_STREAM_ERROR,
           value: error
@@ -106,12 +120,24 @@ export const LISTING_ACTIONS = {
             });
           })
           .catch(error => {
+            if (error && error.response && error.response.status === 401) {
+              dispatch({
+                type: ERROR_TYPES.AUTHENTICATION_ERROR,
+                error
+              });
+            }
             dispatch({
               type: LISTING_TYPES.ENLISTING_DATASET_ERROR,
               value: error
             });
           });
       } catch (error) {
+        if (error && error.response && error.response.status === 401) {
+          dispatch({
+            type: ERROR_TYPES.AUTHENTICATION_ERROR,
+            error
+          });
+        }
         dispatch({
           type: LISTING_TYPES.ENLISTING_DATASET_ERROR,
           value: error

@@ -1,9 +1,9 @@
 import each from 'lodash/each';
 
-export function fetchSensorMeta(authenticatedAxiosClient, sensor, owner) {
+export function fetchSensorMeta(axiosClient, sensor, owner) {
   return Promise.all([
     new Promise((resolve, reject) => {
-      authenticatedAxiosClient
+      axiosClient
         .get(
           `purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${owner}`
         )
@@ -11,7 +11,7 @@ export function fetchSensorMeta(authenticatedAxiosClient, sensor, owner) {
         .catch(reject);
     }),
     new Promise((resolve, reject) => {
-      authenticatedAxiosClient
+      axiosClient
         .get(
           `sensorregistry/list?item.owner=~${owner}&item.contractAddress=~${sensor}`
         )

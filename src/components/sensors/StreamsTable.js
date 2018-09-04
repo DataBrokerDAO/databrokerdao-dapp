@@ -26,7 +26,7 @@ class StreamsTable extends React.Component {
         ? localStorage.getItem('email')
         : null;
 
-    this.props.fetchStreams(0, 10, owner, email);
+    if (this.props.token) this.props.fetchStreams(0, 10, owner, email);
   }
 
   handlePagination = (start, rowsPerPage, currentPage) => {

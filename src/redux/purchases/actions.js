@@ -8,6 +8,8 @@ import {
   prepareDtxSpendFromPurchaseRegistry
 } from '../../api/util';
 
+import { ERROR_TYPES } from '../errors/actions';
+
 export const PURCHASES_TYPES = {
   FETCHING_PURCHASE: 'FETCHING_PURCHASE',
   FETCHING_PURCHASE_ERROR: 'FETCHING_PURCHASE_ERROR',
@@ -39,6 +41,12 @@ export const PURCHASES_ACTIONS = {
           });
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           dispatch({
             type: PURCHASES_TYPES.FETCHING_PURCHASE_ERROR,
             error
@@ -92,12 +100,24 @@ export const PURCHASES_ACTIONS = {
             });
           })
           .catch(error => {
+            if (error && error.response && error.response.status === 401) {
+              dispatch({
+                type: ERROR_TYPES.AUTHENTICATION_ERROR,
+                error
+              });
+            }
             dispatch({
               type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
               error
             });
           });
       } catch (error) {
+        if (error && error.response && error.response.status === 401) {
+          dispatch({
+            type: ERROR_TYPES.AUTHENTICATION_ERROR,
+            error
+          });
+        }
         dispatch({
           type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
           error

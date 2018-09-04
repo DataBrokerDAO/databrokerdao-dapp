@@ -87,12 +87,6 @@ class WalletScreen extends Component {
             </p>
           </CardContent>
         </CenteredCard>
-        {/*<CenteredCard>
-          <CardContent>
-            <h1>Transactions </h1>
-            <TransactionsTable />
-          </CardContent>
-        </CenteredCard>*/}
       </div>
     );
   }

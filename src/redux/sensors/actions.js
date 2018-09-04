@@ -2,6 +2,8 @@ import axios from '../../utils/axios';
 import each from 'lodash/each';
 import moment from 'moment';
 
+import { ERROR_TYPES } from '../errors/actions';
+
 export const SENSORS_TYPES = {
   FETCHING_SENSOR: 'FETCHING_SENSOR',
   FETCHING_SENSOR_ERROR: 'FETCHING_SENSOR_ERROR',
@@ -67,6 +69,12 @@ export const SENSORS_ACTIONS = {
           });
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           dispatch({
             type: SENSORS_TYPES.FETCHING_DATASETS_ERROR,
             error
@@ -109,6 +117,12 @@ export const SENSORS_ACTIONS = {
           });
         })
         .catch(error => {
+          if (error && error.response && error.response.status === 401) {
+            dispatch({
+              type: ERROR_TYPES.AUTHENTICATION_ERROR,
+              error
+            });
+          }
           dispatch({
             type: SENSORS_TYPES.FETCHING_STREAMS_ERROR,
             error

@@ -7,7 +7,6 @@ import PurchasesReducer from './purchases/reducer';
 import WalletReducer from './wallet/reducer';
 import ListingsReducer from './listings/reducer';
 import DatasetsReducer from './datasets/reducer';
-import TransactionsReducer from './transactions/reducer';
 import ErrorReducer from './errors/reducer';
 import UserReducer from './user/reducer';
 import SensorsReducer from './sensors/reducer';
@@ -35,7 +34,6 @@ const rootReducer = (asyncReducers, initialState) => {
     listings: ListingsReducer,
     datasets: DatasetsReducer,
     sensors: SensorsReducer,
-    transactions: TransactionsReducer,
     error: ErrorReducer,
     user: UserReducer,
     ...asyncReducers,
