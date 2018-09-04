@@ -55,7 +55,7 @@ export const LISTING_ACTIONS = {
             const owner = localStorage.getItem('address');
             const count = await sensorEnlistingCount(owner, '!DATASET');
             await sensorEnlisting(stream.stake, stream.price, metadataHash);
-            await sensorEnlistingRegistered(count + 1, owner);
+            await sensorEnlistingRegistered(count + 1, owner, '!DATASET');
 
             dispatch({
               type: LISTING_TYPES.ENLISTING_STREAM,
@@ -125,7 +125,7 @@ export const LISTING_ACTIONS = {
             const owner = localStorage.getItem('address');
             const count = await sensorEnlistingCount(owner, 'DATASET');
             await sensorEnlisting(dataset.stake, dataset.price, metadataHash);
-            await sensorEnlistingRegistered(count + 1, owner);
+            await sensorEnlistingRegistered(count + 1, owner, 'DATASET');
 
             dispatch({
               type: LISTING_TYPES.ENLISTING_DATASET,

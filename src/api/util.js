@@ -113,8 +113,8 @@ export async function sensorEnlistingCount(owner, type) {
   }
 }
 
-export async function sensorEnlistingRegistered(count, owner) {
-  const s = await enlisting(count, owner);
+export async function sensorEnlistingRegistered(count, owner, type) {
+  const s = await enlisting(count, owner, type);
   return s;
 }
 
@@ -168,11 +168,11 @@ async function purchase(sensor, email) {
   );
 }
 
-async function enlisting(count, owner) {
+async function enlisting(count, owner, type) {
   const authenticatedAxiosClient = axios(true);
   return await retry(
     async bail => {
-      const url = `/sensorregistry/list?item.owner=~${owner}`;
+      const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}`;
       const response = await authenticatedAxiosClient.get(url);
       if (response.data.total >= count) {
         return true;
