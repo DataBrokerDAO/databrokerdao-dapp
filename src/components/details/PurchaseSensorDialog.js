@@ -80,7 +80,6 @@ class PurchaseStreamDialog extends Component {
     } else if (step === STEP_PURCHASING) {
       this.setState({ stepIndex: STEP_SUCCESS });
     } else if (step === STEP_SUCCESS) {
-      this.props.fetchPurchases();
       this.props.hideEventHandler();
     } else if (step === STEP_BALANCE_ERROR) {
       this.props.history.push(`/wallet`);
@@ -236,7 +235,6 @@ function mapDispatchToProps(dispatch) {
       dispatch(AUTH_ACTIONS.register(values, settings)),
     purchaseAccess: (stream, endTime) =>
       dispatch(PURCHASES_ACTIONS.purchaseAccess(stream, endTime)),
-    fetchPurchases: () => dispatch(PURCHASES_ACTIONS.fetchPurchases()),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())
   };
 }
