@@ -141,7 +141,8 @@ class PurchaseStreamDialog extends Component {
             register={(values, settings) =>
               this.props.register(values, settings)
             }
-            callBack={() => {
+            callBack={async () => {
+              await this.props.fetchWallet();
               this.finishStep(STEP_REGISTRATION);
             }}
           />

@@ -72,6 +72,7 @@ export default class MapMarker extends Component {
 
     return (
       <OverlayView
+        key={Math.random()}
         position={{
           lat: this.props.position.lat,
           lng: this.props.position.lng

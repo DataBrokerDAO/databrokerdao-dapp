@@ -10,9 +10,18 @@ import LandingMapMarker from './LandingMapMarker';
 import { STREAMS_ACTIONS } from '../../redux/streams/actions';
 import Cluster from '../generic/Cluster';
 import { USER_ACTIONS } from '../../redux/user/actions';
+import { styles } from '../generic/MapStyles';
+import { MAP_ACTIONS } from '../../redux/map/actions';
 
 class LandingMap extends Component {
   componentDidMount() {
+    const script = document.createElement('script');
+
+    script.src =
+      'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&key=AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
+    script.async = true;
+    document.body.appendChild(script);
+
     this.props.fetchLandingStreams();
   }
 
@@ -28,6 +37,7 @@ class LandingMap extends Component {
   onMapMounted(ref) {
     if (!this.state.mapRef && ref) {
       this.setState({ mapRef: ref });
+      this.props.setGoogleApiLoaded();
     }
   }
 
@@ -85,177 +95,19 @@ class LandingMap extends Component {
     //Google maps styling: https://mapstyle.withgoogle.com
     const MapOptions = {
       clickableIcons: false,
-      styles: [
-        { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-        {
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#333333' }, { saturation: 35 }, { lightness: 40 }]
-        },
-        {
-          elementType: 'labels.text.stroke',
-          stylers: [
-            { color: '#ffffff' },
-            { lightness: 15 },
-            { visibility: 'on' }
-          ]
-        },
-        {
-          featureType: 'administrative',
-          elementType: 'geometry.fill',
-          stylers: [{ color: '#fefefe' }, { lightness: 20 }]
-        },
-        {
-          featureType: 'administrative',
-          elementType: 'geometry.stroke',
-          stylers: [{ color: '#fefefe' }, { lightness: 17 }, { weight: 1.2 }]
-        },
-        {
-          featureType: 'administrative.land_parcel',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }]
-        },
-        {
-          featureType: 'administrative.locality',
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#b3b3b3' }]
-        },
-        {
-          featureType: 'administrative.neighborhood',
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#b3b3b3' }]
-        },
-        {
-          featureType: 'landscape',
-          elementType: 'geometry',
-          stylers: [{ color: '#f8f8f8' }]
-        },
-        {
-          featureType: 'landscape',
-          elementType: 'labels',
-          stylers: [{ color: '#cccccc' }, { visibility: 'on' }]
-        },
-        {
-          featureType: 'landscape',
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#b3b3b3' }]
-        },
-        {
-          featureType: 'landscape',
-          elementType: 'labels.text.stroke',
-          stylers: [{ color: '#ffffff' }]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'geometry',
-          stylers: [{ color: '#f5f5f5' }, { lightness: 20 }]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ color: '#4c4c4c' }, { visibility: 'off' }]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'labels.text',
-          stylers: [{ color: '#4c4c4c' }, { visibility: 'on' }]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#b3b3b3' }]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'labels.text.stroke',
-          stylers: [{ color: '#ffffff' }]
-        },
-        { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
-        {
-          featureType: 'poi.park',
-          elementType: 'geometry',
-          stylers: [{ color: '#cfffce' }, { lightness: 20 }]
-        },
-        {
-          featureType: 'road',
-          elementType: 'labels',
-          stylers: [{ color: '#999999' }, { visibility: 'on' }]
-        },
-        {
-          featureType: 'road',
-          elementType: 'labels.icon',
-          stylers: [{ visibility: 'off' }]
-        },
-        {
-          featureType: 'road',
-          elementType: 'labels.text.stroke',
-          stylers: [{ color: '#ffffff' }]
-        },
-        {
-          featureType: 'road.arterial',
-          elementType: 'geometry',
-          stylers: [{ color: '#ffffff' }, { lightness: 20 }]
-        },
-        {
-          featureType: 'road.arterial',
-          elementType: 'labels',
-          stylers: [{ visibility: 'on' }]
-        },
-        {
-          featureType: 'road.arterial',
-          elementType: 'labels.icon',
-          stylers: [{ visibility: 'off' }]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'geometry',
-          stylers: [{ color: '#ffffff' }, { visibility: 'on' }]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'labels.icon',
-          stylers: [{ visibility: 'off' }]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'labels.text',
-          stylers: [{ visibility: 'on' }]
-        },
-        {
-          featureType: 'road.local',
-          elementType: 'geometry',
-          stylers: [{ color: '#ffffff' }]
-        },
-        {
-          featureType: 'road.local',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }]
-        },
-        {
-          featureType: 'transit',
-          elementType: 'geometry',
-          stylers: [{ color: '#f2f2f2' }, { lightness: 20 }]
-        },
-        {
-          featureType: 'water',
-          elementType: 'geometry',
-          stylers: [{ color: '#b6ddff' }, { lightness: 15 }]
-        },
-        {
-          featureType: 'water',
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#808080' }]
-        }
-      ]
+      // Disable all controls
+      zoomControl: false,
+      mapTypeControl: false,
+      scaleControl: false,
+      streetViewControl: false,
+      rotateControl: false,
+      fullscreenControl: false,
+      styles
     };
 
     return (
       <GoogleMap
-        defaultZoom={10}
+        zoom={10}
         center={this.props.userLocation}
         options={MapOptions}
         ref={ref => this.onMapMounted(ref)}
@@ -268,13 +120,15 @@ class LandingMap extends Component {
 
 const mapStateToProps = state => ({
   streams: state.streams.landingStreams,
-  userLocation: state.user.location
+  userLocation: state.user.location,
+  googleApiLoaded: state.map.googleApiLoaded
 });
 
 function mapDispatchToProps(dispatch) {
   return {
     fetchLandingStreams: () => dispatch(STREAMS_ACTIONS.fetchLandingStreams()),
-    updateUserLocation: () => dispatch(USER_ACTIONS.updateLocation())
+    updateUserLocation: () => dispatch(USER_ACTIONS.updateLocation()),
+    setGoogleApiLoaded: () => dispatch(MAP_ACTIONS.setGoogleApiLoaded())
   };
 }
 

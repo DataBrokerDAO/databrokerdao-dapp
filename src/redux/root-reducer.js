@@ -10,6 +10,7 @@ import DatasetsReducer from './datasets/reducer';
 import ErrorReducer from './errors/reducer';
 import UserReducer from './user/reducer';
 import SensorsReducer from './sensors/reducer';
+import MapReducer from './map/reducer';
 
 /**
  * This is the global reducer to which all reducers which are loaded at runtime are added.
@@ -36,6 +37,7 @@ const rootReducer = (asyncReducers, initialState) => {
     sensors: SensorsReducer,
     error: ErrorReducer,
     user: UserReducer,
+    map: MapReducer,
     ...asyncReducers,
     ...missingReducers
   });

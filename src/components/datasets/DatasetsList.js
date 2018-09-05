@@ -55,7 +55,7 @@ class DatasetsList extends Component {
 
     return (
       <StyledList>
-        <DataTable plain>
+        <DataTable plain baseId="datatable-datasets">
           <TableBody>
             {this.renderDatasetListItems(this.props.datasets)}
           </TableBody>

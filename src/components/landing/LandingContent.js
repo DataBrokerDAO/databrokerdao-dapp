@@ -28,7 +28,7 @@ class LandingContent extends Component {
     if (this.state.PM10) filters.push('PM10');
 
     this.props.updateFilter({
-      location: null,
+      location: this.props.userLocation,
       types: filters
     });
 
@@ -202,6 +202,10 @@ class LandingContent extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+  userLocation: state.user.location
+});
+
 function mapDispatchToProps(dispatch) {
   return {
     updateFilter: filter => dispatch(STREAMS_ACTIONS.updateFilter(filter))
@@ -209,6 +213,6 @@ function mapDispatchToProps(dispatch) {
 }
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps
 )(withRouter(LandingContent));
