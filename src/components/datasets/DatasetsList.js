@@ -43,7 +43,7 @@ class DatasetsList extends Component {
       width: 100%;
     `;
 
-    if (isEmpty(this.props.datasets) && this.props.fetchingDatasets)
+    if (this.props.fetchingDatasets)
       return <StyledParagraph>Loading datasets...</StyledParagraph>;
 
     if (isEmpty(this.props.datasets))
