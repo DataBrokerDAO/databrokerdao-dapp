@@ -232,6 +232,8 @@ const mapStateToProps = state => ({
 });
 
 function mapDispatchToProps(dispatch) {
+  const purchaser = localStorage.getItem('address');
+
   return {
     register: (values, settings) =>
       dispatch(AUTH_ACTIONS.register(values, settings)),
@@ -239,7 +241,7 @@ function mapDispatchToProps(dispatch) {
       dispatch(PURCHASES_ACTIONS.purchaseAccess(stream, endTime)),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
     fetchPurchase: sensor =>
-      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor))
+      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor, purchaser))
   };
 }
 
