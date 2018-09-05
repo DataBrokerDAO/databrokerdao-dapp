@@ -365,12 +365,14 @@ class StreamDetailsScreen extends Component {
 
 function mapDispatchToProps(dispatch, ownProps) {
   const sensor = ownProps.match.params.key;
+  const purchaser = localStorage.getItem('address');
+
   return {
     fetchStream: () => dispatch(STREAMS_ACTIONS.fetchStream(dispatch, sensor)),
     fetchAvailableStreamTypes: () =>
       dispatch(STREAMS_ACTIONS.fetchAvailableStreamTypes()),
     fetchIsPurchased: () =>
-      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor))
+      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor, purchaser))
   };
 }
 

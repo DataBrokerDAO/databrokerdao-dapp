@@ -18,7 +18,7 @@ export const PURCHASES_TYPES = {
 };
 
 export const PURCHASES_ACTIONS = {
-  fetchPurchase: (key, sensor) => {
+  fetchPurchase: (key, sensor, purchaser) => {
     return (dispatch, getState) => {
       dispatch({
         type: PURCHASES_TYPES.FETCHING_PURCHASE,
@@ -27,7 +27,7 @@ export const PURCHASES_ACTIONS = {
 
       const url = key
         ? `/purchase/${key}`
-        : `/purchaseregistry/list?item.sensor=~${sensor}`;
+        : `/purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${purchaser}`;
 
       axios(true)
         .get(url)

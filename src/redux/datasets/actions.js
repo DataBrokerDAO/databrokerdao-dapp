@@ -265,14 +265,14 @@ export const DATASET_ACTIONS = {
 };
 
 async function decorateMetaInfo(axios, datasets) {
-  const owner = localStorage.getItem('address');
-  if (!owner) {
+  const user = localStorage.getItem('address');
+  if (!user) {
     return;
   }
 
   const metaPromises = [];
   for (let sensor of Object.keys(datasets)) {
-    metaPromises.push(fetchSensorMeta(axios, sensor, owner));
+    metaPromises.push(fetchSensorMeta(axios, sensor, user));
   }
   const result = await Promise.all(metaPromises);
 

@@ -376,6 +376,8 @@ class DatasetDetailsScreen extends Component {
 
 function mapDispatchToProps(dispatch, ownProps) {
   const sensor = ownProps.match.params.key;
+  const purchaser = localStorage.getItem('address');
+
   return {
     fetchDataset: () =>
       dispatch(DATASET_ACTIONS.fetchDataset(dispatch, sensor)),
@@ -384,7 +386,7 @@ function mapDispatchToProps(dispatch, ownProps) {
     fetchAvailableFiletypes: () =>
       dispatch(DATASET_ACTIONS.fetchAvailableFiletypes()),
     fetchIsPurchased: () =>
-      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor))
+      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor, purchaser))
   };
 }
 
