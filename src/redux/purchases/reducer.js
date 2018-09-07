@@ -3,23 +3,45 @@ import { PURCHASES_TYPES } from './actions.js';
 import { AUTH_TYPES } from '../authentication/actions.js';
 
 export const DEFAULT_STATE = {
-  purchasingAccess: false,
-
+  purchasing: false,
   fetchingPurchase: false,
   fetchingPurchaseError: null,
-  purchase: null
+  purchase: null,
+  transactionIndex: 1,
+  transactionError: null,
+  deliveryExplainerDialogVisible: false
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
+    case PURCHASES_TYPES.TOGGLE_DELIVERY_EXPLAINER: {
+      return Immutable.set(
+        state,
+        'deliveryExplainerDialogVisible',
+        !state.deliveryExplainerDialogVisible
+      );
+    }
+
+    // TRANSACTION
+    case PURCHASES_TYPES.TRANSACTION_INDEX: {
+      return Immutable.set(state, 'transactionIndex', action.index);
+    }
+    case PURCHASES_TYPES.TRANSACTION_ERROR: {
+      return Immutable.merge(state, {
+        fetchingPurchase: false,
+        transactionError: action.value
+      });
+    }
+
+    // PURCHASING SENSOR
     case PURCHASES_TYPES.PURCHASING_ACCESS: {
       return Immutable.merge(state, {
-        purchasingAccess: action.value
+        purchasing: action.value
       });
     }
     case PURCHASES_TYPES.PURCHASING_ACCESS_ERROR: {
       return Immutable.merge(state, {
-        purchasingAccess: false,
+        purchasing: false,
         error: action.error
       });
     }
@@ -40,7 +62,8 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
       return Immutable.merge(state, {
         fetchingSensorError: null,
         fetchingStreamsError: null,
-        fetchingDatasetsError: null
+        fetchingDatasetsError: null,
+        transactionError: null
       });
     }
     default:

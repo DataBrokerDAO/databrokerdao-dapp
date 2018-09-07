@@ -7,7 +7,9 @@ import { Button } from 'react-md';
 import EnhancedTextField from '../../generic/EnhancedTextField';
 import EnhancedTextArea from '../../generic/EnhancedTextArea';
 import EnhancedSelectField from '../../generic/EnhancedSelectField';
-import EnlistDatasetConfirmationDialog from './EnlistDatasetConfirmationDialog';
+import EnlistConfirmationDialog, {
+  TYPE_DATASET
+} from '../EnlistConfirmationDialog';
 import moment from 'moment';
 
 export default class EnlistForm extends Component {
@@ -204,9 +206,10 @@ export default class EnlistForm extends Component {
             </StyledColumn>
           </StyledForm>
           {this.state.dataset && (
-            <EnlistDatasetConfirmationDialog
+            <EnlistConfirmationDialog
               visible={this.state.DatasetConfirmationDialogVisible}
-              dataset={this.state.dataset}
+              sensor={this.state.dataset}
+              type={TYPE_DATASET}
               hideEventHandler={() => this.toggleConfirmationDialog()}
             />
           )}

@@ -29,6 +29,7 @@ import NearbyStreamsTable from './NearbyStreamsTable';
 import TitleCTAButton from '../../generic/TitleCTAButton';
 import { convertWeiToDtx } from '../../../utils/transforms';
 import localStorage from '../../../localstorage';
+import { TYPE_STREAM } from '../../listings/EnlistConfirmationDialog';
 
 class StreamDetailsScreen extends Component {
   constructor(props) {
@@ -343,15 +344,17 @@ class StreamDetailsScreen extends Component {
           )}
         <PurchaseSensorDialog
           visible={this.state.PurchaseStreamVisible}
-          stream={stream}
+          sensor={stream}
+          type={TYPE_STREAM}
           hideEventHandler={() => this.togglePurchaseStream()}
         />
         <ChallengeSensorDialog
           visible={this.state.ChallengeDialogVisible}
-          stream={stream}
+          sensor={stream}
+          type={TYPE_STREAM}
           hideEventHandler={() => this.toggleChallengeDialog()}
           toggleStakingExplainer={() => this.toggleStakingExplainer()}
-          fetchStreamEventHandler={() => this.props.fetchStream()}
+          fetchSensorEventHandler={() => this.props.fetchStream()}
         />
         <StakingExplainerDialog
           visible={this.state.StakingExplainerVisible}

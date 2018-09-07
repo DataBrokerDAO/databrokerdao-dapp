@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { BigNumber } from 'bignumber.js';
 import styled from 'styled-components';
 
 import Toolbar from '../generic/Toolbar';
@@ -12,17 +11,25 @@ import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import TitleCTAButton from '../generic/TitleCTAButton';
 import localStorage from '../../localstorage';
 import { convertWeiToDtx } from '../../utils/transforms';
+import MintConfirmationDialog from './MintConfirmationDialog';
 
 class WalletScreen extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      MintConfirmationDialogVisible: false
+    };
+  }
+
   componentDidMount() {
     this.props.fetchWallet();
   }
 
-  fundWallet() {
-    const amount = BigNumber(5000)
-      .times(BigNumber(10).pow(18))
-      .toString();
-    this.props.mintTokens(amount);
+  toggleConfirmationDialog() {
+    this.setState({
+      MintConfirmationDialogVisible: !this.state.MintConfirmationDialogVisible
+    });
   }
 
   render() {
@@ -70,11 +77,9 @@ class WalletScreen extends Component {
                 primary
                 swapTheming
                 disabled={this.props.mintingTokens}
-                onClick={event => this.fundWallet()}
+                onClick={this.toggleConfirmationDialog.bind(this)}
               >
-                {this.props.mintingTokens
-                  ? '(funding in progress)'
-                  : 'Fund wallet (+ 5000 DTX)'}
+                Fund wallet
               </TitleCTAButton>
             </StyledTitleContainer>
             <DesktopAddress>Address: {address}</DesktopAddress>
@@ -87,6 +92,10 @@ class WalletScreen extends Component {
             </p>
           </CardContent>
         </CenteredCard>
+        <MintConfirmationDialog
+          visible={this.state.MintConfirmationDialogVisible}
+          hideEventHandler={() => this.toggleConfirmationDialog()}
+        />
       </div>
     );
   }
@@ -96,7 +105,8 @@ const mapStateToProps = state => ({
   token: state.auth.token,
   balance: state.wallet.wallet.balance,
   fetchingWallet: state.wallet.fetchingWallet,
-  mintingTokens: state.wallet.mintingTokens
+  mintingTokens: state.wallet.mintingTokens,
+  stepIndex: state.wallet.stepIndex
 });
 
 function mapDispatchToProps(dispatch) {

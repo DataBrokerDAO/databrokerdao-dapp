@@ -5,37 +5,7 @@ import { default as retry } from '../utils/async_retry';
 
 const anonymousAxiosClient = axios(null, true);
 
-export function getDtxTokenAddress() {
-  return anonymousAxiosClient.get('/dtxtokenregistry/list').then(response => {
-    return response.data.items[0].contractAddress;
-  });
-}
-
-export function getSensorRegistryAddress() {
-  return anonymousAxiosClient.get('/sensorregistry/list').then(response => {
-    return response.data.base.contractAddress;
-  });
-}
-
-export function getPurchaseRegistryAddress() {
-  return anonymousAxiosClient.get('/purchaseregistry/list').then(response => {
-    return response.data.base.contractAddress;
-  });
-}
-
-export function hashMetaData(metadata) {
-  return anonymousAxiosClient
-    .post('/ipfs/add/json', metadata)
-    .then(response => {
-      return response.data[0].hash;
-    });
-}
-
-export async function dtxApproval(
-  dtxTokenAddress,
-  spenderAddress,
-  amountInDtx
-) {
+export async function approveDtx(dtxTokenAddress, spenderAddress, amountInDtx) {
   const url = `/dtxtoken/${dtxTokenAddress}/approve`;
   const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
@@ -43,8 +13,7 @@ export async function dtxApproval(
     _value: convertDtxToWei(amountInDtx)
   });
 
-  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
-  return receipt;
+  return `${url}/${response.data.uuid}`;
 }
 
 export async function sensorEnlisting(stakeInDtx, priceInDtx, metadataHash) {
@@ -58,8 +27,8 @@ export async function sensorEnlisting(stakeInDtx, priceInDtx, metadataHash) {
       _metadata: metadataHash
     }
   );
-  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
-  return receipt;
+
+  return `${url}/${response.data.uuid}`;
 }
 
 export async function sensorPurchase(sensorKey, endTime, metadataHash) {
@@ -76,8 +45,7 @@ export async function sensorPurchase(sensorKey, endTime, metadataHash) {
     _metadata: metadataHash
   });
 
-  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
-  return receipt;
+  return `${url}/${response.data.uuid}`;
 }
 
 export async function sensorChallenge(sensorKey, amount, metadataHash) {
@@ -89,8 +57,7 @@ export async function sensorChallenge(sensorKey, amount, metadataHash) {
     _metadata: metadataHash
   });
 
-  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
-  return receipt;
+  return `${url}/${response.data.uuid}`;
 }
 
 export async function dtxMint(amount) {
@@ -114,63 +81,8 @@ export async function sensorEnlistingCount(owner, type) {
 }
 
 export async function sensorEnlistingRegistered(count, owner, type) {
-  const s = await enlisting(count, owner, type);
-  return s;
-}
-
-export async function sensorPurchaseRegistered(sensorKey, email) {
-  const s = await purchase(sensorKey, email);
-  return s;
-}
-
-export function prepareDtxSpendFromSensorRegistry(metadata) {
-  return Promise.all([
-    getDtxTokenAddress(),
-    getSensorRegistryAddress(),
-    hashMetaData(metadata)
-  ]);
-}
-
-export function prepareDtxSpendFromPurchaseRegistry(metadata) {
-  return Promise.all([
-    getDtxTokenAddress(),
-    getPurchaseRegistryAddress(),
-    hashMetaData(metadata)
-  ]);
-}
-
-async function purchase(sensor, email) {
   const authenticatedAxiosClient = axios(true);
-  return await retry(
-    async bail => {
-      const url = `/purchaseregistry/list?item.email=${email}`;
-      const response = await authenticatedAxiosClient.get(url);
-
-      if (response.data && response.data.items) {
-        const purchases = response.data.items;
-        for (let i = 0; i < purchases.length; i++) {
-          if (purchases[i].sensor === sensor) {
-            return purchases[i];
-          }
-        }
-      } else {
-        bail(new Error('Unexpected response format'));
-      }
-
-      throw new Error('Sensor not yet purchased');
-    },
-    {
-      factor: 1,
-      minTimeout: 1000,
-      maxTimeout: 1000,
-      retries: 120
-    }
-  );
-}
-
-async function enlisting(count, owner, type) {
-  const authenticatedAxiosClient = axios(true);
-  return await retry(
+  await retry(
     async bail => {
       const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}`;
       const response = await authenticatedAxiosClient.get(url);
@@ -189,7 +101,80 @@ async function enlisting(count, owner, type) {
   );
 }
 
-async function transactionReceipt(url) {
+export async function sensorChallengesCount(sensor, type) {
+  const authenticatedAxiosClient = axios(true);
+  const url = `/challengeregistry/list?item.listing=~${sensor}`;
+  const response = await authenticatedAxiosClient.get(url);
+  if (response.data && response.data.items) {
+    return response.data.total;
+  }
+}
+
+export async function sensorChallengeRegistered(count, sensor) {
+  const authenticatedAxiosClient = axios(true);
+  await retry(
+    async bail => {
+      const url = `/challengeregistry/list?item.listing=~${sensor}`;
+      const response = await authenticatedAxiosClient.get(url);
+      if (response.data.total >= count) {
+        return true;
+      }
+
+      throw new Error('Sensor not yet challenged');
+    },
+    {
+      factor: 1,
+      minTimeout: 1000,
+      maxTimeout: 1000,
+      retries: 120
+    }
+  );
+}
+
+export async function sensorPurchaseRegistered(sensor, email) {
+  const authenticatedAxiosClient = axios(true);
+  return await retry(
+    async bail => {
+      const url = `/purchaseregistry/list?item.email=${email}`;
+      const response = await authenticatedAxiosClient.get(url);
+
+      if (response.data && response.data.items) {
+        const purchases = response.data.items;
+        for (let i = 0; i < purchases.length; i++) {
+          if (purchases[i].sensor === sensor) {
+            return purchases[i];
+          }
+        }
+      } else {
+        bail(new Error('Unexpected response format'));
+      }
+    },
+    {
+      factor: 1,
+      minTimeout: 1000,
+      maxTimeout: 1000,
+      retries: 120
+    }
+  );
+}
+
+export function getSensorRegistryMeta() {
+  return Promise.all([getDtxTokenAddress(), getSensorRegistryAddress()]);
+}
+
+export function getPurchaseRegistryMeta() {
+  return Promise.all([getDtxTokenAddress(), getPurchaseRegistryAddress()]);
+}
+
+export function getIpfsHashForMetadata(metadata) {
+  return anonymousAxiosClient
+    .post('/ipfs/add/json', metadata)
+    .then(response => {
+      return response.data[0].hash;
+    });
+}
+
+export async function transactionReceipt(url) {
   const authenticatedAxiosClient = axios(true);
   return await retry(
     async bail => {
@@ -220,4 +205,22 @@ async function transactionReceipt(url) {
       retries: 120
     }
   );
+}
+
+function getDtxTokenAddress() {
+  return anonymousAxiosClient.get('/dtxtokenregistry/list').then(response => {
+    return response.data.items[0].contractAddress;
+  });
+}
+
+function getSensorRegistryAddress() {
+  return anonymousAxiosClient.get('/sensorregistry/list').then(response => {
+    return response.data.base.contractAddress;
+  });
+}
+
+function getPurchaseRegistryAddress() {
+  return anonymousAxiosClient.get('/purchaseregistry/list').then(response => {
+    return response.data.base.contractAddress;
+  });
 }

@@ -27,6 +27,7 @@ import { convertWeiToDtx } from '../../../utils/transforms';
 import { DATASET_ACTIONS } from '../../../redux/datasets/actions';
 import { PURCHASES_ACTIONS } from '../../../redux/purchases/actions';
 import localStorage from '../../../localstorage';
+import { TYPE_DATASET } from '../../listings/EnlistConfirmationDialog';
 
 class DatasetDetailsScreen extends Component {
   constructor(props) {
@@ -355,15 +356,17 @@ class DatasetDetailsScreen extends Component {
         </CenteredCard>
         <PurchaseSensorDialog
           visible={this.state.PurchaseDatasetVisible}
-          stream={dataset}
+          sensor={dataset}
+          type={TYPE_DATASET}
           hideEventHandler={() => this.togglePurchaseDataset()}
         />
         <ChallengeSensorDialog
           visible={this.state.ChallengeDialogVisible}
-          stream={dataset}
+          sensor={dataset}
+          type={TYPE_DATASET}
           hideEventHandler={() => this.toggleChallengeDialog()}
           toggleStakingExplainer={() => this.toggleStakingExplainer()}
-          fetchStreamEventHandler={() => this.props.fetchStream()}
+          fetchSensorEventHandler={() => this.props.fetchDataset()}
         />
         <StakingExplainerDialog
           visible={this.state.StakingExplainerVisible}

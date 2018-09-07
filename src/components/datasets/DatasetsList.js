@@ -65,6 +65,7 @@ class DatasetsList extends Component {
             rowsPerPage={this.props.rows}
             rows={this.props.total}
             page={this.props.page}
+            simplified={'true'}
           />
         </DataTable>
       </StyledList>

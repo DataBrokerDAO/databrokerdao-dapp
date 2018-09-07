@@ -2,19 +2,31 @@ import axios from '../../utils/axios';
 import moment from 'moment';
 import localStorage from '../../localstorage';
 import {
-  dtxApproval,
+  approveDtx,
   sensorPurchase,
   sensorPurchaseRegistered,
-  prepareDtxSpendFromPurchaseRegistry
+  getPurchaseRegistryMeta,
+  getIpfsHashForMetadata,
+  transactionReceipt
 } from '../../api/util';
 
 import { ERROR_TYPES } from '../errors/actions';
+import {
+  TX_APPROVE,
+  TX_ENSURE_APPROVE,
+  TX_PURCHASE,
+  TX_ENSURE_PURCHASE,
+  TX_VERIFY_PURCHASE
+} from '../../components/details/PurchaseSensorDialog';
 
 export const PURCHASES_TYPES = {
   FETCHING_PURCHASE: 'FETCHING_PURCHASE',
   FETCHING_PURCHASE_ERROR: 'FETCHING_PURCHASE_ERROR',
   PURCHASING_ACCESS: 'PURCHASING_ACCESS',
-  PURCHASING_ACCESS_ERROR: 'PURCHASING_ACCESS_ERROR'
+  PURCHASING_ACCESS_ERROR: 'PURCHASING_ACCESS_ERROR',
+  TRANSACTION_INDEX: 'TRANSACTION_INDEX',
+  TRANSACTION_ERROR: 'TRANSACTION_ERROR',
+  TOGGLE_DELIVERY_EXPLAINER: 'TOGGLE_DELIVERY_EXPLAINER'
 };
 
 export const PURCHASES_ACTIONS = {
@@ -55,65 +67,85 @@ export const PURCHASES_ACTIONS = {
     };
   },
   purchaseAccess: (stream, endTime) => {
-    return (dispatch, getState) => {
-      dispatch({
-        type: PURCHASES_TYPES.PURCHASING_ACCESS,
-        value: true
-      });
-
-      // Multiply price for streams, use the indicated price for datasets that are a forever-purchase
-      let purchasePrice;
-      if (endTime === 0) {
-        purchasePrice = stream.price;
-      } else {
-        const duration = moment.duration(moment(endTime).diff(moment()));
-        purchasePrice = stream.price * duration;
-      }
-
-      const metadata = {
-        data: {
-          sensortype: stream.sensortype || 'STREAM', // default to stream type, since old streams are not enlisted with the sensortype property.
-          email: localStorage.getItem('email')
-        }
-      };
-
+    return async (dispatch, getState) => {
       try {
-        prepareDtxSpendFromPurchaseRegistry(metadata)
-          .then(async responses => {
-            const deployedTokenContractAddress = responses[0];
-            const spenderAddress = responses[1];
-            const metadataHash = responses[2];
+        dispatch({
+          type: PURCHASES_TYPES.PURCHASING_ACCESS,
+          value: true
+        });
 
-            await dtxApproval(
-              deployedTokenContractAddress,
-              spenderAddress,
-              purchasePrice
-            );
+        const responses = await getPurchaseRegistryMeta();
+        const deployedTokenContractAddress = responses[0];
+        const spenderAddress = responses[1];
 
-            await sensorPurchase(stream.key, endTime, metadataHash);
+        // Multiply price for streams, use the indicated price for datasets that are a forever-purchase
+        let purchasePrice;
+        if (endTime === 0) {
+          purchasePrice = stream.price;
+        } else {
+          const duration = moment.duration(moment(endTime).diff(moment()));
+          purchasePrice = stream.price * duration;
+        }
 
-            await sensorPurchaseRegistered(
-              stream.key,
-              localStorage.getItem('email')
-            );
+        const metadataHash = await getIpfsHashForMetadata({
+          data: {
+            sensortype: stream.sensortype || 'STREAM', // default to stream type, since old streams are not enlisted with the sensortype property.
+            email: localStorage.getItem('email')
+          }
+        });
 
-            dispatch({
-              type: PURCHASES_TYPES.PURCHASING_ACCESS,
-              value: false
-            });
-          })
-          .catch(error => {
-            if (error && error.response && error.response.status === 401) {
-              dispatch({
-                type: ERROR_TYPES.AUTHENTICATION_ERROR,
-                error
-              });
-            }
-            dispatch({
-              type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
-              error
-            });
+        dispatch({
+          type: PURCHASES_TYPES.TRANSACTION_INDEX,
+          index: TX_APPROVE
+        });
+        let receiptUrl = await approveDtx(
+          deployedTokenContractAddress,
+          spenderAddress,
+          purchasePrice
+        );
+
+        dispatch({
+          type: PURCHASES_TYPES.TRANSACTION_INDEX,
+          index: TX_ENSURE_APPROVE
+        });
+        await transactionReceipt(receiptUrl);
+
+        dispatch({
+          type: PURCHASES_TYPES.TRANSACTION_INDEX,
+          index: TX_PURCHASE
+        });
+        receiptUrl = await sensorPurchase(stream.key, endTime, metadataHash);
+
+        dispatch({
+          type: PURCHASES_TYPES.TRANSACTION_INDEX,
+          index: TX_ENSURE_PURCHASE
+        });
+        await transactionReceipt(receiptUrl);
+
+        dispatch({
+          type: PURCHASES_TYPES.TRANSACTION_INDEX,
+          index: TX_VERIFY_PURCHASE
+        });
+        const purchase = await sensorPurchaseRegistered(
+          stream.key,
+          localStorage.getItem('email')
+        );
+
+        if (!purchase) {
+          dispatch({
+            type: PURCHASES_TYPES.TRANSACTION_ERROR,
+            value: true
           });
+          dispatch({
+            type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
+            error: 'Purchase was not synced'
+          });
+        }
+
+        dispatch({
+          type: PURCHASES_TYPES.PURCHASING_ACCESS,
+          value: false
+        });
       } catch (error) {
         if (error && error.response && error.response.status === 401) {
           dispatch({
@@ -122,10 +154,21 @@ export const PURCHASES_ACTIONS = {
           });
         }
         dispatch({
+          type: PURCHASES_TYPES.TRANSACTION_ERROR,
+          value: true
+        });
+        dispatch({
           type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
           error
         });
       }
+    };
+  },
+  toggleDeliveryExplainer: () => {
+    return dispatch => {
+      dispatch({
+        type: PURCHASES_TYPES.TOGGLE_DELIVERY_EXPLAINER
+      });
     };
   },
   updateCurrentPage: (type, page) => {

@@ -6,11 +6,25 @@ export const DEFAULT_STATE = {
   enlistingStream: false,
   enlistingStreamError: null,
   enlistingDataset: false,
-  enlistingDatasetError: null
+  enlistingDatasetError: null,
+  transactionIndex: 1,
+  transactionError: false
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
+    // TRANSACTION
+    case LISTING_TYPES.TRANSACTION_INDEX: {
+      return Immutable.set(state, 'transactionIndex', action.index);
+    }
+    case LISTING_TYPES.TRANSACTION_ERROR: {
+      return Immutable.merge(state, {
+        enlistingStream: false,
+        transactionError: action.value
+      });
+    }
+
+    // ENLISTING STREAM
     case LISTING_TYPES.ENLISTING_STREAM: {
       return Immutable.merge(state, { enlistingStream: action.value });
     }
@@ -20,6 +34,8 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
         enlistingStreamError: action.value
       });
     }
+
+    // ENLISTING DATASET
     case LISTING_TYPES.ENLISTING_DATASET: {
       return Immutable.merge(state, { enlistingDataset: action.value });
     }
@@ -29,8 +45,11 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
         enlistingDatasetError: action.value
       });
     }
+
+    // CLEAR ERRORS AFTER LOGIN
     case AUTH_TYPES.TOKEN_RECEIVED: {
       return Immutable.merge(state, {
+        transactionError: null,
         enlistingStreamError: null,
         enlistingDatasetError: null
       });

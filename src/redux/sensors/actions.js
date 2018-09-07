@@ -3,6 +3,23 @@ import each from 'lodash/each';
 import moment from 'moment';
 
 import { ERROR_TYPES } from '../errors/actions';
+import {
+  getIpfsHashForMetadata,
+  transactionReceipt,
+  approveDtx,
+  getSensorRegistryMeta,
+  sensorChallenge,
+  sensorChallengesCount,
+  sensorChallengeRegistered
+} from '../../api/util';
+import {
+  TX_IPFS_HASH,
+  TX_APPROVE,
+  TX_ENSURE_APPROVE,
+  TX_CHALLENGE,
+  TX_ENSURE_CHALLENGE,
+  TX_VERIFY_CHALLENGE
+} from '../../components/details/ChallengeSensorDialog';
 
 export const SENSORS_TYPES = {
   FETCHING_SENSOR: 'FETCHING_SENSOR',
@@ -19,7 +36,11 @@ export const SENSORS_TYPES = {
   FETCHING_STREAMS_ERROR: 'FETCHING_STREAMS_ERROR',
   UPDATE_STREAMS_PAGE: 'UPDATE_STREAMS_PAGE',
 
-  TOGGLE_DELIVERY_EXPLAINER: 'TOGGLE_DELIVERY_EXPLAINER'
+  CHALLENGING_SENSOR: 'CHALLENGING_SENSOR',
+  CHALLENGING_SENSOR_ERROR: 'CHALLENGING_SENSOR_ERROR',
+
+  TRANSACTION_INDEX: 'TRANSACTION_INDEX',
+  TRANSACTION_ERROR: 'TRANSACTION_ERROR'
 };
 
 export const SENSORS_ACTIONS = {
@@ -130,20 +151,91 @@ export const SENSORS_ACTIONS = {
         });
     };
   },
+  challengeSensor: (sensor, reason, amount) => {
+    return async (dispatch, getState) => {
+      try {
+        dispatch({
+          type: SENSORS_TYPES.CHALLENGING_SENSOR,
+          value: true
+        });
+
+        const responses = await getSensorRegistryMeta();
+        const deployedTokenContractAddress = responses[0];
+        const spenderAddress = responses[1];
+
+        const count = await sensorChallengesCount(sensor);
+
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_INDEX,
+          index: TX_IPFS_HASH
+        });
+        const metadataHash = await getIpfsHashForMetadata({
+          data: { reason }
+        });
+
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_INDEX,
+          index: TX_APPROVE
+        });
+        let receiptUrl = await approveDtx(
+          deployedTokenContractAddress,
+          spenderAddress,
+          amount
+        );
+
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_INDEX,
+          index: TX_ENSURE_APPROVE
+        });
+        await transactionReceipt(receiptUrl);
+
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_INDEX,
+          index: TX_CHALLENGE
+        });
+        receiptUrl = await sensorChallenge(sensor.key, amount, metadataHash);
+
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_INDEX,
+          index: TX_ENSURE_CHALLENGE
+        });
+        await transactionReceipt(receiptUrl);
+
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_INDEX,
+          index: TX_VERIFY_CHALLENGE
+        });
+        await sensorChallengeRegistered(count + 1, sensor);
+
+        dispatch({
+          type: SENSORS_TYPES.CHALLENGING_SENSOR,
+          value: false
+        });
+      } catch (error) {
+        if (error && error.response && error.response.status === 401) {
+          dispatch({
+            type: ERROR_TYPES.AUTHENTICATION_ERROR,
+            error
+          });
+        }
+        dispatch({
+          type: SENSORS_TYPES.TRANSACTION_ERROR,
+          value: true
+        });
+        dispatch({
+          type: SENSORS_TYPES.CHALLENGING_SENSOR_ERROR,
+          value: error
+        });
+        console.log(error);
+      }
+    };
+  },
   updateStreamsPage: (page, rowsPerPage) => {
     return (dispatch, getState) => {
       dispatch({
         type: SENSORS_TYPES.UPDATE_STREAMS_PAGE,
         page,
         rowsPerPage
-      });
-    };
-  },
-  toggleDeliveryExplainer: () => {
-    return (dispatch, getState) => {
-      dispatch({
-        type: SENSORS_TYPES.TOGGLE_DELIVERY_EXPLAINER,
-        value: !getState().deliveryExplainerVisible
       });
     };
   }

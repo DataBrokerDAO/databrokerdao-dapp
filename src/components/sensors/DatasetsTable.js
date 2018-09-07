@@ -76,6 +76,7 @@ class DatasetsTable extends React.Component {
           rowsPerPage={this.props.rowsPerPage}
           rows={this.props.rows}
           page={this.props.page}
+          simplified={'true'}
         />
       </DataTable>
     );

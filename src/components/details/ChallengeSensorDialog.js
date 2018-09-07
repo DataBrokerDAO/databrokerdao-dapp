@@ -9,16 +9,23 @@ import styled from 'styled-components';
 
 import TransactionDialog from '../generic/TransactionDialog';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
-import { STREAMS_ACTIONS } from '../../redux/streams/actions';
+import { convertDtxToWei, convertWeiToDtx } from '../../utils/transforms';
+import { SENSORS_ACTIONS } from '../../redux/sensors/actions';
 
 const STEP_INTRO = 0,
   STEP_REASON = 1,
   STEP_STAKE = 2,
   STEP_CHALLENGING = 3,
-  STEP_SUCCESS = 4,
-  STEP_BALANCE_ERROR = 5;
+  STEP_BALANCE_ERROR = 4;
 
-class ChallengeStreamDialog extends Component {
+export const TX_IPFS_HASH = 1,
+  TX_APPROVE = 2,
+  TX_ENSURE_APPROVE = 3,
+  TX_CHALLENGE = 4,
+  TX_ENSURE_CHALLENGE = 5,
+  TX_VERIFY_CHALLENGE = 6;
+
+class ChallengeSensorDialog extends Component {
   constructor(props) {
     super(props);
 
@@ -26,13 +33,54 @@ class ChallengeStreamDialog extends Component {
       { id: STEP_INTRO, description: 'Intro' },
       { id: STEP_REASON, description: 'Reason' },
       { id: STEP_STAKE, description: 'Stake' },
-      { id: STEP_CHALLENGING, description: 'Challenge' },
-      { id: STEP_SUCCESS, description: 'Success' }
+      { id: STEP_CHALLENGING, description: 'Challenge' }
+    ];
+
+    const transactions = [
+      {
+        id: TX_IPFS_HASH,
+        title: 'IPFS',
+        description: `IPFS hashing the challenge metadata`
+      },
+      {
+        id: TX_APPROVE,
+        title: 'DTX',
+        description:
+          'Approve the amount of DTX to be spent by the registry smart contract'
+      },
+      {
+        id: TX_ENSURE_APPROVE,
+        title: 'Mining',
+        description: 'Await for the transaction to be taken up in a block'
+      },
+      {
+        id: TX_CHALLENGE,
+        title: 'Purchase',
+        description: `Send a transaction to challenge the ${
+          this.props.type
+        } in the registry smart contract`
+      },
+      {
+        id: TX_ENSURE_CHALLENGE,
+        title: 'Mining',
+        description: 'Await for the transaction to be taken up in a block'
+      },
+      {
+        id: TX_VERIFY_CHALLENGE,
+        title: 'Sync',
+        description: `Verify the ${
+          this.props.type
+        } was challenged and synced with Databroker DAO`
+      }
     ];
 
     this.state = {
       steps: steps,
       stepIndex: STEP_INTRO,
+      transactions: transactions,
+      transactionIndex: TX_APPROVE,
+      transactionError: null,
+      challenging: false,
       modal: false,
       reason: '',
       reasonError: null,
@@ -54,38 +102,61 @@ class ChallengeStreamDialog extends Component {
   }
 
   finishStep(step) {
-    if (step === STEP_INTRO) {
-      this.setState({ stepIndex: STEP_REASON });
-    } else if (step === STEP_REASON) {
-      if (this.state.reason.length > 0) {
-        this.setState({ stepIndex: STEP_STAKE });
-      } else {
-        this.setState({ reasonError: 'Reason is a required field' });
-      }
-    } else if (step === STEP_STAKE) {
-      if (parseInt(this.state.stakeAmount, 10) > 0) {
-        const amount = BigNumber(parseInt(this.state.stakeAmount, 10))
-          .times(BigNumber(10).pow(18))
-          .toString();
-        if (BigNumber(this.props.balance).isGreaterThan(amount)) {
-          this.props.challengeStream(
-            this.props.stream,
-            this.state.reason,
-            amount
-          );
-          this.setState({ stepIndex: STEP_CHALLENGING, modal: true });
+    const stakeAmount = parseInt(this.state.stakeAmount, 10);
+    const stakeDTX = convertDtxToWei(stakeAmount);
+
+    switch (step) {
+      case STEP_INTRO:
+        this.setState({
+          stepIndex: STEP_REASON,
+          transactionIndex: TX_APPROVE,
+          transactionError: null
+        });
+        break;
+      case STEP_REASON:
+        if (this.state.reason.length > 0) {
+          this.setState({ stepIndex: STEP_STAKE });
         } else {
-          this.setState({ stepIndex: STEP_BALANCE_ERROR });
+          this.setState({ reasonError: 'Reason is a required field' });
         }
-      } else
-        this.setState({ stakeError: 'Stake amount must be a positive number' });
-    } else if (step === STEP_CHALLENGING)
-      this.setState({ stepIndex: STEP_SUCCESS });
-    else if (step === STEP_SUCCESS) {
-      this.props.fetchStreamEventHandler();
-      this.props.hideEventHandler();
-    } else if (step === STEP_BALANCE_ERROR) {
-      this.props.history.push(`/wallet`);
+        break;
+      case STEP_STAKE:
+        if (stakeAmount < 50) {
+          this.setState({ stakeError: 'Minimum stake of 50 required' });
+          break;
+        }
+
+        const hasTheMoney =
+          this.props.balance &&
+          BigNumber(this.props.balance).isGreaterThan(stakeDTX);
+
+        if (!hasTheMoney) {
+          this.setState({
+            stepIndex: STEP_BALANCE_ERROR,
+            balanceDeficient: this.props.balance
+              ? stakeDTX.minus(BigNumber(this.props.balance)).toString()
+              : null
+          });
+          break;
+        }
+
+        this.setState({ stepIndex: STEP_CHALLENGING, modal: true });
+        this.props.challengeSensor(
+          this.props.sensor,
+          this.state.reason,
+          stakeDTX
+        );
+        break;
+      case STEP_CHALLENGING:
+        this.props.fetchSensorEventHandler();
+        this.props.hideEventHandler();
+        break;
+      case STEP_BALANCE_ERROR:
+        this.props.history.push(`/wallet`);
+        break;
+
+      default:
+        break;
     }
   }
 
@@ -94,33 +165,34 @@ class ChallengeStreamDialog extends Component {
   }
 
   render() {
-    const loading = this.props.challengingStream;
+    const loading = this.props.challenging;
 
     return (
       <TransactionDialog
         visible={this.props.visible}
         onHide={this.props.hideEventHandler}
-        modal={this.state.modal}
         steps={this.state.steps}
         stepIndex={this.state.stepIndex}
-        nextStepHandler={step => {
-          this.finishStep(step);
-        }}
+        nextStepHandler={this.finishStep.bind(this)}
+        showContinue={!this.props.challenging}
+        showTransactions={[3].includes(this.state.stepIndex)}
+        transactions={this.state.transactions}
+        transactionIndex={this.props.transactionIndex}
+        transactionError={this.props.transactionError}
         loading={loading}
-        showContinueButton={true}
+        done={
+          [3].includes(this.state.stepIndex) &&
+          !this.props.challening &&
+          !this.props.transactionError
+        }
+        modal={this.state.modal}
       >
-        <div
-          style={{
-            display: this.state.stepIndex === STEP_INTRO ? 'block' : 'none'
-          }}
-        >
-          <h1>Challenge stream quality</h1>
+        <div style={this.showOrHide(STEP_INTRO)}>
+          <h1>Challenge {this.props.type} quality</h1>
           <p>
-            If you are unhappy with the quality of data of this stream, you can
-            challenge it by staking some DTX tokens.
-          </p>
-          <p>
-            Upon reaching a certain threshold of challenges, a check of the data
+            If you are unhappy with the quality of this {this.props.type}, you
+            can challenge it by staking some DTX tokens. Upon reaching a certain
+            threshold of challenges, a check of the {this.props.type}
             provider will be performed by a DataBroker DAO administrator.{' '}
             <span
               className="clickable"
@@ -136,7 +208,7 @@ class ChallengeStreamDialog extends Component {
         {this.state.stepIndex === STEP_REASON && (
           <this.StepContentWithPadding>
             <h1>
-              Why are you unhappy with the quality of data of this stream?
+              Why are you unhappy with the quality of this {this.props.type}?
             </h1>
             <TextField
               id="reason"
@@ -154,10 +226,26 @@ class ChallengeStreamDialog extends Component {
         {this.state.stepIndex === STEP_STAKE && (
           <this.StepContentWithPadding>
             <h1>Define stake</h1>
+            {
+              //   <StyledSlider
+              //   id="stake-slider"
+              //   label="Number of DTX to stake"
+              //   discrete
+              //   min={50}
+              //   max={250}
+              //   step={50}
+              //   discreteTicks={50}
+              //   valuePrecision={0}
+              //   className={`md-floating-label--floating ${class2}`}
+              //   onChange={value => this.setState({ stakeAmount: value })}
+              //   style={{ width: '100%' }}
+              //   thumbStyle={{ backgroundColor: 'rgb(238, 39, 76)' }}
+              // />
+            }
             <TextField
               id="stake"
               fieldname="stake"
-              label="Number of DTX to stake"
+              label="Number of DTX to stake (min. 50)"
               className="md-cell md-cell--bottom"
               value={this.state.stakeAmount}
               onChange={value => this.setState({ stakeAmount: value })}
@@ -167,24 +255,21 @@ class ChallengeStreamDialog extends Component {
             />
           </this.StepContentWithPadding>
         )}
-        <div
-          style={{
-            display:
-              this.state.stepIndex === STEP_BALANCE_ERROR ? 'block' : 'none'
-          }}
-        >
+        <div style={this.showOrHide(STEP_BALANCE_ERROR)}>
           <h1>Your DTX balance is too low</h1>
+          {this.state.balanceDeficient && (
+            <p>
+              You have {convertWeiToDtx(this.props.balance)}
+              DTX which is {convertWeiToDtx(this.state.balanceDeficient)}
+              DTX short of the purchase price
+            </p>
+          )}
           <p>
             As DataBroker DAO is currently in beta, you can fund your wallet
             with demo tokens free of charge.
           </p>
         </div>
-        <div
-          style={{
-            display:
-              this.state.stepIndex === STEP_CHALLENGING ? 'block' : 'none'
-          }}
-        >
+        <div style={this.showOrHide(STEP_CHALLENGING)}>
           <h1>Saving to the blockchain</h1>
           <p>
             It takes a while to save your challenge to the blockchain due to
@@ -192,42 +277,49 @@ class ChallengeStreamDialog extends Component {
             confirmed.
           </p>
         </div>
-        <div
-          style={{
-            display: this.state.stepIndex === STEP_SUCCESS ? 'block' : 'none'
-          }}
-        >
-          <h1>Challenge successful</h1>
-          <p>
-            Upon reaching a certain threshold of challenges, a check of the data
-            provider will be performed by a DataBroker DAO administrator{' '}
-            <span
-              className="clickable"
-              onClick={this.props.toggleStakingExplainer}
-            >
-              <FontAwesomeIcon
-                icon={faQuestionCircle}
-                color="rgba(0,0,0,0.6)"
-              />
-            </span>
-            .
-          </p>
-        </div>
+        {
+          // TODO find a place to put this
+          //   <div style={this.showOrHide(STEP_SUCCESS)}>
+          //   <h1>Challenge successful</h1>
+          //   <p>
+          //     Upon reaching a certain threshold of challenges, a check of the data
+          //     provider will be performed by a DataBroker DAO administrator{' '}
+          //     <span
+          //       className="clickable"
+          //       onClick={this.props.toggleStakingExplainer}
+          //     >
+          //       <FontAwesomeIcon
+          //         icon={faQuestionCircle}
+          //         color="rgba(0,0,0,0.6)"
+          //       />
+          //     </span>
+          //     .
+          //   </p>
+          // </div>
+        }
       </TransactionDialog>
     );
+  }
+
+  showOrHide(step) {
+    return {
+      display: this.state.stepIndex === step ? 'block' : 'none'
+    };
   }
 }
 
 const mapStateToProps = state => ({
   token: state.auth.token,
-  challengingStream: state.streams.challengingStream,
+  challenging: state.sensors.challenging,
+  transactionIndex: state.sensors.transactionIndex,
+  transactionError: state.sensors.transactionError,
   balance: state.wallet.wallet.balance
 });
 
 function mapDispatchToProps(dispatch) {
   return {
-    challengeStream: (stream, reason, amount) =>
-      dispatch(STREAMS_ACTIONS.challengeStream(stream, reason, amount)),
+    challengeSensor: (stream, reason, amount) =>
+      dispatch(SENSORS_ACTIONS.challengeSensor(stream, reason, amount)),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())
   };
 }
@@ -235,4 +327,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withRouter(ChallengeStreamDialog));
+)(withRouter(ChallengeSensorDialog));

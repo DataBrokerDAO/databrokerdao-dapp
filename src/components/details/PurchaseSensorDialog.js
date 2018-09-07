@@ -10,42 +10,84 @@ import TransactionDialog from '../generic/TransactionDialog';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { PURCHASES_ACTIONS } from '../../redux/purchases/actions';
 import { AUTH_ACTIONS } from '../../redux/authentication/actions';
+import { convertWeiToDtx } from '../../utils/transforms';
 
 const STEP_INTRO = 0,
   STEP_REGISTRATION = 1,
   STEP_CONFIG = 2,
   STEP_PURCHASING = 3,
-  STEP_SUCCESS = 4,
-  STEP_BALANCE_ERROR = 5;
+  STEP_BALANCE_ERROR = 4;
 
-class PurchaseStreamDialog extends Component {
+export const TX_APPROVE = 1,
+  TX_ENSURE_APPROVE = 2,
+  TX_PURCHASE = 3,
+  TX_ENSURE_PURCHASE = 4,
+  TX_VERIFY_PURCHASE = 5;
+
+class PurchaseSensorDialog extends Component {
   constructor(props) {
     super(props);
 
     const defaultPurchaseEndTime = moment()
       .add(7, 'd')
       .format('MM/DD/YYYY');
+
     const steps = this.props.token
       ? [
           { id: STEP_INTRO, description: 'Intro' },
           { id: STEP_CONFIG, description: 'Delivery' },
-          { id: STEP_PURCHASING, description: 'Purchase' },
-          { id: STEP_SUCCESS, description: 'Success' }
+          { id: STEP_PURCHASING, description: 'Purchase' }
         ]
       : [
           { id: STEP_INTRO, description: 'Intro' },
           { id: STEP_REGISTRATION, description: 'Registration' },
           { id: STEP_CONFIG, description: 'Delivery' },
-          { id: STEP_PURCHASING, description: 'Purchase' },
-          { id: STEP_SUCCESS, description: 'Success' }
+          { id: STEP_PURCHASING, description: 'Purchase' }
         ];
+
+    const transactions = [
+      {
+        id: TX_APPROVE,
+        title: 'DTX',
+        description:
+          'Approve the amount of DTX to be spent by the registry smart contract'
+      },
+      {
+        id: TX_ENSURE_APPROVE,
+        title: 'Mining',
+        description: 'Await for the transaction to be taken up in a block'
+      },
+      {
+        id: TX_PURCHASE,
+        title: 'Purchase',
+        description: `Send a transaction to purchase your ${
+          this.props.type
+        } in the registry smart contract`
+      },
+      {
+        id: TX_ENSURE_PURCHASE,
+        title: 'Mining',
+        description: 'Await for the transaction to be taken up in a block'
+      },
+      {
+        id: TX_VERIFY_PURCHASE,
+        title: 'Sync',
+        description: `Verify the ${
+          this.props.type
+        } was properly purchased and synced with Databroker DAO`
+      }
+    ];
 
     this.state = {
       steps: steps,
       stepIndex: STEP_INTRO,
-      purchaseEndTime: defaultPurchaseEndTime, //Today + 7 days
+      transactions: transactions,
+      transactionIndex: TX_APPROVE,
+      purchasing: false,
+      complete: false,
       receiveEmail: true,
-      modal: false
+      modal: false,
+      purchaseEndTime: defaultPurchaseEndTime //Today + 7 days
     };
   }
 
@@ -54,36 +96,56 @@ class PurchaseStreamDialog extends Component {
   }
 
   finishStep(step) {
-    if (step === STEP_INTRO) {
-      if (!this.props.token) this.setState({ stepIndex: STEP_REGISTRATION });
-      else this.setState({ stepIndex: STEP_CONFIG });
-    } else if (step === STEP_REGISTRATION) {
-      this.setState({ stepIndex: STEP_CONFIG });
-    } else if (step === STEP_CONFIG) {
-      //Check if user has enough DTX in wallet
-      const durationSeconds =
-        moment(this.state.purchaseEndTime).diff(moment()) / 1000;
-      const purchasePrice = this.props.stream.updateinterval
-        ? BigNumber(this.props.stream.price).multipliedBy(durationSeconds)
-        : BigNumber(this.props.stream.price); // Only multiply price by duration when it's not a forever-purchase: when there is an updateinterval
+    switch (step) {
+      case STEP_INTRO:
+        if (!this.props.token) {
+          this.setState({ stepIndex: STEP_REGISTRATION });
+          break;
+        }
 
-      if (BigNumber(this.props.balance).isGreaterThan(purchasePrice)) {
-        // Check if purchasePrice > balance in wallet
-        this.props.purchaseAccess(
-          this.props.stream,
-          this.props.stream.updateinterval ? this.state.purchaseEndTime : 0 // Pass endtime of 0 when a dataset is purchased forever
-        );
+        this.setState({ stepIndex: STEP_CONFIG });
+        break;
+      case STEP_REGISTRATION:
+        this.setState({ stepIndex: STEP_CONFIG });
+        break;
+      case STEP_CONFIG:
+        const price = this.calculatePurchasePrice();
+        const hasTheMoney =
+          this.props.balance &&
+          BigNumber(this.props.balance).isGreaterThan(price);
+
+        if (!hasTheMoney) {
+          this.setState({
+            stepIndex: STEP_BALANCE_ERROR,
+            balanceDeficient: this.props.balance
+              ? price.minus(BigNumber(this.props.balance)).toString()
+              : null
+          });
+          break;
+        }
+
         this.setState({ stepIndex: STEP_PURCHASING, modal: true });
-      } else {
-        this.setState({ stepIndex: STEP_BALANCE_ERROR });
-      }
-    } else if (step === STEP_PURCHASING) {
-      this.setState({ stepIndex: STEP_SUCCESS });
-    } else if (step === STEP_SUCCESS) {
-      this.props.fetchPurchase(this.props.stream.key);
-      this.props.hideEventHandler();
-    } else if (step === STEP_BALANCE_ERROR) {
-      this.props.history.push(`/wallet`);
+        this.props.purchaseAccess(
+          this.props.sensor,
+          this.props.sensor.updateinterval ? this.state.purchaseEndTime : 0 // Pass endtime of 0 when a dataset is purchased forever
+        );
+
+        break;
+      case STEP_PURCHASING:
+        if (this.props.transactionError) {
+          this.setState({ transactionError: null });
+          this.props.hideEventHandler();
+        } else {
+          this.setState({ transactionError: null });
+          this.props.fetchPurchase(this.props.sensor.key);
+          this.props.hideEventHandler();
+        }
+        break;
+      case STEP_BALANCE_ERROR:
+        this.props.history.push(`/wallet`);
+        break;
+      default:
+        break;
     }
   }
 
@@ -96,46 +158,34 @@ class PurchaseStreamDialog extends Component {
   }
 
   render() {
-    const loading = this.props.purchasingAccess;
-
-    const isDataset =
-      this.props.stream.sensortype &&
-      this.props.stream.sensortype === 'DATASET';
-
     return (
       <TransactionDialog
         visible={this.props.visible}
         onHide={this.props.hideEventHandler}
-        modal={this.state.modal}
         steps={this.state.steps}
         stepIndex={this.state.stepIndex}
-        nextStepHandler={step => {
-          this.finishStep(step);
-        }}
-        loading={loading}
-        showContinueButton={this.state.stepIndex !== STEP_REGISTRATION}
+        nextStepHandler={this.finishStep.bind(this)}
+        showContinue={!this.props.purchasing}
+        showTransactions={[3].includes(this.state.stepIndex)}
+        transactions={this.state.transactions}
+        transactionIndex={this.props.transactionIndex}
+        transactionError={this.props.transactionError}
+        loading={this.props.purchasing}
+        done={
+          [3].includes(this.state.stepIndex) &&
+          !this.props.purchasing &&
+          !this.props.transactionError
+        }
+        modal={this.state.modal}
       >
-        <div
-          style={{
-            display: this.state.stepIndex === STEP_INTRO ? 'block' : 'none'
-          }}
-        >
+        <div style={this.showOrHide(STEP_INTRO)}>
           <h1>Purchase access</h1>
           <p>
             Purchases are made using DTX tokens. As DataBroker DAO is currently
             in beta, we will provide you with free demo tokens.
           </p>
-          <p>
-            After your purchase, the readings of this stream will be delivered
-            via email.
-          </p>
         </div>
-        <div
-          style={{
-            display:
-              this.state.stepIndex === STEP_REGISTRATION ? 'block' : 'none'
-          }}
-        >
+        <div style={this.showOrHide(STEP_REGISTRATION)}>
           <h1>Create account</h1>
           <RegisterForm
             register={(values, settings) =>
@@ -147,12 +197,7 @@ class PurchaseStreamDialog extends Component {
             }}
           />
         </div>
-        <div
-          style={{
-            display: this.state.stepIndex === STEP_CONFIG ? 'block' : 'none',
-            padding: '0 15%'
-          }}
-        >
+        <div style={this.showOrHide(STEP_CONFIG)}>
           <h1>How do you want to receive your data?</h1>
           <Checkbox
             id="purchase-reading-emails"
@@ -163,7 +208,7 @@ class PurchaseStreamDialog extends Component {
             style={{ position: 'relative', left: '-10px' }}
             onChange={value => this.handleReceiveEmailChange(value)}
           />
-          {this.props.stream.updateinterval && (
+          {this.props.sensor.updateinterval && (
             <DatePicker
               id="purchase-end-time"
               label="Receive data until"
@@ -177,23 +222,21 @@ class PurchaseStreamDialog extends Component {
             />
           )}
         </div>
-        <div
-          style={{
-            display:
-              this.state.stepIndex === STEP_BALANCE_ERROR ? 'block' : 'none'
-          }}
-        >
+        <div style={this.showOrHide(STEP_BALANCE_ERROR)}>
           <h1>Your DTX balance is too low</h1>
+          {this.state.balanceDeficient && (
+            <p>
+              You have {convertWeiToDtx(this.props.balance)}
+              DTX which is {convertWeiToDtx(this.state.balanceDeficient)}
+              DTX short of the purchase price
+            </p>
+          )}
           <p>
             As DataBroker DAO is currently in beta, you can fund your wallet
             with demo tokens free of charge.
           </p>
         </div>
-        <div
-          style={{
-            display: this.state.stepIndex === STEP_PURCHASING ? 'block' : 'none'
-          }}
-        >
+        <div style={this.showOrHide(STEP_PURCHASING)}>
           <h1>Saving to the blockchain</h1>
           <p>
             It takes a while to save your purchase to the blockchain due to
@@ -201,34 +244,36 @@ class PurchaseStreamDialog extends Component {
             confirmed.
           </p>
         </div>
-        <div
-          style={{
-            display: this.state.stepIndex === STEP_SUCCESS ? 'block' : 'none'
-          }}
-        >
-          <h1>Purchase successful</h1>
-          {this.state.receiveEmail && (
-            <p>
-              {isDataset
-                ? 'You will receive this dataset in your inbox.'
-                : 'You will start to receive readings of this stream in your inbox.'}
-            </p>
-          )}
-          {!this.state.receiveEmail && (
-            <p>
-              Congratulations! You successfully purchased access to this data.
-            </p>
-          )}
-        </div>
       </TransactionDialog>
     );
+  }
+
+  calculatePurchasePrice() {
+    const durationSeconds =
+      moment(this.state.purchaseEndTime).diff(moment()) / 1000;
+
+    // Only multiply price by duration when it's not a forever-purchase:
+    // when there is an updateinterval
+    const purchasePrice = this.props.sensor.updateinterval
+      ? BigNumber(this.props.sensor.price).multipliedBy(durationSeconds)
+      : BigNumber(this.props.sensor.price);
+
+    return purchasePrice;
+  }
+
+  showOrHide(step) {
+    return {
+      display: this.state.stepIndex === step ? 'block' : 'none'
+    };
   }
 }
 
 const mapStateToProps = state => ({
   token: state.auth.token,
-  purchasingAccess: state.purchases.purchasingAccess,
-  balance: state.wallet.wallet.balance
+  purchasing: state.purchases.purchasing,
+  balance: state.wallet.wallet.balance,
+  transactionIndex: state.purchases.transactionIndex,
+  transactionError: state.purchases.transactionError
 });
 
 function mapDispatchToProps(dispatch) {
@@ -248,4 +293,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withRouter(PurchaseStreamDialog));
+)(withRouter(PurchaseSensorDialog));

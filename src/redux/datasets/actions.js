@@ -17,9 +17,6 @@ export const DATASET_TYPES = {
   FETCHING_DATASET: 'FETCHING_DATASET',
   FETCHING_DATASET_ERROR: 'FETCHING_DATASET_ERROR',
 
-  FETCHING_CHALLENGES: 'FETCHING_CHALLENGES',
-  FETCHING_CHALLENGES_ERROR: 'FETCHING_CHALLENGES_ERROR',
-
   CHALLENGING_DATASET: 'CHALLENGING_DATASET',
 
   DATASET_UPDATED_FILTER: 'DATASET_UPDATED_FILTER',
@@ -149,55 +146,45 @@ export const DATASET_ACTIONS = {
     };
   },
   fetchDataset: (dispatch, dataset) => {
-    return (dispatch, getState) => {
-      dispatch({
-        type: DATASET_TYPES.FETCHING_DATASET,
-        value: true
-      });
+    return async (dispatch, getState) => {
+      try {
+        dispatch({
+          type: DATASET_TYPES.FETCHING_DATASET,
+          value: true
+        });
 
-      const authenticatedAxiosClient = axios(null, true);
+        const authenticatedAxiosClient = axios(null, true);
 
-      fetchSensor(authenticatedAxiosClient, dataset)
-        .then(response => {
-          let parsedResponse = response.data.sensorid
-            ? parseDataset(response.data)
-            : {};
+        let response = await fetchSensor(authenticatedAxiosClient, dataset);
+        let parsedDataset = response.data.sensorid
+          ? parseDataset(response.data)
+          : {};
 
+        const urlParametersChallenges = `item.listing=~${dataset}`;
+        response = await fetchChallenges(
+          authenticatedAxiosClient,
+          urlParametersChallenges
+        );
+        const challenges = response.data.items;
+        parsedDataset.challengeslist = challenges;
+
+        dispatch({
+          type: DATASET_TYPES.FETCHING_DATASET,
+          value: false,
+          dataset: parsedDataset
+        });
+      } catch (error) {
+        if (error && error.response && error.response.status === 401) {
           dispatch({
-            type: DATASET_TYPES.FETCHING_DATASET,
-            value: false,
-            dataset: parsedResponse
-          });
-
-          dispatch({
-            type: DATASET_TYPES.FETCHING_CHALLENGES,
-            value: true
-          });
-
-          const urlParametersChallenges = `listing=${dataset}`;
-          fetchChallenges(
-            authenticatedAxiosClient,
-            urlParametersChallenges
-          ).then(response => {
-            dispatch({
-              type: DATASET_TYPES.FETCHING_CHALLENGES,
-              value: false,
-              challenges: response
-            });
-          });
-        })
-        .catch(error => {
-          if (error && error.response && error.response.status === 401) {
-            dispatch({
-              type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
-            });
-          }
-          dispatch({
-            type: DATASET_TYPES.FETCHING_CHALLENGES_ERROR,
+            type: ERROR_TYPES.AUTHENTICATION_ERROR,
             error
           });
+        }
+        dispatch({
+          type: DATASET_TYPES.FETCHING_DATASET_ERROR,
+          error
         });
+      }
     };
   },
   fetchAvailableFiletypes: () => {

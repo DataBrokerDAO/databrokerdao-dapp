@@ -11,16 +11,18 @@ import { BigNumber } from 'bignumber.js';
 import moment from 'moment';
 
 export default class ChallengesTable extends Component {
-  convertWeiToDtx(dtxValue){
-    return BigNumber(dtxValue).div(BigNumber(10).pow(18)).toString();
+  convertWeiToDtx(dtxValue) {
+    return BigNumber(dtxValue)
+      .div(BigNumber(10).pow(18))
+      .toString();
   }
 
-  render(){
+  render() {
     const LeftTableColumn = styled(TableColumn)`
-      padding-left:0 !important;
+      padding-left: 0 !important;
     `;
 
-    return(
+    return (
       <DataTable baseId="challenges-table" plain>
         <TableHeader>
           <TableRow>
@@ -30,12 +32,14 @@ export default class ChallengesTable extends Component {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {this.props.challenges.map((challenge) => {
+          {this.props.challenges.map(challenge => {
             const stake = this.convertWeiToDtx(challenge.stake);
-            const date = moment(parseInt(challenge.timestamp,10)*1000).format('MMM D, YYYY');
+            const date = moment(
+              parseInt(challenge.timestamp, 10) * 1000
+            ).format('MMM D, YYYY');
 
-            return(
-              <TableRow key={challenge.reason}>
+            return (
+              <TableRow key={challenge.timestamp}>
                 <LeftTableColumn>{challenge.reason}</LeftTableColumn>
                 <TableColumn>{date}</TableColumn>
                 <TableColumn>{stake}</TableColumn>

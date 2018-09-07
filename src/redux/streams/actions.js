@@ -3,11 +3,6 @@ import find from 'lodash/find';
 import map from 'lodash/map';
 import axios from '../../utils/axios';
 import { fetchSensors } from '../../api/sensors';
-import {
-  dtxApproval,
-  prepareDtxSpendFromSensorRegistry,
-  sensorChallenge
-} from '../../api/util';
 
 import { ERROR_TYPES } from '../errors/actions';
 
@@ -23,7 +18,6 @@ export const STREAMS_TYPES = {
   UPDATED_FILTER: 'UPDATED_FILTER',
   UPDATED_MAP: 'UPDATED_MAP',
   FETCH_STREAM_COUNTER: 'FETCH_STREAM_COUNTER',
-  CHALLENGING_STREAM: 'CHALLENGING_STREAM',
   FETCH_NEARBY_STREAMS: 'FETCH_NEARBY_STREAMS',
   FETCHING_NEARBY_STREAMS: 'FETCHING_NEARBY_STREAMS',
   FETCH_CHALLENGES: 'FETCH_CHALLENGES',
@@ -272,16 +266,12 @@ export const STREAMS_ACTIONS = {
             });
 
           //Get challenges
-          const urlParametersChallenges = `listing=${streamKey}`;
           anonymousAxiosClient
-            .get(`/challengeregistry/list?listing=${urlParametersChallenges}`)
+            .get(`/challengeregistry/list?item.listing=~${streamKey}`)
             .then(response => {
-              console.log(response);
-              const parsedResponse = [];
-
               dispatch({
                 type: STREAMS_TYPES.FETCH_CHALLENGES,
-                challenges: parsedResponse
+                challenges: response.data.items
               });
             });
 
@@ -445,44 +435,6 @@ export const STREAMS_ACTIONS = {
       dispatch({
         type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
         filterAddress
-      });
-    };
-  },
-  challengeStream: (stream, reason, amount) => {
-    return (dispatch, getState) => {
-      dispatch({
-        type: STREAMS_TYPES.CHALLENGING_STREAM,
-        value: true
-      });
-
-      const metadata = { data: { reason } };
-      prepareDtxSpendFromSensorRegistry(metadata).then(async responses => {
-        const deployedTokenContractAddress = responses[0];
-        const spenderAddress = responses[1];
-        const metadataHash = responses[2];
-
-        try {
-          await dtxApproval(
-            deployedTokenContractAddress,
-            spenderAddress,
-            amount
-          );
-
-          await sensorChallenge(stream.key, amount, metadataHash);
-
-          dispatch({
-            type: STREAMS_TYPES.CHALLENGING_STREAM,
-            value: false
-          });
-        } catch (error) {
-          if (error && error.response && error.response.status === 401) {
-            dispatch({
-              type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
-            });
-          }
-          console.log(error);
-        }
       });
     };
   }

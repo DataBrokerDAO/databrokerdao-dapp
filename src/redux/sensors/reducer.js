@@ -15,13 +15,22 @@ export const DEFAULT_STATE = {
 
   fetchingSensor: false,
   fetchingSensorError: null,
-  sensor: null,
-
-  deliveryExplainerVisible: false
+  sensor: null
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
+    // TRANSACTION
+    case SENSORS_TYPES.TRANSACTION_INDEX: {
+      return Immutable.set(state, 'transactionIndex', action.index);
+    }
+    case SENSORS_TYPES.TRANSACTION_ERROR: {
+      return Immutable.merge(state, {
+        challenging: false,
+        transactionError: action.value
+      });
+    }
+
     case SENSORS_TYPES.FETCHING_DATASETS: {
       return Immutable.merge(state, {
         fetchingDatasets: action.value,
@@ -81,6 +90,12 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
         fetchingSensorError: action.error,
         sensor: null
       });
+    }
+    case SENSORS_TYPES.CHALLENGING_SENSOR: {
+      return Immutable.set(state, 'challenging', action.value);
+    }
+    case SENSORS_TYPES.CHALLENING_SENSOR_ERROR: {
+      return Immutable.set(state, 'challengingStreamError', action.value);
     }
     case AUTH_TYPES.TOKEN_RECEIVED: {
       return Immutable.merge(state, {

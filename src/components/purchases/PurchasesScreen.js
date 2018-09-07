@@ -6,8 +6,11 @@ import CardContent from '../generic/CardContent';
 import ToolbarSpacer from '../generic/ToolbarSpacer';
 import StreamsTable from '../sensors/StreamsTable';
 import DatasetsTable from '../sensors/DatasetsTable';
+import DeliveryExplainerDialog from './DeliveryExplainerDialog';
+import { connect } from 'react-redux';
+import { PURCHASES_ACTIONS } from '../../redux/purchases/actions';
 
-export default class PurchasesScreen extends Component {
+class PurchasesScreen extends Component {
   render() {
     return (
       <div>
@@ -37,7 +40,27 @@ export default class PurchasesScreen extends Component {
             </TabsContainer>
           </CardContent>
         </CenteredCard>
+        <DeliveryExplainerDialog
+          visible={this.props.deliveryExplainerDialogVisible}
+          hideEventHandler={this.props.toggleDeliveryExplainer}
+        />
       </div>
     );
   }
 }
+
+const mapStateToProps = state => ({
+  deliveryExplainerDialogVisible: state.purchases.deliveryExplainerDialogVisible
+});
+
+function mapDispatchToProps(dispatch) {
+  return {
+    toggleDeliveryExplainer: () =>
+      dispatch(PURCHASES_ACTIONS.toggleDeliveryExplainer())
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(PurchasesScreen);

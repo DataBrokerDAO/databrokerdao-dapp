@@ -7,7 +7,9 @@ import moment from 'moment';
 import EnhancedTextField from '../../generic/EnhancedTextField';
 import EnhancedTextArea from '../../generic/EnhancedTextArea';
 import EnhancedSelectField from '../../generic/EnhancedSelectField';
-import EnlistStreamConfirmationDialog from './EnlistStreamConfirmationDialog';
+import EnlistConfirmationDialog, {
+  TYPE_STREAM
+} from '../EnlistConfirmationDialog';
 
 export default class EnlistForm extends Component {
   constructor(props) {
@@ -198,9 +200,10 @@ export default class EnlistForm extends Component {
             </StyledColumn>
           </StyledForm>
           {this.state.stream && (
-            <EnlistStreamConfirmationDialog
+            <EnlistConfirmationDialog
               visible={this.state.StreamConfirmationDialogVisible}
-              stream={this.state.stream}
+              sensor={this.state.stream}
+              type={TYPE_STREAM}
               hideEventHandler={() => this.toggleConfirmationDialog()}
             />
           )}

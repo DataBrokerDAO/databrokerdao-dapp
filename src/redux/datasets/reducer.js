@@ -77,19 +77,6 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case DATASET_TYPES.CHALLENGING_DATASET: {
       return Immutable.set(state, 'challengingDataset', action.value);
     }
-    case DATASET_TYPES.FETCHING_CHALLENGES: {
-      return Immutable.merge(state, {
-        fetchingChallenges: action.value,
-        challenges: action.challenges || []
-      });
-    }
-    case DATASET_TYPES.FETCHING_CHALLENGES_ERROR: {
-      return Immutable.merge(state, {
-        fetchingChallengesError: action.error,
-        fetchingChallenges: false,
-        challenges: []
-      });
-    }
     case DATASET_TYPES.UPDATE_CURRENT_PAGE: {
       return Immutable.merge(state, {
         page: action.page

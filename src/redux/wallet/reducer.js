@@ -10,6 +10,16 @@ export const DEFAULT_STATE = {
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
+    // TRANSACTION
+    case WALLET_TYPES.TRANSACTION_INDEX: {
+      return Immutable.set(state, 'transactionIndex', action.index);
+    }
+    case WALLET_TYPES.TRANSACTION_ERROR: {
+      return Immutable.merge(state, {
+        minting: false,
+        transactionError: action.value
+      });
+    }
     case WALLET_TYPES.FETCH_WALLET: {
       return Immutable.merge(state, {
         wallet: action.wallet,
@@ -20,7 +30,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
       return Immutable.set(state, 'fetchingWallet', action.value);
     }
     case WALLET_TYPES.MINTING_TOKENS: {
-      return Immutable.set(state, 'mintingTokens', action.value);
+      return Immutable.set(state, 'minting', action.value);
     }
     default:
       return state;

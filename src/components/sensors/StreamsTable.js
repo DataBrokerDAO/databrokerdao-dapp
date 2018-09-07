@@ -9,12 +9,13 @@ import StreamRow from './StreamsRow';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { SENSORS_ACTIONS } from '../../redux/sensors/actions';
+import { PURCHASES_ACTIONS } from '../../redux/purchases/actions';
 
 const StyledParagraph = styled.p`
   padding: 24px 24px 24px 0px;
 `;
 
-class StreamsTable extends React.Component {
+class StreamsTable extends React.PureComponent {
   componentDidMount() {
     const owner =
       this.props.listed && this.props.token
@@ -83,6 +84,7 @@ class StreamsTable extends React.Component {
           rowsPerPage={this.props.rowsPerPage}
           rows={this.props.rows}
           page={this.props.page}
+          simplified={'true'}
         />
       </DataTable>
     );
@@ -128,7 +130,7 @@ function mapDispatchToProps(dispatch) {
     updatePage: (page, rowsPerPage) =>
       dispatch(SENSORS_ACTIONS.updateStreamsPage(page, rowsPerPage)),
     toggleDeliveryExplainer: () =>
-      dispatch(SENSORS_ACTIONS.toggleDeliveryExplainer())
+      dispatch(PURCHASES_ACTIONS.toggleDeliveryExplainer())
   };
 }
 
