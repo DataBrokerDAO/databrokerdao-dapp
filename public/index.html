@@ -6,19 +6,15 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="viewport" content="user-scalable=no, initial-scale=1, width=device-width">
   <title>DataBroker DAO - Global market for local data</title>
-
   <meta name="msapplication-tap-highlight" content="no">
-
   <!-- Add to homescreen for Chrome on Android -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="DataBroker DAO">
-
   <!-- Add to homescreen for Safari on iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="white">
   <meta name="apple-mobile-web-app-title" content="DataBroker DAO">
   <meta name="Description" content="Put your description here.">
-
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -27,9 +23,6 @@
   <link href="https://fonts.googleapis.com/css?family=Open Sans:300,400,500,700|Titillium Web:300,400,600,700,900" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <meta name="theme-color" content="#ffffff">
-  <% if (process.env.NODE_ENV === 'production') { %>
-  <%= require('../src/prerender').styleTags %>
-  <% } %>
 </head>
 
 <body>
@@ -37,9 +30,6 @@
     You need to enable JavaScript to run this app.
   </noscript>
   <div id="root">
-    <% if (process.env.NODE_ENV === 'production') { %>
-    <%= require('../src/prerender').body %>
-    <% } %>
   </div>
   <!--
       This HTML file is a template.
