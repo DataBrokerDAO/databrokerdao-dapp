@@ -178,9 +178,9 @@ export const STREAMS_ACTIONS = {
         });
 
         //Get formatted address
-        if (parsedResponse.geometry) {
-          const lat = parsedResponse.geometry.coordinates[0];
-          const lng = parsedResponse.geometry.coordinates[1];
+        if (parsedStream.geometry) {
+          const lat = parsedStream.geometry.coordinates[0];
+          const lng = parsedStream.geometry.coordinates[1];
           const streetAddress = await fetchStreetAddress(lat, lng);
           dispatch({
             type: STREAMS_TYPES.FETCH_FORMATTED_ADDRESS,
