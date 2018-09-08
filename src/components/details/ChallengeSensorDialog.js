@@ -148,13 +148,9 @@ class ChallengeSensorDialog extends Component {
         );
         break;
       case STEP_CHALLENGING:
-        if (this.props.transactionError) {
-          this.setState({ stepIndex: STEP_INTRO });
-          this.props.clearErrors();
-        } else {
-          this.props.fetchSensorEventHandler();
-        }
+        this.props.fetchSensorEventHandler();
         this.props.hideEventHandler();
+        this.reset();
         break;
       case STEP_BALANCE_ERROR:
         this.props.history.push(`/wallet`);
@@ -163,6 +159,11 @@ class ChallengeSensorDialog extends Component {
       default:
         break;
     }
+  }
+
+  reset() {
+    this.setState({ stepIndex: STEP_INTRO });
+    this.props.clearErrors();
   }
 
   stakeAmountChanged(event) {

@@ -126,21 +126,9 @@ class EnlistConfirmationDialog extends Component {
         this.setState({ stepIndex: STEP_INTRO });
         break;
       case STEP_ENLISTING:
-        if (this.props.transactionError) {
-          this.setState({ stepIndex: STEP_INTRO });
-          this.props.clearErrors();
-          this.props.hideEventHandler();
-        } else {
-          this.props.hideEventHandler();
-          this.props.history.push(`/listings#tab-${this.props.type}s`);
-        }
-        this.setState({
-          stepIndex: STEP_INTRO,
-          transactionIndex: TX_APPROVE,
-          transactionError: null,
-          enlisting: false,
-          complete: false
-        });
+        this.props.hideEventHandler();
+        this.props.history.push(`/listings#tab-${this.props.type}s`);
+        this.reset();
         break;
       case STEP_BALANCE_ERROR:
         this.props.history.push(`/wallet`);
@@ -149,6 +137,11 @@ class EnlistConfirmationDialog extends Component {
         this.props.hideEventHandler();
         break;
     }
+  }
+
+  reset() {
+    this.setState({ stepIndex: STEP_INTRO });
+    this.props.clearErrors();
   }
 
   render() {

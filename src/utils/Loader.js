@@ -10,6 +10,7 @@ const Loader = ({ isLoading, error }) => {
       </div>
     );
   } else if (error) {
+    console.log(error);
     return <div>Sorry, unable to load the page...</div>;
   } else {
     return null;

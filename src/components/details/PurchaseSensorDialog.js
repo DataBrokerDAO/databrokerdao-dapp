@@ -132,13 +132,9 @@ class PurchaseSensorDialog extends Component {
 
         break;
       case STEP_PURCHASING:
-        if (this.props.transactionError) {
-          this.setState({ stepIndex: STEP_INTRO });
-          this.props.clearErrors();
-        } else {
-          this.props.fetchPurchase(this.props.sensor.key);
-        }
+        this.props.fetchPurchase(this.props.sensor.key);
         this.props.hideEventHandler();
+        this.reset();
         break;
       case STEP_BALANCE_ERROR:
         this.props.history.push(`/wallet`);
@@ -146,6 +142,11 @@ class PurchaseSensorDialog extends Component {
       default:
         break;
     }
+  }
+
+  reset() {
+    this.setState({ stepIndex: STEP_INTRO });
+    this.props.clearErrors();
   }
 
   handleReceiveEmailChange(value) {
@@ -164,7 +165,7 @@ class PurchaseSensorDialog extends Component {
         steps={this.state.steps}
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
-        showContinue={!this.props.purchasing}
+        showContinue={this.state.stepIndex !== 1 && !this.props.purchasing}
         showTransactions={[3].includes(this.state.stepIndex)}
         transactions={this.state.transactions}
         transactionIndex={this.props.transactionIndex}

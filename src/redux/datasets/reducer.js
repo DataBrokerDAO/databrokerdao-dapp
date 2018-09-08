@@ -20,8 +20,6 @@ export const DEFAULT_STATE = {
 
   challengingDataset: false,
   challenges: [],
-  fetchingChallenges: false,
-  fetchingChallengesError: null,
 
   rows: 10,
   total: 0,

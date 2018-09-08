@@ -16,6 +16,7 @@ export const DEFAULT_STATE = {
     lng: 4.700518,
     zoom: 10
   },
+  stream: null,
   streams: {},
   landingStreams: {},
   fetchingStreams: false,
@@ -25,7 +26,6 @@ export const DEFAULT_STATE = {
   nearbyStreams: [],
   fetchingNearbyStreams: false,
   challenges: [],
-  fetchingChallenges: false,
   formattedAddress: null,
   error: false
 };
@@ -45,11 +45,28 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case STREAMS_TYPES.FETCH_LANDING_STREAMS: {
       return Immutable.merge(state, { landingStreams: action.streams });
     }
-    case STREAMS_TYPES.FETCH_STREAM: {
-      const newStreams = Immutable.asMutable(state, { deep: true }).streams;
-      newStreams[action.stream.key] = action.stream;
-      return Immutable.merge(state, { streams: newStreams });
+
+    // FETCHING SINGLE STREAM
+    case STREAMS_TYPES.FETCHING_STREAM: {
+      const streams = Immutable.asMutable(state, { deep: true }).streams;
+      if (action.stream) {
+        streams[action.stream.key] = action.stream;
+      }
+
+      return Immutable.merge(state, {
+        fetchingStream: action.value,
+        stream: action.stream || null,
+        streams
+      });
     }
+    case STREAMS_TYPES.FETCHING_STREAM_ERROR: {
+      return Immutable.merge(state, {
+        fetchingStreamError: action.error,
+        fetchingStream: false,
+        stream: null
+      });
+    }
+
     case STREAMS_TYPES.FETCH_AVAILABLE_STREAM_TYPES: {
       return Immutable.merge(state, {
         availableStreamTypes: action.availableStreamTypes
@@ -72,15 +89,6 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case STREAMS_TYPES.FETCHING_NEARBY_STREAMS: {
       return Immutable.set(state, 'fetchingNearbyStreams', action.value);
-    }
-    case STREAMS_TYPES.FETCH_CHALLENGES: {
-      return Immutable.merge(state, {
-        challenges: action.challenges,
-        fetchingNearbyStreams: false
-      });
-    }
-    case STREAMS_TYPES.FETCHING_CHALLENGES: {
-      return Immutable.set(state, 'fetchingChallenges', action.value);
     }
     case STREAMS_TYPES.FETCH_FORMATTED_ADDRESS: {
       return Immutable.set(state, 'formattedAddress', action.formattedAddress);

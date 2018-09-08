@@ -2,58 +2,40 @@ import each from 'lodash/each';
 import find from 'lodash/find';
 import map from 'lodash/map';
 import axios from '../../utils/axios';
-import { fetchSensors } from '../../api/sensors';
+import { fetchSensors, fetchSensor, parseStream } from '../../api/sensors';
 
 import { ERROR_TYPES } from '../errors/actions';
-
-const APIKey = 'AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
+import { fetchChallenges } from '../../api/challenges';
+import {
+  fetchLocation,
+  getGeolocationByAddress,
+  fetchStreetAddress
+} from '../../utils/geo';
 
 export const STREAMS_TYPES = {
   FETCH_ERROR: 'FETCH_ERROR',
+
+  // DiscoveryMap
   FETCH_STREAMS: 'FETCH_STREAMS',
-  FETCHING_STREAMS: 'FETCHING_STREAMS',
-  FETCH_STREAM: 'FETCH_STREAM',
-  FETCH_LANDING_STREAMS: 'FETCH_LANDING_STREAMS',
-  FETCH_AVAILABLE_STREAM_TYPES: 'FETCH_AVAILABLE_STREAM_TYPES',
-  UPDATED_FILTER: 'UPDATED_FILTER',
-  UPDATED_MAP: 'UPDATED_MAP',
   FETCH_STREAM_COUNTER: 'FETCH_STREAM_COUNTER',
+  UPDATED_MAP: 'UPDATED_MAP',
+
+  // LandingMap
+  FETCH_LANDING_STREAMS: 'FETCH_LANDING_STREAMS',
+
+  // Stream details
+  FETCHING_STREAM: 'FETCHING_STREAM',
+  FETCHING_STREAM_ERROR: 'FETCHING_STREAM_ERROR',
   FETCH_NEARBY_STREAMS: 'FETCH_NEARBY_STREAMS',
   FETCHING_NEARBY_STREAMS: 'FETCHING_NEARBY_STREAMS',
-  FETCH_CHALLENGES: 'FETCH_CHALLENGES',
-  FETCHING_CHALLENGES: 'FETCHING_CHALLENGES',
+
+  // Filter
+  UPDATED_FILTER: 'UPDATED_FILTER',
+  FETCHING_STREAMS: 'FETCHING_STREAMS',
+  FETCH_AVAILABLE_STREAM_TYPES: 'FETCH_AVAILABLE_STREAM_TYPES',
   FETCH_FORMATTED_ADDRESS: 'FETCH_FORMATTED_ADDRESS', //Address in stream details
   FETCH_FILTER_ADDRESS: 'FETCH_FILTER_ADDRESS' //Address (city) in location filter
 };
-
-const unAuthenticatedAxiosClient = axios(null, true, true);
-
-function fetchFilterAddress(dispatch, lat, lng) {
-  //Geocode map center to set value of location filter (so e.g. "Kessel-Lo" shows up when moving the map to Kessel-Lo)
-  const latlng = `${lat},${lng}`;
-  unAuthenticatedAxiosClient
-    .get(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=${APIKey}&result_type=locality`
-    )
-    .then(response => {
-      const filterAddress = response.data.results[0]
-        ? response.data.results[0].formatted_address
-        : 'Unkown address';
-
-      dispatch({
-        type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
-        filterAddress
-      });
-    });
-}
-
-function getGeolocationByAddress(address) {
-  return unAuthenticatedAxiosClient
-    .get(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${APIKey}&result_type=locality`
-    )
-    .then(({ data }) => data.results.shift().geometry.location);
-}
 
 export const STREAMS_ACTIONS = {
   fetchStreams: (_filter, _lat, _lng, _distance) => {
@@ -65,51 +47,17 @@ export const STREAMS_ACTIONS = {
         value: true
       });
 
-      let filterUrlQuery = '';
-
-      //Filter on type
-      const filter = _filter ? _filter : state.streams.filter;
-      if (filter.types && filter.types.length === 0)
-        filterUrlQuery = `item.type=none`;
-      else if (filter.types && filter.types.length === 1)
-        filterUrlQuery = `item.type=${filter.types[0]}`;
-      else
-        filterUrlQuery = map(filter.types, type => {
-          return `item.type[]=${type}`;
-        }).join('&');
-
-      if (_filter) {
-        dispatch({
-          type: STREAMS_TYPES.UPDATED_FILTER,
-          filter //ES6 syntax sugar
-        });
-      }
-
-      //Only get streams near certain point
-      if (_lat && _lng && _distance) {
-        filterUrlQuery += `&near=${_lng},${_lat},${_distance}`;
-        dispatch({
-          type: STREAMS_TYPES.UPDATED_MAP,
-          map: {
-            ...state.map,
-            distance: _distance,
-            lat: _lat,
-            lng: _lng
-          }
-        });
-      } else {
-        // Get from Redux state
-        const distance = state.streams.map.distance;
-        const lat = state.streams.map.lat;
-        const lng = state.streams.map.lng;
-
-        filterUrlQuery += `&near=${lng},${lat},${distance}`;
-      }
-
       const limit = 5000;
+      const filterUrlQuery = buildFilterQuery(
+        dispatch,
+        state,
+        _filter,
+        _lat,
+        _lng,
+        _distance
+      );
 
-      const anonymousAxiosClient = axios(null, true);
-      //const response = JSON.parse(EXAMPLE_STREAMS_API_RESPONSE);
+      const anonymousAxiosClient = axios(false, true);
       const fetchStreamCounter = state.streams.fetchStreamCounter + 1;
 
       //Counter to keep track of calls so when response arrives we can take the latest
@@ -178,134 +126,80 @@ export const STREAMS_ACTIONS = {
       });
     };
   },
-  fetchStream: (dispatch, streamKey) => {
-    return (dispatch, getState) => {
-      dispatch({
-        type: STREAMS_TYPES.FETCHING_NEARBY_STREAMS,
-        value: true
-      });
-      dispatch({
-        type: STREAMS_TYPES.FETCHING_CHALLENGES,
-        value: true
-      });
-
-      const anonymousAxiosClient = axios(null, true);
-      anonymousAxiosClient
-        .get(`/sensor/${streamKey}?abi=false`)
-        .then(response => {
-          let parsedResponse = null;
-          if (response.status === 200) {
-            parsedResponse = {
-              key: response.data.contractAddress,
-              name: response.data.name,
-              type: response.data.type,
-              price: response.data.price,
-              updateinterval: response.data.updateinterval,
-              stake: response.data.stake,
-              example: response.data.example,
-              geometry: {
-                type: 'Point',
-                coordinates: [
-                  response.data.geo.coordinates[1],
-                  response.data.geo.coordinates[0]
-                ]
-              },
-              owner: response.data.owner,
-              numberofchallenges: response.data.numberOfChallenges,
-              challengesstake: response.data.challengesStake
-            };
-          } else {
-            parsedResponse = {};
-          }
-
-          dispatch({
-            type: STREAMS_TYPES.FETCH_STREAM,
-            stream: parsedResponse
-          });
-
-          // Get nearby streams
-          const urlParametersNearbyStreams = `limit=20&item.type=${
-            parsedResponse.type
-          }&near=${parsedResponse.geometry.coordinates[1]},${
-            parsedResponse.geometry.coordinates[0]
-          },500&sort=item.stake`;
-          const anonymousAxiosClient = axios(null, true);
-          anonymousAxiosClient
-            .get(`/sensorregistry/list?${urlParametersNearbyStreams}`)
-            .then(response => {
-              let parsedResponse = [];
-              each(response.data.items, item => {
-                //The stream itself is not a similar nearby stream
-                if (item.key === streamKey) return;
-
-                parsedResponse.push({
-                  key: item.contractAddress,
-                  name: item.name,
-                  type: item.type,
-                  price: item.price,
-                  updateinterval: item.updateinterval,
-                  stake: item.stake,
-                  example: item.example,
-                  geometry: {
-                    type: 'Point',
-                    coordinates: [
-                      item.geo.coordinates[1],
-                      item.geo.coordinates[0]
-                    ]
-                  },
-                  owner: item.owner,
-                  challenges: item.numberOfChallenges,
-                  challengesstake: item.challengesStake
-                });
-              });
-
-              dispatch({
-                type: STREAMS_TYPES.FETCH_NEARBY_STREAMS,
-                streams: parsedResponse
-              });
-            });
-
-          //Get challenges
-          anonymousAxiosClient
-            .get(`/challengeregistry/list?item.listing=~${streamKey}`)
-            .then(response => {
-              dispatch({
-                type: STREAMS_TYPES.FETCH_CHALLENGES,
-                challenges: response.data.items
-              });
-            });
-
-          //Get formatted address
-          if (parsedResponse.geometry) {
-            const latlng = `${parsedResponse.geometry.coordinates[0]},${
-              parsedResponse.geometry.coordinates[1]
-            }`;
-            const unAuthenticatedAxiosClient = axios(null, true, true);
-            unAuthenticatedAxiosClient
-              .get(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng}&key=${APIKey}&result_type=street_address`
-              )
-              .then(response => {
-                const formattedAddress = response.data.results[0]
-                  ? response.data.results[0].formatted_address
-                  : 'Unkown address';
-
-                dispatch({
-                  type: STREAMS_TYPES.FETCH_FORMATTED_ADDRESS,
-                  formattedAddress: formattedAddress
-                });
-              });
-          }
-        })
-        .catch(error => {
-          if (error && error.response && error.response.status === 401) {
-            dispatch({
-              type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
-            });
-          }
-          console.log(error);
+  fetchStream: (dispatch, stream) => {
+    return async (dispatch, getState) => {
+      try {
+        dispatch({
+          type: STREAMS_TYPES.FETCHING_STREAM,
+          value: true
         });
+
+        const anonymousAxiosClient = axios(null, true);
+
+        // Get the stream
+        let response = await fetchSensor(anonymousAxiosClient, stream);
+        let parsedStream = response.data.sensorid
+          ? parseStream(response.data)
+          : {};
+
+        // Get the challenges
+        const urlParametersChallenges = `item.listing=~${stream}`;
+        response = await fetchChallenges(
+          anonymousAxiosClient,
+          urlParametersChallenges
+        );
+        const challenges = response.data.items;
+        parsedStream.challengeslist = challenges;
+
+        dispatch({
+          type: STREAMS_TYPES.FETCHING_STREAM,
+          value: false,
+          stream: parsedStream
+        });
+
+        // Get nearby streams
+        dispatch({
+          type: STREAMS_TYPES.FETCHING_NEARBY_STREAMS,
+          value: true
+        });
+
+        const urlParametersNearbyStreams = buildNearbyQuery(parsedStream);
+        response = await anonymousAxiosClient.get(
+          `/sensorregistry/list?${urlParametersNearbyStreams}`
+        );
+        let parsedResponse = [];
+        each(response.data.items, item => {
+          if (item.key === stream) return; // Skip the stream itself
+          parsedResponse.push(parseStream(item));
+        });
+        dispatch({
+          type: STREAMS_TYPES.FETCH_NEARBY_STREAMS,
+          streams: parsedResponse
+        });
+
+        //Get formatted address
+        if (parsedResponse.geometry) {
+          const lat = parsedResponse.geometry.coordinates[0];
+          const lng = parsedResponse.geometry.coordinates[1];
+          const streetAddress = await fetchStreetAddress(lat, lng);
+          dispatch({
+            type: STREAMS_TYPES.FETCH_FORMATTED_ADDRESS,
+            formattedAddress: streetAddress
+          });
+        }
+      } catch (error) {
+        if (error && error.response && error.response.status === 401) {
+          dispatch({
+            type: ERROR_TYPES.AUTHENTICATION_ERROR,
+            error
+          });
+        }
+        dispatch({
+          type: STREAMS_TYPES.FETCHING_STREAM_ERROR,
+          error
+        });
+        console.log(error);
+      }
     };
   },
   fetchLandingStreams: () => {
@@ -387,11 +281,10 @@ export const STREAMS_ACTIONS = {
     };
   },
   updateFilter: filter => {
-    //Used by landing page
     return (dispatch, getState) => {
       dispatch({
         type: STREAMS_TYPES.UPDATED_FILTER,
-        filter //ES6 syntax sugar
+        filter
       });
 
       STREAMS_ACTIONS.fetchStreams(dispatch, filter);
@@ -416,18 +309,26 @@ export const STREAMS_ACTIONS = {
           map: newMap
         });
 
-        fetchFilterAddress(dispatch, lat, lng);
+        const filterAddress = await fetchLocation(lat, lng);
+        dispatch({
+          type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
+          filterAddress
+        });
       }
     };
   },
   updateMap: map => {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
       dispatch({
         type: STREAMS_TYPES.UPDATED_MAP,
         map
       });
 
-      fetchFilterAddress(dispatch, map.lat, map.lng);
+      const filterAddress = await fetchLocation(map.lat, map.lng);
+      dispatch({
+        type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
+        filterAddress
+      });
     };
   },
   setFilterAddress: filterAddress => {
@@ -439,3 +340,54 @@ export const STREAMS_ACTIONS = {
     };
   }
 };
+
+function buildNearbyQuery(stream) {
+  return `limit=20&item.type=${stream.type}&near=${
+    stream.geometry.coordinates[1]
+  },${stream.geometry.coordinates[0]},500&sort=item.stake`;
+}
+
+function buildFilterQuery(dispatch, state, _filter, _lat, _lng, _distance) {
+  let filterUrlQuery = '';
+
+  //Filter on type
+  const filter = _filter ? _filter : state.streams.filter;
+  if (filter.types && filter.types.length === 0)
+    filterUrlQuery = `item.type=none`;
+  else if (filter.types && filter.types.length === 1)
+    filterUrlQuery = `item.type=${filter.types[0]}`;
+  else
+    filterUrlQuery = map(filter.types, type => {
+      return `item.type[]=${type}`;
+    }).join('&');
+
+  if (_filter) {
+    dispatch({
+      type: STREAMS_TYPES.UPDATED_FILTER,
+      filter //ES6 syntax sugar
+    });
+  }
+
+  //Only get streams near certain point
+  if (_lat && _lng && _distance) {
+    filterUrlQuery += `&near=${_lng},${_lat},${_distance}`;
+    dispatch({
+      type: STREAMS_TYPES.UPDATED_MAP,
+      map: {
+        ...state.map,
+        distance: _distance,
+        lat: _lat,
+        lng: _lng
+      }
+    });
+  } else {
+    // Get from Redux state
+    const distance = state.streams.map.distance;
+    const lat = state.streams.map.lat;
+    const lng = state.streams.map.lng;
+
+    filterUrlQuery += `&near=${lng},${lat},${distance}`;
+  }
+
+  return filterUrlQuery;
+}

@@ -62,6 +62,29 @@ export function parseDatasets(sensors) {
 }
 
 /**
+ * Parses one stream
+ * @param {} sensor
+ */
+export function parseStream(sensor) {
+  return {
+    key: sensor.contractAddress,
+    name: sensor.name,
+    type: sensor.type,
+    price: sensor.price,
+    updateinterval: sensor.updateinterval,
+    stake: sensor.stake,
+    example: sensor.example,
+    geometry: {
+      type: 'Point',
+      coordinates: [sensor.geo.coordinates[1], sensor.geo.coordinates[0]]
+    },
+    owner: sensor.owner,
+    numberofchallenges: sensor.numberOfChallenges,
+    challengesstake: sensor.challengesStake
+  };
+}
+
+/**
  * Parses one sensor
  * @param {} sensor
  */

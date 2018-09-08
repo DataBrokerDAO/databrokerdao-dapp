@@ -22,12 +22,6 @@ import {
 } from '../../components/details/ChallengeSensorDialog';
 
 export const SENSORS_TYPES = {
-  FETCHING_SENSOR: 'FETCHING_SENSOR',
-  FETCHING_SENSOR_ERROR: 'FETCHING_SENSOR_ERROR',
-
-  FETCHING_PURCHASE: 'FETCHING_PURCHASE',
-  FETCHING_PURCHASE_ERROR: 'FETCHING_PURCHASE_ERROR',
-
   FETCHING_DATASETS: 'FETCHING_DATASETS',
   FETCHING_DATASETS_ERROR: 'FETCHING_DATASETS_ERROR',
   UPDATE_DATASETS_PAGE: 'UPDATE_DATASETS_PAGE',
@@ -51,30 +45,6 @@ export const SENSORS_ACTIONS = {
       dispatch({
         type: SENSORS_TYPES.CLEAR_ERRORS
       });
-    };
-  },
-  fetchSensor: key => {
-    return (dispatch, getState) => {
-      dispatch({
-        type: SENSORS_TYPES.FETCHING_SENSOR,
-        value: true
-      });
-
-      axios(true)
-        .get(`/sensor/${key}`)
-        .then(async response => {
-          dispatch({
-            type: SENSORS_TYPES.FETCHING_SENSOR,
-            value: false,
-            sensor: response.data
-          });
-        })
-        .catch(error => {
-          dispatch({
-            type: SENSORS_TYPES.FETCHING_SENSOR_ERROR,
-            error
-          });
-        });
     };
   },
   fetchDatasets: (skip = 0, limit = 10, owner = null, email = null) => {
@@ -214,7 +184,7 @@ export const SENSORS_ACTIONS = {
           type: SENSORS_TYPES.TRANSACTION_INDEX,
           index: TX_VERIFY_CHALLENGE
         });
-        await sensorChallengeRegistered(count + 1, sensor);
+        await sensorChallengeRegistered(count + 1, sensor.key);
 
         dispatch({
           type: SENSORS_TYPES.CHALLENGING_SENSOR,

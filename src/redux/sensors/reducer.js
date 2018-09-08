@@ -13,9 +13,8 @@ export const DEFAULT_STATE = {
   streams: [],
   streamsRows: 10,
 
-  fetchingSensor: false,
-  fetchingSensorError: null,
-  sensor: null
+  challenging: false,
+  challengingSensorError: null
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
@@ -24,7 +23,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
       return Immutable.merge(state, {
         fetchingDatasetsError: null,
         fetchingStreamsError: null,
-        fetchingSensorError: null,
+        challengingSensorError: null,
         transactionError: null,
         transactionIndex: 1
       });
@@ -87,29 +86,14 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
         streamsRowsPerPage: action.rowsPerpage
       });
     }
-    case SENSORS_TYPES.FETCHING_SENSOR: {
-      return Immutable.merge(state, {
-        fetchingSensor: action.value,
-        fetchingSensorError: action.value ? state.fetchingSensorError : null,
-        sensor: action.sensor || null
-      });
-    }
-    case SENSORS_TYPES.FETCHING_SENSOR_ERROR: {
-      return Immutable.merge(state, {
-        fetchingSensor: false,
-        fetchingSensorError: action.error,
-        sensor: null
-      });
-    }
     case SENSORS_TYPES.CHALLENGING_SENSOR: {
       return Immutable.set(state, 'challenging', action.value);
     }
     case SENSORS_TYPES.CHALLENING_SENSOR_ERROR: {
-      return Immutable.set(state, 'challengingStreamError', action.value);
+      return Immutable.set(state, 'challengingSensorError', action.value);
     }
     case AUTH_TYPES.TOKEN_RECEIVED: {
       return Immutable.merge(state, {
-        fetchingSensorError: null,
         fetchingStreamsError: null,
         fetchingDatasetsError: null
       });

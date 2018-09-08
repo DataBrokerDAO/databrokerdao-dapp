@@ -153,16 +153,16 @@ export const DATASET_ACTIONS = {
           value: true
         });
 
-        const authenticatedAxiosClient = axios(null, true);
+        const anonymousAxiosClient = axios(null, true);
 
-        let response = await fetchSensor(authenticatedAxiosClient, dataset);
+        let response = await fetchSensor(anonymousAxiosClient, dataset);
         let parsedDataset = response.data.sensorid
           ? parseDataset(response.data)
           : {};
 
         const urlParametersChallenges = `item.listing=~${dataset}`;
         response = await fetchChallenges(
-          authenticatedAxiosClient,
+          anonymousAxiosClient,
           urlParametersChallenges
         );
         const challenges = response.data.items;
