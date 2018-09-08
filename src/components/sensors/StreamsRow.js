@@ -2,7 +2,7 @@ import React from 'react';
 import { TableRow, TableColumn } from 'react-md';
 import styled from 'styled-components';
 
-import FontAwesomeIcon from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
 
 const StyledTableRow = styled(TableRow)`
