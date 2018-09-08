@@ -13,6 +13,15 @@ export const DEFAULT_STATE = {
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
+    case LISTING_TYPES.CLEAR_ERRORS: {
+      return Immutable.merge(state, {
+        enlistingStreamError: null,
+        enlistingDatasetError: null,
+        transactionError: null,
+        transactionIndex: 1
+      });
+    }
+
     // TRANSACTION
     case LISTING_TYPES.TRANSACTION_INDEX: {
       return Immutable.set(state, 'transactionIndex', action.index);

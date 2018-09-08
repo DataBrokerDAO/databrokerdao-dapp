@@ -148,7 +148,12 @@ class ChallengeSensorDialog extends Component {
         );
         break;
       case STEP_CHALLENGING:
-        this.props.fetchSensorEventHandler();
+        if (this.props.transactionError) {
+          this.setState({ stepIndex: STEP_INTRO });
+          this.props.clearErrors();
+        } else {
+          this.props.fetchSensorEventHandler();
+        }
         this.props.hideEventHandler();
         break;
       case STEP_BALANCE_ERROR:
@@ -277,26 +282,6 @@ class ChallengeSensorDialog extends Component {
             confirmed.
           </p>
         </div>
-        {
-          // TODO find a place to put this
-          //   <div style={this.showOrHide(STEP_SUCCESS)}>
-          //   <h1>Challenge successful</h1>
-          //   <p>
-          //     Upon reaching a certain threshold of challenges, a check of the data
-          //     provider will be performed by a DataBroker DAO administrator{' '}
-          //     <span
-          //       className="clickable"
-          //       onClick={this.props.toggleStakingExplainer}
-          //     >
-          //       <FontAwesomeIcon
-          //         icon={faQuestionCircle}
-          //         color="rgba(0,0,0,0.6)"
-          //       />
-          //     </span>
-          //     .
-          //   </p>
-          // </div>
-        }
       </TransactionDialog>
     );
   }
@@ -318,6 +303,7 @@ const mapStateToProps = state => ({
 
 function mapDispatchToProps(dispatch) {
   return {
+    clearErrors: () => dispatch(SENSORS_ACTIONS.clearErrors()),
     challengeSensor: (stream, reason, amount) =>
       dispatch(SENSORS_ACTIONS.challengeSensor(stream, reason, amount)),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())

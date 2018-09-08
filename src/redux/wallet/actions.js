@@ -1,9 +1,10 @@
 import axios from '../../utils/axios';
-import { dtxMint } from '../../api/util';
+import { dtxMint, transactionReceipt } from '../../api/util';
 import { ERROR_TYPES } from '../errors/actions';
 import {
   TX_MINTING,
-  TX_VERIFY_MINT
+  TX_VERIFY_MINT,
+  TX_ENSURE_MINTING
 } from '../../components/wallet/MintConfirmationDialog';
 
 export const WALLET_TYPES = {
@@ -53,7 +54,13 @@ export const WALLET_ACTIONS = {
           type: WALLET_TYPES.TRANSACTION_INDEX,
           index: TX_MINTING
         });
-        await dtxMint(amount);
+        const receiptUrl = await dtxMint(amount);
+
+        dispatch({
+          type: WALLET_TYPES.TRANSACTION_INDEX,
+          index: TX_ENSURE_MINTING
+        });
+        await transactionReceipt(receiptUrl);
 
         dispatch({
           type: WALLET_TYPES.TRANSACTION_INDEX,

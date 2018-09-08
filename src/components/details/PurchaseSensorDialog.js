@@ -133,13 +133,12 @@ class PurchaseSensorDialog extends Component {
         break;
       case STEP_PURCHASING:
         if (this.props.transactionError) {
-          this.setState({ transactionError: null });
-          this.props.hideEventHandler();
+          this.setState({ stepIndex: STEP_INTRO });
+          this.props.clearErrors();
         } else {
-          this.setState({ transactionError: null });
           this.props.fetchPurchase(this.props.sensor.key);
-          this.props.hideEventHandler();
         }
+        this.props.hideEventHandler();
         break;
       case STEP_BALANCE_ERROR:
         this.props.history.push(`/wallet`);
@@ -270,8 +269,8 @@ class PurchaseSensorDialog extends Component {
 
 const mapStateToProps = state => ({
   token: state.auth.token,
-  purchasing: state.purchases.purchasing,
   balance: state.wallet.wallet.balance,
+  purchasing: state.purchases.purchasing,
   transactionIndex: state.purchases.transactionIndex,
   transactionError: state.purchases.transactionError
 });
@@ -286,7 +285,8 @@ function mapDispatchToProps(dispatch) {
       dispatch(PURCHASES_ACTIONS.purchaseAccess(stream, endTime)),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
     fetchPurchase: sensor =>
-      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor, purchaser))
+      dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor, purchaser)),
+    clearErrors: () => dispatch(PURCHASES_ACTIONS.clearErrors())
   };
 }
 

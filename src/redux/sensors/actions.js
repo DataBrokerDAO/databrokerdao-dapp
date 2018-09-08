@@ -40,10 +40,19 @@ export const SENSORS_TYPES = {
   CHALLENGING_SENSOR_ERROR: 'CHALLENGING_SENSOR_ERROR',
 
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
-  TRANSACTION_ERROR: 'TRANSACTION_ERROR'
+  TRANSACTION_ERROR: 'TRANSACTION_ERROR',
+
+  CLEAR_ERRORS: 'CLEAR_ERRORS'
 };
 
 export const SENSORS_ACTIONS = {
+  clearErrors: () => {
+    return dispatch => {
+      dispatch({
+        type: SENSORS_TYPES.CLEAR_ERRORS
+      });
+    };
+  },
   fetchSensor: key => {
     return (dispatch, getState) => {
       dispatch({

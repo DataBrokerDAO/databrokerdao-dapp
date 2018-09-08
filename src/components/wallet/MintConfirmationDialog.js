@@ -11,7 +11,8 @@ const STEP_INTRO = 1,
   STEP_MINTING = 3;
 
 export const TX_MINTING = 1,
-  TX_VERIFY_MINT = 2;
+  TX_ENSURE_MINTING = 2,
+  TX_VERIFY_MINT = 3;
 
 class MintConfirmationDialog extends Component {
   constructor(props) {
@@ -32,7 +33,12 @@ class MintConfirmationDialog extends Component {
       {
         id: TX_MINTING,
         title: 'Mint',
-        description: `Minting your tokens on the blockchain`
+        description: `Mint your tokens`
+      },
+      {
+        id: TX_ENSURE_MINTING,
+        title: 'Mining',
+        description: 'Await for the transaction to be taken up in a block'
       },
       {
         id: TX_VERIFY_MINT,

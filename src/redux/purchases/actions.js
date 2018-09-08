@@ -26,10 +26,18 @@ export const PURCHASES_TYPES = {
   PURCHASING_ACCESS_ERROR: 'PURCHASING_ACCESS_ERROR',
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
   TRANSACTION_ERROR: 'TRANSACTION_ERROR',
-  TOGGLE_DELIVERY_EXPLAINER: 'TOGGLE_DELIVERY_EXPLAINER'
+  TOGGLE_DELIVERY_EXPLAINER: 'TOGGLE_DELIVERY_EXPLAINER',
+  CLEAR_ERRORS: 'CLEAR_ERRORS'
 };
 
 export const PURCHASES_ACTIONS = {
+  clearErrors: () => {
+    return dispatch => {
+      dispatch({
+        type: PURCHASES_TYPES.CLEAR_ERRORS
+      });
+    };
+  },
   fetchPurchase: (key, sensor, purchaser) => {
     return (dispatch, getState) => {
       dispatch({
@@ -45,7 +53,9 @@ export const PURCHASES_ACTIONS = {
         .get(url)
         .then(async response => {
           const purchase =
-            response.data.total === 1 ? response.data.items[0] : null;
+            response.data.total >= 1
+              ? response.data.items[response.data.total - 1]
+              : null;
           dispatch({
             type: PURCHASES_TYPES.FETCHING_PURCHASE,
             value: false,
@@ -139,6 +149,12 @@ export const PURCHASES_ACTIONS = {
           dispatch({
             type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
             error: 'Purchase was not synced'
+          });
+        } else {
+          dispatch({
+            type: PURCHASES_TYPES.FETCHING_PURCHASE,
+            value: false,
+            purchase
           });
         }
 

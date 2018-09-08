@@ -127,6 +127,8 @@ class EnlistConfirmationDialog extends Component {
         break;
       case STEP_ENLISTING:
         if (this.props.transactionError) {
+          this.setState({ stepIndex: STEP_INTRO });
+          this.props.clearErrors();
           this.props.hideEventHandler();
         } else {
           this.props.hideEventHandler();
@@ -237,6 +239,7 @@ function ucFirst(str) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
+    clearErrors: () => dispatch(LISTING_ACTIONS.clearErrors()),
     register: (values, settings) =>
       dispatch(AUTH_ACTIONS.register(values, settings)),
     enlistSensor: sensor => {

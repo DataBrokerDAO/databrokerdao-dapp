@@ -67,8 +67,7 @@ export async function dtxMint(amount) {
     _amount: amount
   });
 
-  const receipt = await transactionReceipt(`${url}/${response.data.uuid}`);
-  return receipt;
+  return `${url}/${response.data.uuid}`;
 }
 
 export async function sensorEnlistingCount(owner, type) {
@@ -133,29 +132,23 @@ export async function sensorChallengeRegistered(count, sensor) {
 
 export async function sensorPurchaseRegistered(sensor, email) {
   const authenticatedAxiosClient = axios(true);
-  return await retry(
+  const purchase = await retry(
     async bail => {
-      const url = `/purchaseregistry/list?item.email=${email}`;
+      const url = `/purchaseregistry/list?item.sensor=~${sensor}&item.email=${email}`;
       const response = await authenticatedAxiosClient.get(url);
-
-      if (response.data && response.data.items) {
-        const purchases = response.data.items;
-        for (let i = 0; i < purchases.length; i++) {
-          if (purchases[i].sensor === sensor) {
-            return purchases[i];
-          }
-        }
-      } else {
-        bail(new Error('Unexpected response format'));
+      if (response.data && response.data.total >= 1) {
+        return response.data.items[response.data.total - 1];
       }
+      throw Error('Purchase not registered yet');
     },
     {
-      factor: 1,
-      minTimeout: 1000,
+      factor: 1.1,
+      minTimeout: 500,
       maxTimeout: 1000,
       retries: 120
     }
   );
+  return purchase;
 }
 
 export function getSensorRegistryMeta() {

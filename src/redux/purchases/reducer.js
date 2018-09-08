@@ -22,6 +22,14 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
       );
     }
 
+    case PURCHASES_TYPES.CLEAR_ERRORS: {
+      return Immutable.merge(state, {
+        fetchingPurchaseError: null,
+        transactionIndex: 1,
+        transactionError: null
+      });
+    }
+
     // TRANSACTION
     case PURCHASES_TYPES.TRANSACTION_INDEX: {
       return Immutable.set(state, 'transactionIndex', action.index);

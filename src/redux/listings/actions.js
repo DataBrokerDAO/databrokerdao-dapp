@@ -25,10 +25,18 @@ export const LISTING_TYPES = {
   ENLISTING_DATASET: 'ENLISTING_DATASET',
   ENLISTING_DATASET_ERROR: 'ENLISTING_DATASET_ERROR',
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
-  TRANSACTION_ERROR: 'TRANSACTION_ERROR'
+  TRANSACTION_ERROR: 'TRANSACTION_ERROR',
+  CLEAR_ERRORS: 'CLEAR_ERRORS'
 };
 
 export const LISTING_ACTIONS = {
+  clearErrors: () => {
+    return dispatch => {
+      dispatch({
+        type: LISTING_TYPES.CLEAR_ERRORS
+      });
+    };
+  },
   enlistStream: stream => {
     return async (dispatch, getState) => {
       try {
