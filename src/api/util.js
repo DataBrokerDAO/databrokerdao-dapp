@@ -72,7 +72,7 @@ export async function dtxMint(amount) {
 
 export async function sensorEnlistingRegistered(owner, type, sensorid) {
   const authenticatedAxiosClient = axios(true);
-  await retry(
+  const registered = await retry(
     async bail => {
       const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}&item.sensorid=${sensorid}`;
       const response = await authenticatedAxiosClient.get(url);
@@ -89,11 +89,12 @@ export async function sensorEnlistingRegistered(owner, type, sensorid) {
       retries: 60
     }
   );
+  return registered;
 }
 
 export async function sensorChallengeRegistered(sensor, challenger) {
   const authenticatedAxiosClient = axios(true);
-  await retry(
+  const registered = await retry(
     async bail => {
       const url = `/challengeregistry/list?item.listing=~${sensor}&item.challenger=~${challenger}`;
       const response = await authenticatedAxiosClient.get(url);
@@ -110,6 +111,7 @@ export async function sensorChallengeRegistered(sensor, challenger) {
       retries: 60
     }
   );
+  return registered;
 }
 
 export async function sensorPurchaseRegistered(sensor, purchaser) {
