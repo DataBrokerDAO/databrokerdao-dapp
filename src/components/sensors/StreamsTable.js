@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { SENSORS_ACTIONS } from '../../redux/sensors/actions';
 import { PURCHASES_ACTIONS } from '../../redux/purchases/actions';
+import '../../styles/tables.css';
 
 const StyledParagraph = styled.p`
   padding: 24px 24px 24px 0px;
@@ -82,9 +83,9 @@ class StreamsTable extends React.PureComponent {
           style={{ marginLeft: 0 }}
           onPagination={this.handlePagination}
           rowsPerPage={this.props.rowsPerPage}
+          rowsPerPageLabel="Rows per page: 10"
           rows={this.props.rows}
           page={this.props.page}
-          simplified={'true'}
         />
       </DataTable>
     );

@@ -13,10 +13,20 @@ export const WALLET_TYPES = {
   MINTING_TOKENS: 'MINTING_TOKENS',
 
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
-  TRANSACTION_ERROR: 'TRANSACTION_ERROR'
+  TRANSACTION_ERROR: 'TRANSACTION_ERROR',
+
+  CLEAR_ERRORS: 'CLEAR_ERRORS'
 };
 
 export const WALLET_ACTIONS = {
+  clearErrors: () => {
+    return dispatch => {
+      dispatch({
+        type: WALLET_TYPES.CLEAR_ERRORS
+      });
+    };
+  },
+
   fetchWallet: () => {
     return async (dispatch, getState) => {
       dispatch({

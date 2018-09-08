@@ -7,11 +7,13 @@ export const DEFAULT_STATE = {
   fetchingDatasetsError: null,
   datasets: [],
   datasetsRows: 10,
+  datasetsRowsPerPage: 10,
 
   fetchingStreams: false,
   fetchingStreamsError: null,
   streams: [],
   streamsRows: 10,
+  streamsRowsPerPage: 10,
 
   challenging: false,
   challengingSensorError: null
@@ -61,7 +63,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case SENSORS_TYPES.UPDATE_DATASETS_PAGE: {
       return Immutable.merge(state, {
         datasetsPage: action.page,
-        datasetsRowsPerPage: action.rowsPerpage
+        datasetsRowsPerPage: action.rowsPerPage
       });
     }
     case SENSORS_TYPES.FETCHING_STREAMS: {
@@ -83,7 +85,7 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     case SENSORS_TYPES.UPDATE_STREAMS_PAGE: {
       return Immutable.merge(state, {
         streamsPage: action.page,
-        streamsRowsPerPage: action.rowsPerpage
+        streamsRowsPerPage: action.rowsPerPage
       });
     }
     case SENSORS_TYPES.CHALLENGING_SENSOR: {

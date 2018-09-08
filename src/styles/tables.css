@@ -1,0 +1,17 @@
+.react-swipeable-view-container {
+  /* will-change: unset !important;
+  transform: none !important; */
+  height: 100%;
+}
+
+div#streams-table-pagination-menu {
+  display: none;
+}
+
+div#datasets-table-pagination-menu {
+  display: none;
+}
+
+.md-table-pagination__label {
+  margin-right: 20px;
+}

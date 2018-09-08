@@ -78,11 +78,17 @@ class MintConfirmationDialog extends Component {
         break;
       case STEP_MINTING:
         this.props.hideEventHandler();
+        this.reset();
         break;
       default:
         this.props.hideEventHandler();
         break;
     }
+  }
+
+  reset() {
+    this.setState({ stepIndex: STEP_INTRO });
+    this.props.clearErrors();
   }
 
   render() {
@@ -156,6 +162,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
+    clearErrors: () => dispatch(WALLET_ACTIONS.clearErrors()),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
     mintTokens: amount => dispatch(WALLET_ACTIONS.mintTokens(amount))
   };

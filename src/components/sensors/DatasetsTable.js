@@ -9,6 +9,7 @@ import DatasetsRow from './DatasetsRow';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { SENSORS_ACTIONS } from '../../redux/sensors/actions';
+import '../../styles/tables.css';
 
 const StyledParagraph = styled.p`
   padding: 24px 24px 24px 0px;
@@ -76,7 +77,7 @@ class DatasetsTable extends React.Component {
           rowsPerPage={this.props.rowsPerPage}
           rows={this.props.rows}
           page={this.props.page}
-          simplified={'true'}
+          rowsPerPageLabel="Rows per page: 10"
         />
       </DataTable>
     );

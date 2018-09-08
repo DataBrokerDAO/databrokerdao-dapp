@@ -76,7 +76,7 @@ class WalletScreen extends Component {
                 flat
                 primary
                 swapTheming
-                disabled={this.props.mintingTokens}
+                disabled={this.props.minting}
                 onClick={this.toggleConfirmationDialog.bind(this)}
               >
                 Fund wallet
@@ -105,7 +105,7 @@ const mapStateToProps = state => ({
   token: state.auth.token,
   balance: state.wallet.wallet.balance,
   fetchingWallet: state.wallet.fetchingWallet,
-  mintingTokens: state.wallet.mintingTokens,
+  minting: state.wallet.minting,
   stepIndex: state.wallet.stepIndex
 });
 

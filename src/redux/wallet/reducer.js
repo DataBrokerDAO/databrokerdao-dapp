@@ -5,11 +5,18 @@ import { WALLET_TYPES } from './actions.js';
 export const DEFAULT_STATE = {
   wallet: {},
   fetchingWallet: false,
-  mintingTokens: false
+  minting: false
 };
 
 export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
+    case WALLET_TYPES.CLEAR_ERRORS: {
+      return Immutable.merge(state, {
+        transactionError: null,
+        transactionIndex: 1
+      });
+    }
+
     // TRANSACTION
     case WALLET_TYPES.TRANSACTION_INDEX: {
       return Immutable.set(state, 'transactionIndex', action.index);
