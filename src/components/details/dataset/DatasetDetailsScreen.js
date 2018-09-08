@@ -10,7 +10,7 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import moment from 'moment';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
 
 import Toolbar from '../../generic/Toolbar';

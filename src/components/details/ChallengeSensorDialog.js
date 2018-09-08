@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { TextField } from 'react-md';
 import { connect } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';

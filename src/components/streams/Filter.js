@@ -8,7 +8,7 @@ import pull from 'lodash/pull';
 import concat from 'lodash/concat';
 import map from 'lodash/map';
 import Immutable from 'seamless-immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faTimesCircle from '@fortawesome/fontawesome-free-regular/faTimesCircle';
 
 import Icon from '../generic/Icon';

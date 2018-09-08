@@ -13,7 +13,7 @@ import Immutable from 'seamless-immutable';
 import Icon from '../generic/Icon';
 import EnhancedSelectField from '../generic/EnhancedSelectField';
 import { DATASET_ACTIONS } from '../../redux/datasets/actions';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faTimesCircle from '@fortawesome/fontawesome-free-regular/faTimesCircle';
 
 class Filter extends Component {

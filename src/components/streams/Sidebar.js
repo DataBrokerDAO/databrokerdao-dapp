@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faFilter from '@fortawesome/fontawesome-free-solid/faFilter';
 
 import Filter from './Filter';
 import DiscoverStreamsList from './DiscoverStreamsList';
 
 export default class Sidebar extends Component {
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.state = {
@@ -15,61 +15,61 @@ export default class Sidebar extends Component {
     };
   }
 
-  toggleFilter(){
-    this.props.setWidthHandler(this.state.filterVisible?0:320);
-    this.setState({filterVisible:!this.state.filterVisible});
+  toggleFilter() {
+    this.props.setWidthHandler(this.state.filterVisible ? 0 : 320);
+    this.setState({ filterVisible: !this.state.filterVisible });
   }
 
-  render(){
+  render() {
     const StyledSidebar = styled.div`
-      display:flex;
-      align-items:stretch;
+      display: flex;
+      align-items: stretch;
     `;
 
     const DesktopContentContainer = styled.div`
-      display:flex;
-      align-items:stretch;
+      display: flex;
+      align-items: stretch;
 
       @media (max-width: ${props => props.theme.mobileBreakpoint}) {
-        display:none;
+        display: none;
       }
     `;
 
     const FilterContainer = styled.div`
       flex: initial;
       width: 320px;
-      background-color:white;
-      padding-top:65px;
+      background-color: white;
+      padding-top: 65px;
       overflow-y: auto;
-      box-shadow: 1px 0 8px rgba(0,0,0,0.15);
-      z-index:1;
+      box-shadow: 1px 0 8px rgba(0, 0, 0, 0.15);
+      z-index: 1;
     `;
 
     const MobileContentContainer = styled.div`
-      display:none;
+      display: none;
 
       @media (max-width: ${props => props.theme.mobileBreakpoint}) {
-        display:flex;
-        align-items:stretch;
+        display: flex;
+        align-items: stretch;
       }
     `;
 
     const FilterButtonContainer = styled.div`
-      width:50px;
-      height:50px;
+      width: 50px;
+      height: 50px;
       position: absolute;
       top: 82px;
       left: 10px;
-      background-color:white;
+      background-color: white;
       overflow-y: auto;
-      box-shadow: 1px 0 8px rgba(0,0,0,0.15);
-      z-index:1;
+      box-shadow: 1px 0 8px rgba(0, 0, 0, 0.15);
+      z-index: 1;
       display: flex;
       justify-content: center;
-      align-items:center;
+      align-items: center;
     `;
 
-    return(
+    return (
       <StyledSidebar>
         <DesktopContentContainer>
           <FilterContainer>
@@ -78,17 +78,23 @@ export default class Sidebar extends Component {
           </FilterContainer>
         </DesktopContentContainer>
         <MobileContentContainer>
-          {this.state.filterVisible &&
+          {this.state.filterVisible && (
             <FilterContainer>
-              <Filter toggleFilterHandler={() => this.toggleFilter()}/>
+              <Filter toggleFilterHandler={() => this.toggleFilter()} />
               <DiscoverStreamsList />
             </FilterContainer>
-          }
-          {!this.state.filterVisible &&
+          )}
+          {!this.state.filterVisible && (
             <FilterButtonContainer>
-              <span className="clickable" onClick={() => this.toggleFilter()} style={{color:"rgba(0,0,0,0.7)"}}><FontAwesomeIcon icon={faFilter} /></span>
+              <span
+                className="clickable"
+                onClick={() => this.toggleFilter()}
+                style={{ color: 'rgba(0,0,0,0.7)' }}
+              >
+                <FontAwesomeIcon icon={faFilter} />
+              </span>
             </FilterButtonContainer>
-          }
+          )}
         </MobileContentContainer>
       </StyledSidebar>
     );
