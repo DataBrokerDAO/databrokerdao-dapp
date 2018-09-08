@@ -181,13 +181,13 @@ class ChallengeSensorDialog extends Component {
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
         showContinue={!this.props.challenging}
-        showTransactions={[3].includes(this.state.stepIndex)}
+        showTransactions={this.state.stepIndex === STEP_CHALLENGING}
         transactions={this.state.transactions}
         transactionIndex={this.props.transactionIndex}
         transactionError={this.props.transactionError}
         loading={loading}
         done={
-          [3].includes(this.state.stepIndex) &&
+          this.state.stepIndex === STEP_CHALLENGING &&
           !this.props.challening &&
           !this.props.transactionError
         }

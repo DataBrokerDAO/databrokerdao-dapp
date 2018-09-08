@@ -165,14 +165,16 @@ class PurchaseSensorDialog extends Component {
         steps={this.state.steps}
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
-        showContinue={this.state.stepIndex !== 1 && !this.props.purchasing}
-        showTransactions={[3].includes(this.state.stepIndex)}
+        showContinue={
+          this.state.stepIndex !== STEP_REGISTRATION && !this.props.purchasing
+        }
+        showTransactions={this.state.stepIndex === STEP_PURCHASING}
         transactions={this.state.transactions}
         transactionIndex={this.props.transactionIndex}
         transactionError={this.props.transactionError}
         loading={this.props.purchasing}
         done={
-          [3].includes(this.state.stepIndex) &&
+          this.state.stepIndex === STEP_PURCHASING &&
           !this.props.purchasing &&
           !this.props.transactionError
         }

@@ -152,14 +152,16 @@ class EnlistConfirmationDialog extends Component {
         steps={this.state.steps}
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
-        showContinue={!this.props.enlisting}
-        showTransactions={this.state.stepIndex === 3}
+        showContinue={
+          this.state.stepIndex !== STEP_REGISTRATION && !this.props.enlisting
+        }
+        showTransactions={this.state.stepIndex === STEP_ENLISTING}
         transactions={this.state.transactions}
         transactionIndex={this.props.transactionIndex}
         transactionError={this.props.transactionError}
         loading={this.props.enlisting}
         done={
-          this.state.stepIndex === 3 &&
+          this.state.stepIndex === STEP_ENLISTING &&
           !this.props.enlisting &&
           !this.props.transactionError
         }

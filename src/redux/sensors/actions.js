@@ -142,8 +142,6 @@ export const SENSORS_ACTIONS = {
         const deployedTokenContractAddress = responses[0];
         const spenderAddress = responses[1];
 
-        const count = await sensorChallengesCount(sensor);
-
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
           index: TX_IPFS_HASH
@@ -184,7 +182,8 @@ export const SENSORS_ACTIONS = {
           type: SENSORS_TYPES.TRANSACTION_INDEX,
           index: TX_VERIFY_CHALLENGE
         });
-        await sensorChallengeRegistered(count + 1, sensor.key);
+        const challenger = localStorage.getItem('address');
+        await sensorChallengeRegistered(sensor.key, challenger);
 
         dispatch({
           type: SENSORS_TYPES.CHALLENGING_SENSOR,

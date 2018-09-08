@@ -3,7 +3,6 @@ import {
   approveDtx,
   sensorEnlisting,
   sensorEnlistingRegistered,
-  sensorEnlistingCount,
   transactionReceipt,
   getIpfsHashForMetadata
 } from '../../api/util';
@@ -83,11 +82,6 @@ export const LISTING_ACTIONS = {
         });
         await transactionReceipt(receiptUrl);
 
-        // This is not pretty but we don't have a sensor key, so good enough for now.
-        // It will wait until there's current count + 1 listings for the owner
-        const owner = localStorage.getItem('address');
-        const count = await sensorEnlistingCount(owner, '!DATASET');
-
         dispatch({
           type: LISTING_TYPES.TRANSACTION_INDEX,
           index: TX_ENLIST
@@ -108,7 +102,8 @@ export const LISTING_ACTIONS = {
           type: LISTING_TYPES.TRANSACTION_INDEX,
           index: TX_VERIFY_ENLIST
         });
-        await sensorEnlistingRegistered(count + 1, owner, '!DATASET');
+        const owner = localStorage.getItem('address');
+        await sensorEnlistingRegistered(owner, '!DATASET', stream.sensorid);
 
         dispatch({
           type: LISTING_TYPES.ENLISTING_STREAM,
@@ -176,11 +171,6 @@ export const LISTING_ACTIONS = {
         });
         await transactionReceipt(receiptUrl);
 
-        // This is not pretty but we don't have a sensor key, so good enough for now.
-        // It will wait until there's current count + 1 listings for the owner
-        const owner = localStorage.getItem('address');
-        const count = await sensorEnlistingCount(owner, 'DATASET');
-
         dispatch({
           type: LISTING_TYPES.TRANSACTION_INDEX,
           index: TX_ENLIST
@@ -201,7 +191,8 @@ export const LISTING_ACTIONS = {
           type: LISTING_TYPES.TRANSACTION_INDEX,
           index: TX_VERIFY_ENLIST
         });
-        await sensorEnlistingRegistered(count + 1, owner, 'DATASET');
+        const owner = localStorage.getItem('address');
+        await sensorEnlistingRegistered(owner, 'DATASET', dataset.sensorid);
 
         dispatch({
           type: LISTING_TYPES.ENLISTING_DATASET,

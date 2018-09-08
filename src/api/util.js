@@ -70,22 +70,13 @@ export async function dtxMint(amount) {
   return `${url}/${response.data.uuid}`;
 }
 
-export async function sensorEnlistingCount(owner, type) {
-  const authenticatedAxiosClient = axios(true);
-  const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}`;
-  const response = await authenticatedAxiosClient.get(url);
-  if (response.data && response.data.items) {
-    return response.data.total;
-  }
-}
-
-export async function sensorEnlistingRegistered(count, owner, type) {
+export async function sensorEnlistingRegistered(owner, type, sensorid) {
   const authenticatedAxiosClient = axios(true);
   await retry(
     async bail => {
-      const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}`;
+      const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}&item.sensorid=${sensorid}`;
       const response = await authenticatedAxiosClient.get(url);
-      if (response.data.total >= count) {
+      if (response.data.total >= 1) {
         return true;
       }
 
@@ -100,22 +91,13 @@ export async function sensorEnlistingRegistered(count, owner, type) {
   );
 }
 
-export async function sensorChallengesCount(sensor, type) {
-  const authenticatedAxiosClient = axios(true);
-  const url = `/challengeregistry/list?item.listing=~${sensor}`;
-  const response = await authenticatedAxiosClient.get(url);
-  if (response.data && response.data.items) {
-    return response.data.total;
-  }
-}
-
-export async function sensorChallengeRegistered(count, sensor) {
+export async function sensorChallengeRegistered(sensor, challenger) {
   const authenticatedAxiosClient = axios(true);
   await retry(
     async bail => {
-      const url = `/challengeregistry/list?item.listing=~${sensor}`;
+      const url = `/challengeregistry/list?item.listing=~${sensor}&item.challenger=~${challenger}`;
       const response = await authenticatedAxiosClient.get(url);
-      if (response.data.total >= count) {
+      if (response.data.total >= 1) {
         return true;
       }
 
