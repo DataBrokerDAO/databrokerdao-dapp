@@ -83,10 +83,10 @@ export async function sensorEnlistingRegistered(owner, type, sensorid) {
       throw new Error('Sensor not yet enlisted');
     },
     {
-      factor: 1,
+      factor: 1.2,
       minTimeout: 1000,
-      maxTimeout: 1000,
-      retries: 120
+      maxTimeout: 5000,
+      retries: 60
     }
   );
 }
@@ -104,19 +104,19 @@ export async function sensorChallengeRegistered(sensor, challenger) {
       throw new Error('Sensor not yet challenged');
     },
     {
-      factor: 1,
+      factor: 1.2,
       minTimeout: 1000,
-      maxTimeout: 1000,
-      retries: 120
+      maxTimeout: 5000,
+      retries: 60
     }
   );
 }
 
-export async function sensorPurchaseRegistered(sensor, email) {
+export async function sensorPurchaseRegistered(sensor, purchaser) {
   const authenticatedAxiosClient = axios(true);
   const purchase = await retry(
     async bail => {
-      const url = `/purchaseregistry/list?item.sensor=~${sensor}&item.email=${email}`;
+      const url = `/purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${purchaser}`;
       const response = await authenticatedAxiosClient.get(url);
       if (response.data && response.data.total >= 1) {
         return response.data.items[response.data.total - 1];
@@ -124,10 +124,10 @@ export async function sensorPurchaseRegistered(sensor, email) {
       throw Error('Purchase not registered yet');
     },
     {
-      factor: 1.1,
-      minTimeout: 500,
-      maxTimeout: 1000,
-      retries: 120
+      factor: 1.2,
+      minTimeout: 1000,
+      maxTimeout: 5000,
+      retries: 60
     }
   );
   return purchase;
@@ -174,10 +174,10 @@ export async function transactionReceipt(url) {
       throw new Error('Tx not mined yet');
     },
     {
-      factor: 1,
+      factor: 1.2,
       minTimeout: 1000,
-      maxTimeout: 1000,
-      retries: 120
+      maxTimeout: 5000,
+      retries: 60
     }
   );
 }

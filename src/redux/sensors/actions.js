@@ -183,7 +183,16 @@ export const SENSORS_ACTIONS = {
           index: TX_VERIFY_CHALLENGE
         });
         const challenger = localStorage.getItem('address');
-        await sensorChallengeRegistered(sensor.key, challenger);
+        const registered = await sensorChallengeRegistered(
+          sensor.key,
+          challenger
+        );
+        if (!registered) {
+          dispatch({
+            type: SENSORS_TYPES.TRANSACTION_ERROR,
+            value: true
+          });
+        }
 
         dispatch({
           type: SENSORS_TYPES.CHALLENGING_SENSOR,

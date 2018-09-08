@@ -136,10 +136,9 @@ export const PURCHASES_ACTIONS = {
           type: PURCHASES_TYPES.TRANSACTION_INDEX,
           index: TX_VERIFY_PURCHASE
         });
-        const purchase = await sensorPurchaseRegistered(
-          stream.key,
-          localStorage.getItem('email')
-        );
+
+        const purchaser = localStorage.getItem('address');
+        const purchase = await sensorPurchaseRegistered(stream.key, purchaser);
 
         if (!purchase) {
           dispatch({
