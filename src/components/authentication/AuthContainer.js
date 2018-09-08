@@ -8,9 +8,6 @@ import { Paper } from 'react-md';
 import Logo from '../../assets/logo-white.png';
 import '../../styles/auth.css';
 
-require('style-loader/lib/addStyles');
-require('css-loader/lib/css-base');
-
 const withSuccessRedirect = Component => (
   <Route render={props => <Component {...props} success="/app" />} />
 );
