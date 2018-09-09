@@ -254,7 +254,7 @@ export const DATASET_ACTIONS = {
 
 async function decorateMetaInfo(axios, datasets) {
   const user = localStorage.getItem('address');
-  if (!user || _.isEmpty(Object.keys.datasets)) {
+  if (!user || _.isEmpty(Object.keys(datasets))) {
     return;
   }
 
