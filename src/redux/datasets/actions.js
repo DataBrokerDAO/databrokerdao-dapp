@@ -9,6 +9,7 @@ import {
 import { fetchChallenges } from '../../api/challenges';
 import { fetchSensorMeta } from '../../api/sensors';
 import { ERROR_TYPES } from '../errors/actions';
+import _ from 'lodash';
 
 export const DATASET_TYPES = {
   FETCHING_DATASETS: 'FETCHING_DATASETS',
@@ -253,20 +254,23 @@ export const DATASET_ACTIONS = {
 
 async function decorateMetaInfo(axios, datasets) {
   const user = localStorage.getItem('address');
-  if (!user) {
+  if (!user || _.isEmpty(Object.keys.datasets)) {
     return;
   }
 
-  const metaPromises = [];
-  for (let sensor of Object.keys(datasets)) {
-    metaPromises.push(fetchSensorMeta(axios, sensor, user));
+  const result = await fetchSensorMeta(axios, Object.keys(datasets), user);
+  const purchases = {};
+  for (const purchase of result[0].data.items) {
+    purchases[purchase.sensor] = true;
   }
-  const result = await Promise.all(metaPromises);
 
-  let index = 0;
+  const listings = {};
+  for (const listing of result[1].data.items) {
+    listings[listing.contractAddress] = true;
+  }
+
   for (let sensor of Object.keys(datasets)) {
-    datasets[sensor].purchased = result[index][0].data.total === 1;
-    datasets[sensor].owned = result[index][1].data.total === 1;
-    index++;
+    datasets[sensor].purchased = purchases[sensor] === true;
+    datasets[sensor].owned = listings[sensor] === true;
   }
 }

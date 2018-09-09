@@ -1,11 +1,40 @@
 import each from 'lodash/each';
+import { stripHexPrefix } from '../utils/hex';
 
-export function fetchSensorMeta(axiosClient, sensor, user) {
+export async function fetchSensorsBulk(axiosClient, sensors) {
+  const contractAddressQueryString =
+    sensors.length === 1
+      ? `item.contractAddress=~${sensors[0]}`
+      : sensors
+          .map(sensor => `item.contractAddress[]=${stripHexPrefix(sensor)}`)
+          .join('&');
+
+  const response = await axiosClient.get(
+    `sensorregistry/list?${contractAddressQueryString}`
+  );
+  return response.data.items;
+}
+
+export function fetchSensorMeta(axiosClient, sensors, user) {
+  const sensorQueryString =
+    sensors.length === 1
+      ? `item.sensor=~${sensors[0]}`
+      : sensors
+          .map(sensor => `item.sensor[]=${stripHexPrefix(sensor)}`)
+          .join('&');
+
+  const contractAddressQueryString =
+    sensors.length === 1
+      ? `item.contractAddress=~${sensors[0]}`
+      : sensors
+          .map(sensor => `item.contractAddress[]=${stripHexPrefix(sensor)}`)
+          .join('&');
+
   return Promise.all([
     new Promise((resolve, reject) => {
       axiosClient
         .get(
-          `purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${user}`
+          `purchaseregistry/list?item.purchaser=~${user}&${sensorQueryString}`
         )
         .then(resolve)
         .catch(reject);
@@ -13,7 +42,7 @@ export function fetchSensorMeta(axiosClient, sensor, user) {
     new Promise((resolve, reject) => {
       axiosClient
         .get(
-          `sensorregistry/list?item.owner=~${user}&item.contractAddress=~${sensor}`
+          `sensorregistry/list?item.owner=~${user}&${contractAddressQueryString}`
         )
         .then(resolve)
         .catch(reject);

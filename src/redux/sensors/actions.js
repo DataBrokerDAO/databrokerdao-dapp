@@ -9,7 +9,6 @@ import {
   approveDtx,
   getSensorRegistryMeta,
   sensorChallenge,
-  sensorChallengesCount,
   sensorChallengeRegistered
 } from '../../api/util';
 import {
@@ -20,6 +19,7 @@ import {
   TX_ENSURE_CHALLENGE,
   TX_VERIFY_CHALLENGE
 } from '../../components/details/ChallengeSensorDialog';
+import { fetchSensorsBulk } from '../../api/sensors';
 
 export const SENSORS_TYPES = {
   FETCHING_DATASETS: 'FETCHING_DATASETS',
@@ -244,8 +244,11 @@ function buildUrl(registry, type, skip, limit, owner, email, endTime) {
 
 async function parseResponse(registry, response) {
   const parsedResponse = [];
-  const items = response.data.items;
+  if (response.data.total === 0) {
+    return parsedResponse;
+  }
 
+  const items = response.data.items;
   switch (registry) {
     case 'sensorregistry':
       each(items, item => {
@@ -260,31 +263,21 @@ async function parseResponse(registry, response) {
       });
       break;
     case 'purchaseregistry':
-      const purchaseDetailCalls = items.map(getPurchaseDetails);
-      const purchaseDetails = await Promise.all(purchaseDetailCalls);
+      const sensorDetails = await getSensorDetails(items);
 
-      const sensorDetailCalls = items.map(getSensorDetails);
-      const sensorDetails = await Promise.all(sensorDetailCalls);
-
-      // Warning: do not store the parsed response in a dict,
-      // it breaks paging
       for (let i = 0; i < items.length; i++) {
-        const key = sensorDetails[i].data.contractAddress;
-
-        // Only add purchases if they aren't expired yet
-        const endTimeMs = purchaseDetails[i].data.endTime * 1000;
-        if (!endTimeMs || endTimeMs > moment.now()) {
-          parsedResponse.push({
-            key,
-            name: sensorDetails[i].data.name,
-            type: sensorDetails[i].data.type,
-            filetype: sensorDetails[i].data.filetype,
-            category: sensorDetails[i].data.category,
-            updateinterval: sensorDetails[i].data.updateinterval,
-            sensortype: purchaseDetails[i].data.sensortype,
-            endTime: purchaseDetails[i].data.endTime
-          });
-        }
+        const purchase = items[i];
+        const sensor = sensorDetails[purchase.sensor];
+        parsedResponse.push({
+          key: sensor.contractAddress,
+          name: sensor.name,
+          type: sensor.type,
+          filetype: sensor.filetype,
+          category: sensor.category,
+          updateinterval: sensor.updateinterval,
+          sensortype: sensor.sensortype,
+          endTime: purchase.endTime
+        });
       }
       break;
     default:
@@ -294,10 +287,16 @@ async function parseResponse(registry, response) {
   return parsedResponse;
 }
 
-function getSensorDetails(purchase) {
-  return axios(true).get(`/sensor/${purchase.sensor}`);
-}
+async function getSensorDetails(purchases) {
+  const keys = purchases.map(purchase => {
+    return purchase.sensor;
+  });
+  const sensors = await fetchSensorsBulk(axios(true), keys);
 
-function getPurchaseDetails(purchase) {
-  return axios(true).get(`/purchase/${purchase.contractAddress}`);
+  const dict = {};
+  for (let i = 0; i < sensors.length; i++) {
+    dict[sensors[i].contractAddress] = sensors[i];
+  }
+
+  return dict;
 }
