@@ -81,6 +81,8 @@ export const AUTH_ACTIONS = {
           type: AUTH_TYPES.ROLES_RECEIVED,
           payload: { roles: roleResponse.data.roles }
         });
+
+        if (props.callBack) props.callBack();
       } catch (error) {
         setErrors({
           email:

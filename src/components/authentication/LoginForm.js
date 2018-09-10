@@ -17,52 +17,54 @@ const PureLoginForm = ({
     onSubmit={handleSubmit}
     style={{ minWidth: '300px', textAlign: 'left' }}
   >
-    <EnhancedTextField
-      type="email"
-      fieldname="email"
-      label="Email"
-      onChange={setFieldValue}
-      onBlur={setFieldTouched}
-      error={errors.email}
-      touched={touched.email}
-    />
-    <EnhancedTextField
-      type="password"
-      fieldname="password"
-      label="Password"
-      onChange={setFieldValue}
-      onBlur={setFieldTouched}
-      error={errors.password}
-      touched={touched.password}
-    />
-    <div style={{ overflow: 'hidden' }}>
-      {isSubmitting && (
-        <CircularProgress
-          centered={false}
-          style={{ marginTop: '30px' }}
-          id="registration-in-progress"
-        />
-      )}
-      {!isSubmitting && (
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          flat
-          primary
-          swapTheming
-          style={{ marginTop: '30px', float: 'right' }}
-        >
-          Login
-        </Button>
-      )}
-      {!isSubmitting && (
-        <span
-          style={{ marginTop: '30px', float: 'left' }}
-          className="login-prompt"
-        >
-          No account yet? <Link to="/account/register">Register here.</Link>
-        </span>
-      )}
+    <div class="loginForm">
+      <EnhancedTextField
+        type="email"
+        fieldname="email"
+        label="Email"
+        onChange={setFieldValue}
+        onBlur={setFieldTouched}
+        error={errors.email}
+        touched={touched.email}
+      />
+      <EnhancedTextField
+        type="password"
+        fieldname="password"
+        label="Password"
+        onChange={setFieldValue}
+        onBlur={setFieldTouched}
+        error={errors.password}
+        touched={touched.password}
+      />
+      <div style={{ overflow: 'hidden' }}>
+        {isSubmitting && (
+          <CircularProgress
+            centered={false}
+            style={{ marginTop: '30px' }}
+            id="registration-in-progress"
+          />
+        )}
+        {!isSubmitting && (
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            flat
+            primary
+            swapTheming
+            style={{ marginTop: '30px', float: 'right' }}
+          >
+            Login
+          </Button>
+        )}
+        {!isSubmitting && (
+          <span
+            style={{ marginTop: '30px', float: 'left' }}
+            className="login-prompt"
+          >
+            No account yet? <Link to="/account/register">Register here.</Link>
+          </span>
+        )}
+      </div>
     </div>
   </form>
 );

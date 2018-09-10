@@ -6,7 +6,6 @@ import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import faQuestionCircle from '@fortawesome/fontawesome-free-regular/faQuestionCircle';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
-
 import TransactionDialog from '../generic/TransactionDialog';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { convertDtxToWei, convertWeiToDtx } from '../../utils/transforms';
@@ -232,22 +231,6 @@ class ChallengeSensorDialog extends Component {
         {this.state.stepIndex === STEP_STAKE && (
           <this.StepContentWithPadding>
             <h1>Define stake</h1>
-            {
-              //   <StyledSlider
-              //   id="stake-slider"
-              //   label="Number of DTX to stake"
-              //   discrete
-              //   min={50}
-              //   max={250}
-              //   step={50}
-              //   discreteTicks={50}
-              //   valuePrecision={0}
-              //   className={`md-floating-label--floating ${class2}`}
-              //   onChange={value => this.setState({ stakeAmount: value })}
-              //   style={{ width: '100%' }}
-              //   thumbStyle={{ backgroundColor: 'rgb(238, 39, 76)' }}
-              // />
-            }
             <TextField
               id="stake"
               fieldname="stake"

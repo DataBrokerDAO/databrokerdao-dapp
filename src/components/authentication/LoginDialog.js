@@ -15,7 +15,8 @@ class LoginDialog extends Component {
         top: '160px',
         padding: '38px 44px 38px 44px',
         transform: 'translate3d(-50%,0,0)',
-        WebkitTransform: 'translate3d(-50%,0,0)'
+        WebkitTransform: 'translate3d(-50%,0,0)',
+        zIndex: 100
       };
     else
       this.DialogStyle = {
@@ -25,7 +26,8 @@ class LoginDialog extends Component {
         top: '100px',
         padding: '18px',
         transform: 'translate3d(-50%,0,0)',
-        WebkitTransform: 'translate3d(-50%,0,0)'
+        WebkitTransform: 'translate3d(-50%,0,0)',
+        zIndex: 100
       };
   }
 

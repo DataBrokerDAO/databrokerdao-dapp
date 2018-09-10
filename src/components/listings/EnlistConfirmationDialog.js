@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { withRouter } from 'react-router-dom';
-
-import RegisterForm from '../authentication/RegisterForm';
+import styled from 'styled-components';
+import LoginForm from '../authentication/LoginForm';
 import TransactionDialog from '../generic/TransactionDialog';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { LISTING_ACTIONS } from '../../redux/listings/actions';
@@ -11,8 +11,14 @@ import { AUTH_ACTIONS } from '../../redux/authentication/actions';
 import { convertDtxToWei, convertWeiToDtx } from '../../utils/transforms';
 import get from 'lodash/get';
 
+const StyledFormDiv = styled.div`
+  .loginForm {
+    padding: 0 20% !important;
+  }
+`;
+
 const STEP_INTRO = 1,
-  STEP_REGISTRATION = 2,
+  STEP_AUTHENTICATION = 2,
   STEP_ENLISTING = 3,
   STEP_BALANCE_ERROR = 4;
 
@@ -37,7 +43,7 @@ class EnlistConfirmationDialog extends Component {
         ]
       : [
           { id: STEP_INTRO, description: 'Intro' },
-          { id: STEP_REGISTRATION, description: 'Registration' },
+          { id: STEP_AUTHENTICATION, description: 'Authentication' },
           { id: STEP_ENLISTING, description: 'Enlist' }
         ];
 
@@ -100,7 +106,7 @@ class EnlistConfirmationDialog extends Component {
     switch (step) {
       case STEP_INTRO:
         if (!this.props.token) {
-          this.setState({ stepIndex: STEP_REGISTRATION });
+          this.setState({ stepIndex: STEP_AUTHENTICATION });
           break;
         }
 
@@ -122,7 +128,7 @@ class EnlistConfirmationDialog extends Component {
         this.setState({ stepIndex: STEP_ENLISTING });
         this.props.enlistSensor(this.props.sensor);
         break;
-      case STEP_REGISTRATION:
+      case STEP_AUTHENTICATION:
         this.setState({ stepIndex: STEP_INTRO });
         break;
       case STEP_ENLISTING:
@@ -153,7 +159,7 @@ class EnlistConfirmationDialog extends Component {
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
         showContinue={
-          this.state.stepIndex !== STEP_REGISTRATION && !this.props.enlisting
+          this.state.stepIndex !== STEP_AUTHENTICATION && !this.props.enlisting
         }
         showTransactions={this.state.stepIndex === STEP_ENLISTING}
         transactions={this.state.transactions}
@@ -175,17 +181,16 @@ class EnlistConfirmationDialog extends Component {
           </p>
         </div>
 
-        <div style={this.showOrHide(STEP_REGISTRATION)}>
-          <h1>Registration</h1>
-          <RegisterForm
-            register={(values, settings) =>
-              this.props.register(values, settings)
-            }
-            callBack={() => {
-              this.finishStep(STEP_REGISTRATION);
+        <StyledFormDiv style={this.showOrHide(STEP_AUTHENTICATION)}>
+          <h1>Login</h1>
+          <LoginForm
+            login={this.props.login}
+            callBack={async () => {
+              await this.props.fetchWallet();
+              this.finishStep(STEP_AUTHENTICATION);
             }}
           />
-        </div>
+        </StyledFormDiv>
 
         <div style={this.showOrHide(STEP_ENLISTING)}>
           <h1>Saving to the blockchain</h1>
@@ -237,6 +242,7 @@ function mapDispatchToProps(dispatch, ownProps) {
     clearErrors: () => dispatch(LISTING_ACTIONS.clearErrors()),
     register: (values, settings) =>
       dispatch(AUTH_ACTIONS.register(values, settings)),
+    login: (values, settings) => dispatch(AUTH_ACTIONS.login(values, settings)),
     enlistSensor: sensor => {
       switch (ownProps.type) {
         case TYPE_STREAM:

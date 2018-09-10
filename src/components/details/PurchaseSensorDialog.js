@@ -5,15 +5,22 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import { BigNumber } from 'bignumber.js';
 import { withRouter } from 'react-router-dom';
-import RegisterForm from '../authentication/RegisterForm';
+import LoginForm from '../authentication/LoginForm';
 import TransactionDialog from '../generic/TransactionDialog';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { PURCHASES_ACTIONS } from '../../redux/purchases/actions';
 import { AUTH_ACTIONS } from '../../redux/authentication/actions';
 import { convertWeiToDtx } from '../../utils/transforms';
+import styled from 'styled-components';
+
+const StyledFormDiv = styled.div`
+  .loginForm {
+    padding: 0 20% !important;
+  }
+`;
 
 const STEP_INTRO = 0,
-  STEP_REGISTRATION = 1,
+  STEP_AUTHENTICATION = 1,
   STEP_CONFIG = 2,
   STEP_PURCHASING = 3,
   STEP_BALANCE_ERROR = 4;
@@ -40,7 +47,7 @@ class PurchaseSensorDialog extends Component {
         ]
       : [
           { id: STEP_INTRO, description: 'Intro' },
-          { id: STEP_REGISTRATION, description: 'Registration' },
+          { id: STEP_AUTHENTICATION, description: 'Authentication' },
           { id: STEP_CONFIG, description: 'Delivery' },
           { id: STEP_PURCHASING, description: 'Purchase' }
         ];
@@ -99,13 +106,13 @@ class PurchaseSensorDialog extends Component {
     switch (step) {
       case STEP_INTRO:
         if (!this.props.token) {
-          this.setState({ stepIndex: STEP_REGISTRATION });
+          this.setState({ stepIndex: STEP_AUTHENTICATION });
           break;
         }
 
         this.setState({ stepIndex: STEP_CONFIG });
         break;
-      case STEP_REGISTRATION:
+      case STEP_AUTHENTICATION:
         this.setState({ stepIndex: STEP_CONFIG });
         break;
       case STEP_CONFIG:
@@ -166,7 +173,7 @@ class PurchaseSensorDialog extends Component {
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
         showContinue={
-          this.state.stepIndex !== STEP_REGISTRATION && !this.props.purchasing
+          this.state.stepIndex !== STEP_AUTHENTICATION && !this.props.purchasing
         }
         showTransactions={this.state.stepIndex === STEP_PURCHASING}
         transactions={this.state.transactions}
@@ -187,18 +194,16 @@ class PurchaseSensorDialog extends Component {
             in beta, we will provide you with free demo tokens.
           </p>
         </div>
-        <div style={this.showOrHide(STEP_REGISTRATION)}>
-          <h1>Create account</h1>
-          <RegisterForm
-            register={(values, settings) =>
-              this.props.register(values, settings)
-            }
+        <StyledFormDiv style={this.showOrHide(STEP_AUTHENTICATION)}>
+          <h1>Login</h1>
+          <LoginForm
+            login={this.props.login}
             callBack={async () => {
               await this.props.fetchWallet();
-              this.finishStep(STEP_REGISTRATION);
+              this.finishStep(STEP_AUTHENTICATION);
             }}
           />
-        </div>
+        </StyledFormDiv>
         <div style={this.showOrHide(STEP_CONFIG)}>
           <h1>How do you want to receive your data?</h1>
           <Checkbox
@@ -284,6 +289,7 @@ function mapDispatchToProps(dispatch) {
   return {
     register: (values, settings) =>
       dispatch(AUTH_ACTIONS.register(values, settings)),
+    login: (values, settings) => dispatch(AUTH_ACTIONS.login(values, settings)),
     purchaseAccess: (stream, endTime) =>
       dispatch(PURCHASES_ACTIONS.purchaseAccess(stream, endTime)),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),

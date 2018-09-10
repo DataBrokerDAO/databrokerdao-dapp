@@ -1,13 +1,21 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import RegisterForm from '../authentication/RegisterForm';
+import LoginForm from '../authentication/LoginForm';
 import TransactionDialog from '../generic/TransactionDialog';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { convertDtxToWei } from '../../utils/transforms';
+import { AUTH_ACTIONS } from '../../redux/authentication/actions';
+import styled from 'styled-components';
+
+const StyledFormDiv = styled.div`
+  .loginForm {
+    padding: 0 20% !important;
+  }
+`;
 
 const STEP_INTRO = 1,
-  STEP_REGISTRATION = 2,
+  STEP_AUTHENTICATION = 2,
   STEP_MINTING = 3;
 
 export const TX_MINTING = 1,
@@ -25,7 +33,7 @@ class MintConfirmationDialog extends Component {
         ]
       : [
           { id: STEP_INTRO, description: 'Intro' },
-          { id: STEP_REGISTRATION, description: 'Registration' },
+          { id: STEP_AUTHENTICATION, description: 'Authentication' },
           { id: STEP_MINTING, description: 'Minting' }
         ];
 
@@ -63,7 +71,7 @@ class MintConfirmationDialog extends Component {
     switch (step) {
       case STEP_INTRO:
         if (!this.props.token) {
-          this.setState({ stepIndex: STEP_REGISTRATION });
+          this.setState({ stepIndex: STEP_AUTHENTICATION });
           break;
         }
 
@@ -73,7 +81,7 @@ class MintConfirmationDialog extends Component {
         });
         this.props.mintTokens(convertDtxToWei(5000));
         break;
-      case STEP_REGISTRATION:
+      case STEP_AUTHENTICATION:
         this.setState({ stepIndex: STEP_INTRO });
         break;
       case STEP_MINTING:
@@ -101,7 +109,7 @@ class MintConfirmationDialog extends Component {
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
         showContinue={
-          this.state.stepIndex !== STEP_REGISTRATION && !this.props.minting
+          this.state.stepIndex !== STEP_AUTHENTICATION && !this.props.minting
         }
         showTransactions={this.state.stepIndex === STEP_MINTING}
         transactions={this.state.transactions}
@@ -124,17 +132,16 @@ class MintConfirmationDialog extends Component {
           </p>
         </div>
 
-        <div style={this.showOrHide(STEP_REGISTRATION)}>
-          <h1>Registration</h1>
-          <RegisterForm
-            register={(values, settings) =>
-              this.props.register(values, settings)
-            }
-            callBack={() => {
-              this.finishStep(STEP_REGISTRATION);
+        <StyledFormDiv style={this.showOrHide(STEP_AUTHENTICATION)}>
+          <h1>Login</h1>
+          <LoginForm
+            login={this.props.login}
+            callBack={async () => {
+              await this.props.fetchWallet();
+              this.finishStep(STEP_AUTHENTICATION);
             }}
           />
-        </div>
+        </StyledFormDiv>
 
         <div style={this.showOrHide(STEP_MINTING)}>
           <h1>Saving to the blockchain</h1>
@@ -164,6 +171,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
+    login: (values, settings) => dispatch(AUTH_ACTIONS.login(values, settings)),
     clearErrors: () => dispatch(WALLET_ACTIONS.clearErrors()),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
     mintTokens: amount => dispatch(WALLET_ACTIONS.mintTokens(amount))
