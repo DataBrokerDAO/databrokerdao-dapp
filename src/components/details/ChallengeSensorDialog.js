@@ -54,7 +54,7 @@ class ChallengeSensorDialog extends Component {
       },
       {
         id: TX_CHALLENGE,
-        title: 'Purchase',
+        title: 'Challenge',
         description: `Send a transaction to challenge the ${
           this.props.type
         } in the registry smart contract`
