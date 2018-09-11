@@ -43,6 +43,9 @@ const EnlistDatasetScreen = Loadermanager(() =>
 const WalletScreen = Loadermanager(() =>
   import(/* webpackChunkName: 'lazy' */ './components/wallet/WalletScreen')
 );
+const BridgeScreen = Loadermanager(() =>
+  import(/* webpackChunkName: 'lazy' */ './components/bridge/BridgeScreen')
+);
 const StreamDetailsScreen = Loadermanager(() =>
   import(/* webpackChunkName: 'lazy' */ './components/details/stream/StreamDetailsScreen')
 );
@@ -98,6 +101,10 @@ export const App = () => (
           <Route
             path="/wallet"
             component={withRouter(userIsAuthenticatedRedir(WalletScreen))}
+          />
+          <Route
+            path="/bridge"
+            component={withRouter(userIsAuthenticatedRedir(BridgeScreen))}
           />
           <Route
             path="/stream/:key"
