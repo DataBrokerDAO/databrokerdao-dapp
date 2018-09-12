@@ -36,18 +36,5 @@ export default function getAxios(
     });
   }
 
-  // instance.interceptors.response.use(
-  //   response => {
-  //     return response;
-  //   },
-  //   error => {
-  //     const originalRequest = error.config;
-  //     if (error.response.status === 401 && !originalRequest._retry) {
-  //       console.log('RECEIVED 401');
-  //     }
-  //     return Promise.reject(error);
-  //   }
-  // );
-
   return instance;
 }

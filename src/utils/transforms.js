@@ -32,14 +32,6 @@ export function convertWeiToDtx(dtxValue) {
   }
 }
 
-export function convertDtxToWei(dtxValue) {
-  if (dtxValue) {
-    return BigNumber(dtxValue)
-      .times(BigNumber(10).pow(18))
-      .toString();
-  }
-}
-
 export function convertDateToTimestamp(date) {
   return date.getTime() / 1000;
 }

@@ -11,24 +11,25 @@ import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import TitleCTAButton from '../generic/TitleCTAButton';
 import localStorage from '../../localstorage';
 import { convertWeiToDtx } from '../../utils/transforms';
-import MintConfirmationDialog from './MintConfirmationDialog';
+import DepositDtxDialog from './DepositDtxDialog';
 
 class WalletScreen extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      MintConfirmationDialogVisible: false
+      DepositDtxDialogVisible: false
     };
   }
 
   componentDidMount() {
     this.props.fetchWallet();
+    this.props.fetchSenderBalance();
   }
 
-  toggleConfirmationDialog() {
+  toggleDepositDtxDialog() {
     this.setState({
-      MintConfirmationDialogVisible: !this.state.MintConfirmationDialogVisible
+      DepositDtxDialogVisible: !this.state.DepositDtxDialogVisible
     });
   }
 
@@ -76,10 +77,10 @@ class WalletScreen extends Component {
                 flat
                 primary
                 swapTheming
-                disabled={this.props.minting}
-                onClick={this.toggleConfirmationDialog.bind(this)}
+                disabled={this.props.depositing}
+                onClick={this.toggleDepositDtxDialog.bind(this)}
               >
-                Fund wallet
+                Deposit DTX
               </TitleCTAButton>
             </StyledTitleContainer>
             <DesktopAddress>Address: {address}</DesktopAddress>
@@ -92,9 +93,9 @@ class WalletScreen extends Component {
             </p>
           </CardContent>
         </CenteredCard>
-        <MintConfirmationDialog
-          visible={this.state.MintConfirmationDialogVisible}
-          hideEventHandler={() => this.toggleConfirmationDialog()}
+        <DepositDtxDialog
+          visible={this.state.DepositDtxDialogVisible}
+          hideEventHandler={() => this.toggleDepositDtxDialog()}
         />
       </div>
     );
@@ -105,7 +106,7 @@ const mapStateToProps = state => ({
   token: state.auth.token,
   balance: state.wallet.wallet.balance,
   fetchingWallet: state.wallet.fetchingWallet,
-  minting: state.wallet.minting,
+  depositing: state.wallet.depositing,
   stepIndex: state.wallet.stepIndex
 });
 
@@ -113,7 +114,7 @@ function mapDispatchToProps(dispatch) {
   return {
     logout: () => dispatch(AUTH_ACTIONS.logout()),
     fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
-    mintTokens: amount => dispatch(WALLET_ACTIONS.mintTokens(amount))
+    fetchSenderBalance: () => dispatch(WALLET_ACTIONS.fetchSenderBalance())
   };
 }
 

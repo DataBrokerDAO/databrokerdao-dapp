@@ -17,7 +17,7 @@ const PureLoginForm = ({
     onSubmit={handleSubmit}
     style={{ minWidth: '300px', textAlign: 'left' }}
   >
-    <div class="loginForm">
+    <div className="loginForm">
       <EnhancedTextField
         type="email"
         fieldname="email"
