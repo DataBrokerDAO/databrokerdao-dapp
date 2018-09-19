@@ -18,18 +18,30 @@ export async function getDatabrokerWeb3() {
 }
 
 export async function approveDeposit(web3, token, from, receiver, amount) {
+  console.log('APPROVE AND CALL');
   const call = await token.methods.approveAndCall(
     options.HOME_BRIDGE,
     amount,
     receiver
   );
-  const gas = (await call.estimateGas({ from })) * 2;
-  const gasPrice = (await web3.eth.getGasPrice()) * 2;
-  return await call.send({
-    from,
-    gasPrice,
-    gas
+  console.log(call);
+  console.log('ESTIMATE GAS');
+  console.log('FROM', from);
+  // const t = await call.estimateGas({ from });
+  // console.log(t);
+  // const gas = (await call.estimateGas({ from })) * 2;
+  // const gasPrice = (await web3.eth.getGasPrice()) * 2;
+
+  console.log(call);
+  // console.log(gas);
+  // console.log(gasPrice);
+  const result = await call.send({
+    from
+    // gasPrice,
+    // gas
   });
+  console.log('RES', result);
+  return result;
 }
 
 export async function fetchAccount(web3) {

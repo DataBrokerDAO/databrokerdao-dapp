@@ -58,7 +58,7 @@ export const WALLET_ACTIONS = {
           });
         }
         dispatch({
-          type: WALLET_TYPES.FETCH_WALLET_ERROR,
+          type: WALLET_TYPES.FETCHING_WALLET_ERROR,
           error
         });
         console.log(error);
