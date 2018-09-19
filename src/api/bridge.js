@@ -18,29 +18,29 @@ export async function getDatabrokerWeb3() {
 }
 
 export async function approveDeposit(web3, token, from, receiver, amount) {
-  console.log('APPROVE AND CALL');
+  console.log(
+    `Approve and call to ${
+      options.HOME_BRIDGE
+    } for amount ${amount} and receiver ${receiver}`
+  );
   const call = await token.methods.approveAndCall(
     options.HOME_BRIDGE,
     amount,
     receiver
   );
-  console.log(call);
-  console.log('ESTIMATE GAS');
-  console.log('FROM', from);
+  console.log('Result: ', call);
+  console.log('Skipping gas estimation (tmp)');
   // const t = await call.estimateGas({ from });
   // console.log(t);
   // const gas = (await call.estimateGas({ from })) * 2;
   // const gasPrice = (await web3.eth.getGasPrice()) * 2;
 
-  console.log(call);
-  // console.log(gas);
-  // console.log(gasPrice);
   const result = await call.send({
     from
     // gasPrice,
     // gas
   });
-  console.log('RES', result);
+  console.log('Approve and call result: ', result);
   return result;
 }
 
@@ -61,12 +61,13 @@ export async function getBalanceOf(token, address, from = address) {
 }
 
 export async function waitForTransfer(token, recipient, amount, blockNumber) {
+  console.log('Waiting for transfer');
   await waitForEvent({
     contract: token,
     event: 'Transfer',
     fromBlock: blockNumber,
     filter: { to: recipient, amount },
-    timeoutMs: 5e5
+    timeoutMs: 6e5
   });
 }
 
