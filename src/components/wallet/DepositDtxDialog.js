@@ -55,7 +55,7 @@ class DepositDtxDialog extends Component {
       {
         id: TX_DEPOSIT_APPROVE,
         title: 'Approve',
-        description: `Waiting for deposit approval of the DTX token bridge`
+        description: `Waiting for DTX deposit approval by our ERC20 token bridge`
       },
       {
         id: TX_DEPOSIT_TRANSFER,
@@ -277,8 +277,8 @@ class DepositDtxDialog extends Component {
         <div style={this.showOrHide(STEP_TRANSFER)}>
           <h1>Transfering to ERC20 Token Bridge</h1>
           <p>
-            It takes a while to transfer your DTX through the Bridge because
-            validator nodes need to sign off on all transactions.
+            It takes a while to transfer your DTX onto the Bridge because the transaction needs to be taken
+            up in a block on the mainnet after which validator nodes need to sign off on all transactions.
           </p>
         </div>
       </TransactionDialog>

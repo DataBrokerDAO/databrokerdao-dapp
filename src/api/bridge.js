@@ -28,18 +28,16 @@ export async function approveDeposit(web3, token, from, receiver, amount) {
     amount,
     receiver
   );
-  console.log('Result: ', call);
-  console.log('Skipping gas estimation (tmp)');
-  // const t = await call.estimateGas({ from });
-  // console.log(t);
-  // const gas = (await call.estimateGas({ from })) * 2;
-  // const gasPrice = (await web3.eth.getGasPrice()) * 2;
+
+  const gas = (await call.estimateGas({ from })) * 2;
+  const gasPrice = (await web3.eth.getGasPrice()) * 2;
 
   const result = await call.send({
-    from
-    // gasPrice,
-    // gas
+    from,
+    gasPrice,
+    gas
   });
+
   console.log('Approve and call result: ', result);
   return result;
 }
