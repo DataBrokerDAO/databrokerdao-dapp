@@ -1,10 +1,14 @@
 import Web3 from 'web3';
 import * as DTXToken from '../assets/DTXToken.json';
+import * as HomeBridge from '../assets/HomeBridge.json';
+import * as ForeignBridge from '../assets/ForeignBridge.json';
+import { approveAndCallDtx, transactionReceipt } from './util';
 
 const options = {
   HOME_TOKEN: process.env.REACT_APP_HOME_TOKEN,
   FOREIGN_TOKEN: process.env.REACT_APP_FOREIGN_TOKEN,
   HOME_BRIDGE: process.env.REACT_APP_HOME_BRIDGE,
+  FOREIGN_BRIDGE: process.env.REACT_APP_FOREIGN_BRIDGE,
   FOREIGN_URL: process.env.REACT_APP_RPC_URL
 };
 
@@ -15,6 +19,17 @@ export async function getMainNetWeb3() {
 
 export async function getDatabrokerWeb3() {
   return await new Web3(new Web3.providers.HttpProvider(options.FOREIGN_URL));
+}
+
+export async function requestWithdrawal(amount) {
+  console.log(
+    `Withdraw request to ${options.FOREIGN_BRIDGE} for amount ${amount}`
+  );
+  const receiptUrl = await approveAndCallDtx(options.FOREIGN_TOKEN, options.FOREIGN_BRIDGE, amount);
+  const receipt = await transactionReceipt(receiptUrl);
+  console.log(receipt);
+
+  return receipt.txHash;
 }
 
 export async function approveDeposit(web3, token, from, receiver, amount) {
@@ -46,7 +61,18 @@ export async function fetchAccount(web3) {
   return (await web3.eth.getAccounts())[0];
 }
 
+export async function fetchHomeBridge() {
+  const web3 = await getMainNetWeb3();
+  return await new web3.eth.Contract(HomeBridge.abi, options.HOME_BRIDGE);
+}
+
+export async function fetchForeignBridge() {
+  const web3 = await getDatabrokerWeb3();
+  return await new web3.eth.Contract(ForeignBridge.abi, options.FOREIGN_BRIDGE);
+}
+
 async function fetchDTX(web3, address) {
+  console.log(`Fetching DTX at ${address}`);
   return await new web3.eth.Contract(DTXToken.abi, address);
 }
 
@@ -54,7 +80,9 @@ export const fetchMainNetDTX = web3 => fetchDTX(web3, options.HOME_TOKEN);
 export const fetchDatabrokerDTX = web3 => fetchDTX(web3, options.FOREIGN_TOKEN);
 
 export async function getBalanceOf(token, address, from = address) {
+  console.log(`Get balance of ${address}`, token);
   const val = await token.methods.balanceOf(address).call({ from });
+  console.log(`Got balance  ${val}`);
   return parseInt(val, 10);
 }
 
@@ -73,11 +101,12 @@ export async function waitForTransfer(token, recipient, amount, blockNumber) {
  * Catch all validator signatures until the request is granted
  * We need those signatures to excecute the withdrawal.
  */
-export async function catchSignaturesUntilGrant(
-  bridge,
+export async function awaitWithdrawRequestSignatures(
   fromBlock,
   _transactionHash
 ) {
+  console.log('Waiting for request granted - collecting signatures');
+  const bridge = await fetchForeignBridge();
   const filter = { _transactionHash };
 
   await waitForEvent({
@@ -115,6 +144,51 @@ export async function catchSignaturesUntilGrant(
   }
 
   return { v, r, s, withdrawBlock };
+}
+
+export async function estimateWithdrawGasCosts(
+  from,
+  amount,
+  withdrawBlock,
+  v,
+  r,
+  s
+) {
+  const homeToken = await fetchDTX();
+  const homeBridge = await this.fetchHomeBridge();
+  const call = homeBridge.methods.withdraw(
+    homeToken._address,
+    from,
+    amount,
+    withdrawBlock,
+    v,
+    r,
+    s
+  );
+
+  const gasEstimate = await call.estimateGas();
+  const gasEstimateSafe = Math.ceil(gasEstimate * 2);
+  return gasEstimateSafe;
+}
+
+export async function executeWithdraw(from, amount, withdrawBlock, v, r, s) {
+  const homeToken = await fetchDTX();
+  const homeBridge = await this.fetchHomeBridge();
+  const call = homeBridge.methods.withdraw(
+    homeToken._address,
+    from,
+    amount,
+    withdrawBlock,
+    v,
+    r,
+    s
+  );
+
+  return await call.send({
+    from,
+    gas: await estimateWithdrawGasCosts(call),
+    gasPrice: await this.home3.eth.getGasPrice()
+  });
 }
 
 // Utils

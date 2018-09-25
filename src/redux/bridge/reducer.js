@@ -11,7 +11,7 @@
 
 // export const DEFAULT_STATE = {
 //   connected: false,
-//   senderBalance: null,
+//   mainnetBalance: null,
 //   fetchingBalance: false,
 //   deposit: {
 //     step: DEPOSIT_STEPS.none,
@@ -49,7 +49,7 @@
 //     case BRIDGE_TYPES.FETCH_SENDER_BALANCE_SUCCESS: {
 //       return Immutable.merge(state, {
 //         fetchingBalance: false,
-//         senderBalance: action.payload.senderBalance
+//         mainnetBalance: action.payload.mainnetBalance
 //       });
 //     }
 //     case BRIDGE_TYPES.DEPOSIT_SUCCESS: {

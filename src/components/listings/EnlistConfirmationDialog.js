@@ -97,7 +97,7 @@ class EnlistConfirmationDialog extends Component {
   }
 
   componentDidMount() {
-    this.props.fetchWallet();
+    this.props.fetchDBDAOBalance();
   }
 
   finishStep(step) {
@@ -186,7 +186,7 @@ class EnlistConfirmationDialog extends Component {
           <LoginForm
             login={this.props.login}
             callBack={async () => {
-              await this.props.fetchWallet();
+              await this.props.fetchDBDAOBalance();
               this.finishStep(STEP_AUTHENTICATION);
             }}
           />
@@ -255,7 +255,7 @@ function mapDispatchToProps(dispatch, ownProps) {
           throw new Error(`Unknown type ${ownProps.type}`);
       }
     },
-    fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())
+    fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance())
   };
 }
 

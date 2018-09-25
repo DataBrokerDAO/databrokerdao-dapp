@@ -1,11 +1,18 @@
 import axios from '../../utils/axios';
 import * as bridgeAPI from '../../api/bridge';
 import {
-  TX_BALANCE_CHECK,
+  TX_DEPOSIT_CHECK_BALANCE,
   TX_DEPOSIT_APPROVE,
   TX_DEPOSIT_TRANSFER
 } from '../../components/wallet/DepositDtxDialog';
 import { ERROR_TYPES } from '../errors/actions';
+import {
+  TX_WITHDRAW_CHECK_BALANCE,
+  TX_WITHDRAW_REQUEST_WITHDRAW,
+  TX_WITHDRAW_AWAIT_GRANTED,
+  TX_WITHDRAW_REQUEST_TRANSFER,
+  TX_WITHDRAW_ESTIMATE_GAS
+} from '../../components/wallet/WithdrawDtxDialog';
 
 export const WALLET_TYPES = {
   FETCH_WALLET: 'FETCH_WALLET',
@@ -20,6 +27,10 @@ export const WALLET_TYPES = {
 
   DEPOSITING_TOKENS: 'DEPOSITING_TOKENS',
   DEPOSITING_TOKENS_ERROR: 'DEPOSITING_TOKENS_ERROR',
+
+  ESTIMATED_GAS: 'ESTIMATED_GAS',
+  WITHDRAWING_TOKENS: 'WITHDRAWING_TOKENS',
+  WITHDRAWING_TOKENS_ERROR: 'WITHDRAWING_TOKENS_ERROR',
 
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
   TRANSACTION_ERROR: 'TRANSACTION_ERROR',
@@ -36,7 +47,7 @@ export const WALLET_ACTIONS = {
     };
   },
 
-  fetchWallet: () => {
+  fetchDBDAOBalance: () => {
     return async (dispatch, getState) => {
       dispatch({
         type: WALLET_TYPES.FETCHING_WALLET,
@@ -66,7 +77,7 @@ export const WALLET_ACTIONS = {
     };
   },
 
-  fetchSenderBalance: () => async dispatch => {
+  fetchMainnetBalance: () => async dispatch => {
     dispatch({ type: WALLET_TYPES.FETCHING_SENDER_BALANCE, value: true });
 
     try {
@@ -75,7 +86,7 @@ export const WALLET_ACTIONS = {
       dispatch({
         type: WALLET_TYPES.FETCHING_SENDER_BALANCE,
         value: false,
-        senderBalance: balance.toString(10)
+        mainnetBalance: balance.toString(10)
       });
     } catch (error) {
       dispatch({
@@ -87,6 +98,10 @@ export const WALLET_ACTIONS = {
 
   depositTokens: (amount, recipient) => async dispatch => {
     if (!amount || !recipient) {
+      dispatch({
+        type: WALLET_TYPES.DEPOSITING_TOKENS_ERROR,
+        error: new Error('Amount and recipient are required to deposit')
+      });
       return;
     }
 
@@ -100,7 +115,7 @@ export const WALLET_ACTIONS = {
     try {
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
-        index: TX_BALANCE_CHECK
+        index: TX_DEPOSIT_CHECK_BALANCE
       });
 
       const {
@@ -111,8 +126,8 @@ export const WALLET_ACTIONS = {
         databrokerWeb3
       } = await connect(dispatch);
 
-      const senderBalance = await bridgeAPI.getBalanceOf(mainNetDTX, sender);
-      if (senderBalance < amount) {
+      const mainnetBalance = await bridgeAPI.getBalanceOf(mainNetDTX, sender);
+      if (mainnetBalance < amount) {
         throw new Error('Balance too low');
       }
 
@@ -140,6 +155,13 @@ export const WALLET_ACTIONS = {
         currentBlockNum
       );
 
+      const wallets = await axios(true).get('/wallet/balance?force=true');
+      const dtxWallet = wallets.data.DTX;
+      dispatch({
+        type: WALLET_TYPES.FETCH_WALLET,
+        wallet: dtxWallet
+      });
+
       dispatch({
         type: WALLET_TYPES.DEPOSITING_TOKENS,
         value: false
@@ -147,6 +169,108 @@ export const WALLET_ACTIONS = {
     } catch (error) {
       dispatch({
         type: WALLET_TYPES.DEPOSITING_TOKENS_ERROR,
+        error
+      });
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_ERROR,
+        error
+      });
+      console.log(error);
+    }
+  },
+
+  withdrawTokens: (amount, recipient) => async dispatch => {
+    console.log('amount:', amount);
+    console.log('recipient:', recipient);
+    if (!amount || !recipient) {
+      dispatch({
+        type: WALLET_TYPES.WITHDRAWING_TOKENS_ERROR,
+        error: new Error('Amount and recipient are required to withdraw')
+      });
+      return;
+    }
+
+    dispatch({
+      type: WALLET_TYPES.WITHDRAWING_TOKENS,
+      value: true
+    });
+
+    try {
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_CHECK_BALANCE
+      });
+
+      const { sender, databrokerDTX, databrokerWeb3 } = await connect(dispatch);
+      const mainnetBalance = await bridgeAPI.getBalanceOf(
+        databrokerDTX,
+        recipient
+      );
+      if (mainnetBalance < amount) {
+        throw new Error('Balance too low');
+      }
+
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_REQUEST_TRANSFER
+      });
+      const response = await bridgeAPI.requestWithdrawal(amount);
+      console.log('REQUEST WITHDRAW RESPONSE', response);
+      const txHash = response.txHash;
+
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_AWAIT_GRANTED
+      });
+      const currentBlockNum = await databrokerWeb3.eth.getBlockNumber();
+      const {
+        v,
+        r,
+        s,
+        withdrawBlock
+      } = await bridgeAPI.awaitWithdrawRequestSignatures(
+        currentBlockNum,
+        txHash
+      );
+
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_ESTIMATE_GAS
+      });
+      const estimatedGas = await bridgeAPI.estimateWithdrawGasCosts(
+        sender,
+        amount,
+        withdrawBlock,
+        v,
+        r,
+        s
+      );
+      dispatch({
+        type: WALLET_TYPES.ESTIMATED_GAS,
+        estimatedGas
+      });
+
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_REQUEST_WITHDRAW
+      });
+      const withdrawResult = await bridgeAPI.executeWithdraw(
+        sender,
+        amount,
+        withdrawBlock,
+        v,
+        r,
+        s
+      );
+      console.log(withdrawResult);
+
+      dispatch({
+        type: WALLET_TYPES.WITHDRAWING_TOKENS,
+        value: false
+      });
+    } catch (error) {
+      dispatch({
+        type: WALLET_TYPES.WITHDRAWING_TOKENS_ERROR,
         error
       });
       dispatch({
@@ -180,10 +304,6 @@ async function connect(dispatch) {
       result = await connectToProvider();
       break;
     } catch (err) {
-      console.error(
-        'Could not connect to provider, retrying after timeout',
-        err
-      );
       await bridgeAPI.timeout(5e3);
     }
   }

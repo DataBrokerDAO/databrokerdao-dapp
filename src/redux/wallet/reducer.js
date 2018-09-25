@@ -9,14 +9,16 @@ export const DEFAULT_STATE = {
 
   connected: false,
 
-  senderBalance: null,
-  fetchingSenderBalance: false,
-  fetchingSenderBalanceError: null,
+  mainnetBalance: null,
+  fetchingMainnetBalance: false,
+  fetchingMainnetBalanceError: null,
 
-  depositAmount: null,
-  depositRecipient: null,
   depositing: false,
   depositingError: null,
+
+  withdrawing: false,
+  withdrawingError: null,
+  estimatedGas: null,
 
   transactionIndex: 1,
   transactionError: null
@@ -39,31 +41,44 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
     }
     case WALLET_TYPES.FETCHING_SENDER_BALANCE: {
       return Immutable.merge(state, {
-        fetchingSenderBalance: action.value,
-        senderBalance: action.senderBalance || null
+        fetchingMainnetBalance: action.value,
+        mainnetBalance: action.mainnetBalance || null
       });
     }
     case WALLET_TYPES.FETCHING_SENDER_BALANCE_ERROR: {
       return Immutable.merge(state, {
-        fetchingSenderBalanceError: action.error,
-        fetchingSenderBalance: false,
-        senderBalance: null
+        fetchingMainnetBalanceError: action.error,
+        fetchingMainnetBalance: false,
+        mainnetBalance: null
       });
     }
 
     case WALLET_TYPES.DEPOSITING_TOKENS: {
       return Immutable.merge(state, {
-        depositing: action.value,
-        depositAmount: action.amount || null,
-        depositRecipient: action.depositRecipient || null
+        depositing: action.value
       });
     }
     case WALLET_TYPES.DEPOSITING_TOKENS_ERROR: {
       return Immutable.merge(state, {
         depositingError: action.error,
-        depositing: false,
-        depositAmount: null,
-        depositRecipient: null
+        depositing: false
+      });
+    }
+
+    case WALLET_TYPES.ESTIMATED_GAS: {
+      return Immutable.merge(state, {
+        estimatedGas: action.estimatedGas
+      });
+    }
+    case WALLET_TYPES.WITHDRAWING_TOKENS: {
+      return Immutable.merge(state, {
+        withdrawing: action.value
+      });
+    }
+    case WALLET_TYPES.WITHDRAWING_TOKENS_ERROR: {
+      return Immutable.merge(state, {
+        withdrawingError: action.error,
+        withdrawing: false
       });
     }
 

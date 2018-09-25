@@ -26,15 +26,17 @@ const StyledDiv = styled.div`
 const STEP_INTRO = 1,
   STEP_AUTHENTICATION = 2,
   STEP_METAMASK_INSTALL = 3,
-  STEP_DEPOSIT = 4,
+  STEP_WITHDRAW = 4,
   STEP_TRANSFER = 5,
   STEP_BALANCE_ERROR = 6;
 
-export const TX_DEPOSIT_CHECK_BALANCE = 1,
-  TX_DEPOSIT_APPROVE = 2,
-  TX_DEPOSIT_TRANSFER = 3;
+export const TX_WITHDRAW_CHECK_BALANCE = 1,
+  TX_WITHDRAW_REQUEST_TRANSFER = 2,
+  TX_WITHDRAW_AWAIT_GRANTED = 3,
+  TX_WITHDRAW_ESTIMATE_GAS = 4,
+  TX_WITHDRAW_WITHDRAW_DTX = 5;
 
-class DepositDtxDialog extends Component {
+class WithdrawDtxDialog extends Component {
   constructor(props) {
     super(props);
 
@@ -42,26 +44,38 @@ class DepositDtxDialog extends Component {
       { id: STEP_INTRO, description: 'Intro' },
       { id: STEP_AUTHENTICATION, description: 'Authentication' },
       { id: STEP_METAMASK_INSTALL, description: 'MetaMask' },
-      { id: STEP_DEPOSIT, description: 'Deposit' },
+      { id: STEP_WITHDRAW, description: 'Withdraw' },
       { id: STEP_TRANSFER, description: 'Transfer' }
     ];
 
     const transactions = [
       {
-        id: TX_DEPOSIT_CHECK_BALANCE,
-        title: 'Verify',
-        description: `Verify you have enough DTX tokens in your account to make the deposit onto the TokenBridge`
+        id: TX_WITHDRAW_CHECK_BALANCE,
+        title: 'Balance',
+        description: `Verify you have enough DTX tokens in your account to make the withdraw onto the TokenBridge`
       },
       {
-        id: TX_DEPOSIT_APPROVE,
-        title: 'Approve',
-        description: `Waiting for DTX deposit approval by our ERC20 token bridge`
-      },
-      {
-        id: TX_DEPOSIT_TRANSFER,
+        id: TX_WITHDRAW_REQUEST_TRANSFER,
         title: 'Transfer',
+        description: `Transfer the DTX tokens onto the TokenBridge`
+      },
+      {
+        id: TX_WITHDRAW_AWAIT_GRANTED,
+        title: 'Approval',
         description:
-          'Waiting for validator approval before your DTX tokens will be transfered into your wallet'
+          'Collecting signatures from validators until withdrawal is granted from the TokenBridge'
+      },
+      {
+        id: TX_WITHDRAW_ESTIMATE_GAS,
+        title: 'Gas',
+        description:
+          'Requesting to withdraw DTX tokens from the TokenBridge to your account'
+      },
+      {
+        id: TX_WITHDRAW_WITHDRAW_DTX,
+        title: 'Withdraw',
+        description:
+          'Requesting to withdraw DTX tokens from the TokenBridge to your account'
       }
     ];
 
@@ -69,11 +83,11 @@ class DepositDtxDialog extends Component {
       steps: steps,
       stepIndex: STEP_INTRO,
       transactions: transactions,
-      transactionIndex: TX_DEPOSIT_CHECK_BALANCE,
+      transactionIndex: TX_WITHDRAW_CHECK_BALANCE,
       transactionError: null,
-      depositing: false,
+      withdrawing: false,
       complete: false,
-      amountField: '0.000000000000001'
+      amountField: '1'
     };
   }
 
@@ -84,10 +98,7 @@ class DepositDtxDialog extends Component {
           this.props.fetchingMainnetBalanceError ||
           this.props.fetchingWalletError
         ) {
-          console.log(
-            'mainnet bal error',
-            this.props.fetchingMainnetBalanceError
-          );
+          console.log('mainnet bal error', this.props.fetchingMainnetBalanceError);
           console.log('fetching wallet error', this.props.fetchingWalletError);
           this.setState({ stepIndex: STEP_BALANCE_ERROR });
           break;
@@ -104,7 +115,7 @@ class DepositDtxDialog extends Component {
         }
 
         this.setState({
-          stepIndex: STEP_DEPOSIT
+          stepIndex: STEP_WITHDRAW
         });
         break;
       case STEP_AUTHENTICATION:
@@ -114,15 +125,15 @@ class DepositDtxDialog extends Component {
           this.setState({ stepIndex: STEP_AUTHENTICATION });
         } else {
           this.setState({
-            stepIndex: STEP_DEPOSIT,
-            transactionIndex: TX_DEPOSIT_CHECK_BALANCE
+            stepIndex: STEP_WITHDRAW,
+            transactionIndex: TX_WITHDRAW_CHECK_BALANCE
           });
         }
         break;
       case STEP_METAMASK_INSTALL:
         this.setState({ stepIndex: STEP_INTRO });
         break;
-      case STEP_DEPOSIT:
+      case STEP_WITHDRAW:
         let amount = this.state.amountField;
         const recipient = this.props.address;
         if (!amount || !recipient) {
@@ -130,7 +141,7 @@ class DepositDtxDialog extends Component {
         }
 
         amount = convertDtxToWei(amount);
-        this.props.depositTokens(amount, recipient);
+        this.props.withdrawTokens(amount, recipient);
         this.setState({ stepIndex: STEP_TRANSFER });
         break;
       case STEP_TRANSFER:
@@ -206,15 +217,9 @@ class DepositDtxDialog extends Component {
         modal={true}
       >
         <div style={this.showOrHide(STEP_INTRO)}>
-          <h1>DTX Token Deposit </h1>
+          <h1>DTX Token Withdraw </h1>
           <p>
-            To be able to interact with the platform you will need DTX tokens.
-            <br />
-            As Databroker DAO runs on a private PoA network we call MintNet, we
-            have created an ERC20 Token Bridge which allows us to sync a wallet
-            on the mainnet with a wallet on our network. For this to work you
-            need to first deposit some DTX tokens onto our bridge so you can
-            spend them on MintNet.
+            Please note withdrawing DTX tokens to the Main network costs Gas.
           </p>
         </div>
 
@@ -241,19 +246,19 @@ class DepositDtxDialog extends Component {
           </p>
         </div>
 
-        <div style={this.showOrHide(STEP_DEPOSIT)}>
-          <h1>Deposit DTX to your wallet</h1>
+        <div style={this.showOrHide(STEP_WITHDRAW)}>
+          <h1>Withdraw DTX to your wallet</h1>
           <StyledDiv>
             <p>
-              Mainnet balance: <b>{mainnetBalance} DTX</b>
+              Databroker DAO balance: <b>{databrokerBalance} DTX</b>
             </p>
             <p>
-              Databroker DAO balance: <b>{databrokerBalance} DTX</b>
+              Mainnet balance: <b>{mainnetBalance} DTX</b>
             </p>
 
             <TextField
               id="amount"
-              label="Deposit DTX to Databroker DAO"
+              label="Withdraw DTX to Mainnet"
               type="number"
               onChange={this.handleAmountChange}
               value={this.state.amountField}
@@ -280,7 +285,7 @@ class DepositDtxDialog extends Component {
         </div>
 
         <div style={this.showOrHide(STEP_TRANSFER)}>
-          <h1>Transfering to ERC20 Token Bridge</h1>
+          <h1>Transfering from ERC20 Token Bridge</h1>
           <p>
             It takes a while to transfer your DTX onto the Bridge because the
             transaction needs to be taken up in a block on the mainnet after
@@ -301,17 +306,17 @@ class DepositDtxDialog extends Component {
 const mapStateToProps = (state, ownProps) => ({
   token: state.auth.token,
   address: state.auth.address,
-  depositing: state.wallet.depositing,
-  depositingError: state.wallet.depositingError,
+  withdrawing: state.wallet.withdrawing,
+  withdrawingError: state.wallet.withdrawingError,
   fetchingWallet: state.wallet.fetchingWallet,
   fetchingWalletError: state.wallet.fetchingWalletError,
+  mainnetBalance: state.wallet.mainnetBalance,
   fetchingMainnetBalance: state.wallet.fetchingMainnetBalance,
   fetchingMainnetBalanceError: state.wallet.fetchingMainnetBalanceError,
   transactionIndex: state.wallet.transactionIndex,
   transactionError: state.wallet.transactionError,
   balance: state.wallet.wallet.balance,
-  connected: state.wallet.connected,
-  mainnetBalance: state.wallet.mainnetBalance
+  connected: state.wallet.connected
 });
 
 function mapDispatchToProps(dispatch, ownProps) {
@@ -319,12 +324,12 @@ function mapDispatchToProps(dispatch, ownProps) {
     login: (values, settings) => dispatch(AUTH_ACTIONS.login(values, settings)),
     clearErrors: () => dispatch(WALLET_ACTIONS.clearErrors()),
     fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance()),
-    depositTokens: (amount, recipient) =>
-      dispatch(WALLET_ACTIONS.depositTokens(amount, recipient))
+    withdrawTokens: (amount, recipient) =>
+      dispatch(WALLET_ACTIONS.withdrawTokens(amount, recipient))
   };
 }
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(withRouter(DepositDtxDialog));
+)(withRouter(WithdrawDtxDialog));

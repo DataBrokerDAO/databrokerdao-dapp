@@ -12,24 +12,32 @@ import TitleCTAButton from '../generic/TitleCTAButton';
 import localStorage from '../../localstorage';
 import { convertWeiToDtx } from '../../utils/transforms';
 import DepositDtxDialog from './DepositDtxDialog';
+import WithdrawDtxDialog from './WithdrawDtxDialog';
 
 class WalletScreen extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      DepositDtxDialogVisible: false
+      DepositDtxDialogVisible: false,
+      WithdrawDtxDialogVisible: false
     };
   }
 
   componentDidMount() {
-    this.props.fetchWallet();
-    this.props.fetchSenderBalance();
+    this.props.fetchDBDAOBalance();
+    this.props.fetchMainnetBalance();
   }
 
   toggleDepositDtxDialog() {
     this.setState({
       DepositDtxDialogVisible: !this.state.DepositDtxDialogVisible
+    });
+  }
+
+  toggleWithdrawDtxDialog() {
+    this.setState({
+      WithdrawDtxDialogVisible: !this.state.WithdrawDtxDialogVisible
     });
   }
 
@@ -73,15 +81,26 @@ class WalletScreen extends Component {
           <CardContent>
             <StyledTitleContainer>
               <h1>DTX balance: {DTXBalance}</h1>
-              <TitleCTAButton
-                flat
-                primary
-                swapTheming
-                disabled={this.props.depositing}
-                onClick={this.toggleDepositDtxDialog.bind(this)}
-              >
-                Deposit DTX
-              </TitleCTAButton>
+              <div>
+                <TitleCTAButton
+                  flat
+                  primary
+                  swapTheming
+                  disabled={this.props.depositing}
+                  onClick={this.toggleDepositDtxDialog.bind(this)}
+                >
+                  Deposit
+                </TitleCTAButton>
+                <TitleCTAButton
+                  flat
+                  primary
+                  swapTheming
+                  disabled={this.props.withdrawing}
+                  onClick={this.props.removeMePls}
+                >
+                  Withdraw
+                </TitleCTAButton>
+              </div>
             </StyledTitleContainer>
             <DesktopAddress>Address: {address}</DesktopAddress>
             <MobileAddress>Address: {shortAddress}</MobileAddress>
@@ -97,6 +116,10 @@ class WalletScreen extends Component {
           visible={this.state.DepositDtxDialogVisible}
           hideEventHandler={() => this.toggleDepositDtxDialog()}
         />
+        <WithdrawDtxDialog
+          visible={this.state.WithdrawDtxDialogVisible}
+          hideEventHandler={() => this.toggleWithdrawDtxDialog()}
+        />
       </div>
     );
   }
@@ -107,14 +130,22 @@ const mapStateToProps = state => ({
   balance: state.wallet.wallet.balance,
   fetchingWallet: state.wallet.fetchingWallet,
   depositing: state.wallet.depositing,
+  withdrawing: state.wallet.withdrawing,
   stepIndex: state.wallet.stepIndex
 });
 
 function mapDispatchToProps(dispatch) {
   return {
     logout: () => dispatch(AUTH_ACTIONS.logout()),
-    fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
-    fetchSenderBalance: () => dispatch(WALLET_ACTIONS.fetchSenderBalance())
+    fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance()),
+    fetchMainnetBalance: () => dispatch(WALLET_ACTIONS.fetchMainnetBalance()),
+    removeMePls: () =>
+      dispatch(
+        WALLET_ACTIONS.withdrawTokens(
+          10,
+          '0xfEA9698ce70e90CeE91D4C9148F9605c6CF1742C'
+        )
+      )
   };
 }
 

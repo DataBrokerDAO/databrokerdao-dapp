@@ -5,6 +5,22 @@ import { default as retry } from '../utils/async_retry';
 
 const anonymousAxiosClient = axios(null, true);
 
+export async function approveAndCallDtx(
+  tokenAddress,
+  spenderAddress,
+  amountInDtx
+) {
+  const url = `/localdtxtoken/${tokenAddress}/approveandcall`;
+  const authenticatedAxiosClient = axios(true);
+  const response = await authenticatedAxiosClient.post(url, {
+    _spender: spenderAddress,
+    _value: convertDtxToWei(amountInDtx),
+    _extraData: 'none'
+  });
+
+  return `${url}/${response.data.uuid}`;
+}
+
 export async function approveDtx(dtxTokenAddress, spenderAddress, amountInDtx) {
   const url = `/dtxtoken/${dtxTokenAddress}/approve`;
   const authenticatedAxiosClient = axios(true);
@@ -162,7 +178,7 @@ export async function transactionReceipt(url) {
           if (res.data.receipt.status === 1) {
             return res.data.receipt;
           } else {
-            bail(new Error(`Tx with hash ${res.data.hash} was reverted`));
+            bail(new Error(`Tx with hash ${res.data.tx.hash} was reverted`));
             return;
           }
         }
