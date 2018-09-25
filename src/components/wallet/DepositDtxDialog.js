@@ -50,18 +50,18 @@ class DepositDtxDialog extends Component {
       {
         id: TX_DEPOSIT_CHECK_BALANCE,
         title: 'Verify',
-        description: `Verify you have enough DTX tokens in your account to make the deposit onto the TokenBridge`
+        description: `Verify your DTX token balance is sufficient to make the deposit onto our ERC20 TokenBridge`
       },
       {
         id: TX_DEPOSIT_APPROVE,
-        title: 'Approve',
-        description: `Waiting for DTX deposit approval by our ERC20 token bridge`
+        title: 'Transfer',
+        description: `Awaiting the DTX token transfer onto our ERC20 TokenBridge`
       },
       {
         id: TX_DEPOSIT_TRANSFER,
-        title: 'Transfer',
+        title: 'Validation',
         description:
-          'Waiting for validator approval before your DTX tokens will be transfered into your wallet'
+          "Awaiting the TokenBridgeValidator's approval after which the DTX tokens will be transfered into your Databroker DAO wallet"
       }
     ];
 
@@ -84,11 +84,6 @@ class DepositDtxDialog extends Component {
           this.props.fetchingMainnetBalanceError ||
           this.props.fetchingWalletError
         ) {
-          console.log(
-            'mainnet bal error',
-            this.props.fetchingMainnetBalanceError
-          );
-          console.log('fetching wallet error', this.props.fetchingWalletError);
           this.setState({ stepIndex: STEP_BALANCE_ERROR });
           break;
         }

@@ -30,12 +30,14 @@ class WalletScreen extends Component {
   }
 
   toggleDepositDtxDialog() {
+    this.props.clearErrors();
     this.setState({
       DepositDtxDialogVisible: !this.state.DepositDtxDialogVisible
     });
   }
 
   toggleWithdrawDtxDialog() {
+    this.props.clearErrors();
     this.setState({
       WithdrawDtxDialogVisible: !this.state.WithdrawDtxDialogVisible
     });
@@ -96,7 +98,7 @@ class WalletScreen extends Component {
                   primary
                   swapTheming
                   disabled={this.props.withdrawing}
-                  onClick={this.props.removeMePls}
+                  onClick={this.toggleWithdrawDtxDialog.bind(this)}
                 >
                   Withdraw
                 </TitleCTAButton>
@@ -137,6 +139,7 @@ const mapStateToProps = state => ({
 function mapDispatchToProps(dispatch) {
   return {
     logout: () => dispatch(AUTH_ACTIONS.logout()),
+    clearErrors: () => dispatch(WALLET_ACTIONS.clearErrors()),
     fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance()),
     fetchMainnetBalance: () => dispatch(WALLET_ACTIONS.fetchMainnetBalance()),
     removeMePls: () =>

@@ -32,9 +32,9 @@ const STEP_INTRO = 1,
 
 export const TX_WITHDRAW_CHECK_BALANCE = 1,
   TX_WITHDRAW_REQUEST_TRANSFER = 2,
-  TX_WITHDRAW_AWAIT_GRANTED = 3,
-  TX_WITHDRAW_ESTIMATE_GAS = 4,
-  TX_WITHDRAW_WITHDRAW_DTX = 5;
+  TX_WITHDRAW_AWAIT_WITHDRAW_GRANTED = 3,
+  TX_WITHDRAW_WITHDRAW_DTX = 4,
+  TX_WITHDRAW_AWAIT_TRANSFER = 5;
 
 class WithdrawDtxDialog extends Component {
   constructor(props) {
@@ -52,30 +52,30 @@ class WithdrawDtxDialog extends Component {
       {
         id: TX_WITHDRAW_CHECK_BALANCE,
         title: 'Balance',
-        description: `Verify you have enough DTX tokens in your account to make the withdraw onto the TokenBridge`
+        description: `Verify your DTX token balance is sufficient to perform the withdrawal`
       },
       {
         id: TX_WITHDRAW_REQUEST_TRANSFER,
-        title: 'Transfer',
-        description: `Transfer the DTX tokens onto the TokenBridge`
+        title: 'Request',
+        description: `Awaiting the DTX token transfer onto our ERC20 TokenBridge`
       },
       {
-        id: TX_WITHDRAW_AWAIT_GRANTED,
+        id: TX_WITHDRAW_AWAIT_WITHDRAW_GRANTED,
         title: 'Approval',
         description:
-          'Collecting signatures from validators until withdrawal is granted from the TokenBridge'
-      },
-      {
-        id: TX_WITHDRAW_ESTIMATE_GAS,
-        title: 'Gas',
-        description:
-          'Requesting to withdraw DTX tokens from the TokenBridge to your account'
+          "Awaiting the TokenBridgeValidator's signature to grant the withdrawal from our ERC20 TokenBridge"
       },
       {
         id: TX_WITHDRAW_WITHDRAW_DTX,
         title: 'Withdraw',
         description:
-          'Requesting to withdraw DTX tokens from the TokenBridge to your account'
+          'Requesting to withdraw DTX tokens from the ERC20 TokenBridge into your wallet'
+      },
+      {
+        id: TX_WITHDRAW_AWAIT_TRANSFER,
+        title: 'Transfer',
+        description:
+          'Awaiting for the DTX tokens to be transfered into your wallet'
       }
     ];
 
@@ -98,8 +98,6 @@ class WithdrawDtxDialog extends Component {
           this.props.fetchingMainnetBalanceError ||
           this.props.fetchingWalletError
         ) {
-          console.log('mainnet bal error', this.props.fetchingMainnetBalanceError);
-          console.log('fetching wallet error', this.props.fetchingWalletError);
           this.setState({ stepIndex: STEP_BALANCE_ERROR });
           break;
         }
@@ -140,7 +138,6 @@ class WithdrawDtxDialog extends Component {
           return;
         }
 
-        amount = convertDtxToWei(amount);
         this.props.withdrawTokens(amount, recipient);
         this.setState({ stepIndex: STEP_TRANSFER });
         break;

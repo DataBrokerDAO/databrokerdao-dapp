@@ -1,5 +1,9 @@
 import BigNumber from 'bignumber.js';
 
+export function toBignumber(number) {
+  return new BigNumber(number);
+}
+
 export function parseNumberWithDecimal(number, decimal) {
   const baseNumber = new BigNumber(number);
   if (decimal > 0) {

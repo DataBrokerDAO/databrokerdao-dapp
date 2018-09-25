@@ -18,7 +18,6 @@ export const DEFAULT_STATE = {
 
   withdrawing: false,
   withdrawingError: null,
-  estimatedGas: null,
 
   transactionIndex: 1,
   transactionError: null
@@ -28,6 +27,9 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
   switch (action.type) {
     case WALLET_TYPES.CLEAR_ERRORS: {
       return Immutable.merge(state, {
+        fetchingWalletError: null,
+        fetchingMainnetBalanceError: null,
+        withdrawingError: null,
         transactionError: null,
         transactionIndex: 1
       });
@@ -65,11 +67,6 @@ export default function(state = Immutable(DEFAULT_STATE), action) {
       });
     }
 
-    case WALLET_TYPES.ESTIMATED_GAS: {
-      return Immutable.merge(state, {
-        estimatedGas: action.estimatedGas
-      });
-    }
     case WALLET_TYPES.WITHDRAWING_TOKENS: {
       return Immutable.merge(state, {
         withdrawing: action.value

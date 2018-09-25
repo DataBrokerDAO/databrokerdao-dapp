@@ -14,8 +14,7 @@ export async function approveAndCallDtx(
   const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _spender: spenderAddress,
-    _value: convertDtxToWei(amountInDtx),
-    _extraData: 'none'
+    _value: convertDtxToWei(amountInDtx)
   });
 
   return `${url}/${response.data.uuid}`;

@@ -22,22 +22,16 @@ export async function getDatabrokerWeb3() {
 }
 
 export async function requestWithdrawal(amount) {
-  console.log(
-    `Withdraw request to ${options.FOREIGN_BRIDGE} for amount ${amount}`
+  const receiptUrl = await approveAndCallDtx(
+    options.FOREIGN_TOKEN,
+    options.FOREIGN_BRIDGE,
+    amount
   );
-  const receiptUrl = await approveAndCallDtx(options.FOREIGN_TOKEN, options.FOREIGN_BRIDGE, amount);
   const receipt = await transactionReceipt(receiptUrl);
-  console.log(receipt);
-
-  return receipt.txHash;
+  return receipt.transactionHash;
 }
 
 export async function approveDeposit(web3, token, from, receiver, amount) {
-  console.log(
-    `Approve and call to ${
-      options.HOME_BRIDGE
-    } for amount ${amount} and receiver ${receiver}`
-  );
   const call = await token.methods.approveAndCall(
     options.HOME_BRIDGE,
     amount,
@@ -53,7 +47,6 @@ export async function approveDeposit(web3, token, from, receiver, amount) {
     gas
   });
 
-  console.log('Approve and call result: ', result);
   return result;
 }
 
@@ -72,7 +65,6 @@ export async function fetchForeignBridge() {
 }
 
 async function fetchDTX(web3, address) {
-  console.log(`Fetching DTX at ${address}`);
   return await new web3.eth.Contract(DTXToken.abi, address);
 }
 
@@ -80,14 +72,11 @@ export const fetchMainNetDTX = web3 => fetchDTX(web3, options.HOME_TOKEN);
 export const fetchDatabrokerDTX = web3 => fetchDTX(web3, options.FOREIGN_TOKEN);
 
 export async function getBalanceOf(token, address, from = address) {
-  console.log(`Get balance of ${address}`, token);
   const val = await token.methods.balanceOf(address).call({ from });
-  console.log(`Got balance  ${val}`);
   return parseInt(val, 10);
 }
 
 export async function waitForTransfer(token, recipient, amount, blockNumber) {
-  console.log('Waiting for transfer');
   await waitForEvent({
     contract: token,
     event: 'Transfer',
@@ -105,7 +94,6 @@ export async function awaitWithdrawRequestSignatures(
   fromBlock,
   _transactionHash
 ) {
-  console.log('Waiting for request granted - collecting signatures');
   const bridge = await fetchForeignBridge();
   const filter = { _transactionHash };
 
@@ -147,6 +135,7 @@ export async function awaitWithdrawRequestSignatures(
 }
 
 export async function estimateWithdrawGasCosts(
+  web3,
   from,
   amount,
   withdrawBlock,
@@ -154,7 +143,7 @@ export async function estimateWithdrawGasCosts(
   r,
   s
 ) {
-  const homeToken = await fetchDTX();
+  const homeToken = await fetchMainNetDTX(web3);
   const homeBridge = await this.fetchHomeBridge();
   const call = homeBridge.methods.withdraw(
     homeToken._address,
@@ -171,8 +160,16 @@ export async function estimateWithdrawGasCosts(
   return gasEstimateSafe;
 }
 
-export async function executeWithdraw(from, amount, withdrawBlock, v, r, s) {
-  const homeToken = await fetchDTX();
+export async function executeWithdraw(
+  web3,
+  from,
+  amount,
+  withdrawBlock,
+  v,
+  r,
+  s
+) {
+  const homeToken = await fetchMainNetDTX(web3);
   const homeBridge = await this.fetchHomeBridge();
   const call = homeBridge.methods.withdraw(
     homeToken._address,
@@ -184,11 +181,7 @@ export async function executeWithdraw(from, amount, withdrawBlock, v, r, s) {
     s
   );
 
-  return await call.send({
-    from,
-    gas: await estimateWithdrawGasCosts(call),
-    gasPrice: await this.home3.eth.getGasPrice()
-  });
+  return await call.send({ from });
 }
 
 // Utils

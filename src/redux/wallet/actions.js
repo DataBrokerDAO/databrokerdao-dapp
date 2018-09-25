@@ -8,10 +8,10 @@ import {
 import { ERROR_TYPES } from '../errors/actions';
 import {
   TX_WITHDRAW_CHECK_BALANCE,
-  TX_WITHDRAW_REQUEST_WITHDRAW,
-  TX_WITHDRAW_AWAIT_GRANTED,
   TX_WITHDRAW_REQUEST_TRANSFER,
-  TX_WITHDRAW_ESTIMATE_GAS
+  TX_WITHDRAW_AWAIT_WITHDRAW_GRANTED,
+  TX_WITHDRAW_WITHDRAW_DTX,
+  TX_WITHDRAW_AWAIT_TRANSFER
 } from '../../components/wallet/WithdrawDtxDialog';
 
 export const WALLET_TYPES = {
@@ -180,8 +180,6 @@ export const WALLET_ACTIONS = {
   },
 
   withdrawTokens: (amount, recipient) => async dispatch => {
-    console.log('amount:', amount);
-    console.log('recipient:', recipient);
     if (!amount || !recipient) {
       dispatch({
         type: WALLET_TYPES.WITHDRAWING_TOKENS_ERROR,
@@ -196,12 +194,18 @@ export const WALLET_ACTIONS = {
     });
 
     try {
+      // STEP 1: verify balance
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
         index: TX_WITHDRAW_CHECK_BALANCE
       });
-
-      const { sender, databrokerDTX, databrokerWeb3 } = await connect(dispatch);
+      const {
+        sender,
+        databrokerDTX,
+        databrokerWeb3,
+        mainNetDTX,
+        web3
+      } = await connect(dispatch);
       const mainnetBalance = await bridgeAPI.getBalanceOf(
         databrokerDTX,
         recipient
@@ -210,17 +214,17 @@ export const WALLET_ACTIONS = {
         throw new Error('Balance too low');
       }
 
+      // STEP 2: request token transfer onto bridge (approveAndCall)
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
         index: TX_WITHDRAW_REQUEST_TRANSFER
       });
-      const response = await bridgeAPI.requestWithdrawal(amount);
-      console.log('REQUEST WITHDRAW RESPONSE', response);
-      const txHash = response.txHash;
+      const txHash = await bridgeAPI.requestWithdrawal(amount);
 
+      // STEP 3: await for withdrawal to be granted by the validators
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
-        index: TX_WITHDRAW_AWAIT_GRANTED
+        index: TX_WITHDRAW_AWAIT_WITHDRAW_GRANTED
       });
       const currentBlockNum = await databrokerWeb3.eth.getBlockNumber();
       const {
@@ -233,11 +237,14 @@ export const WALLET_ACTIONS = {
         txHash
       );
 
+      // STEP 4: effictively withdraw DTX from the homebridge onto the wallet
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
-        index: TX_WITHDRAW_ESTIMATE_GAS
+        index: TX_WITHDRAW_WITHDRAW_DTX
       });
-      const estimatedGas = await bridgeAPI.estimateWithdrawGasCosts(
+      const beforeWithdrawBlockNum = await web3.eth.getBlockNumber();
+      await bridgeAPI.executeWithdraw(
+        web3,
         sender,
         amount,
         withdrawBlock,
@@ -245,24 +252,18 @@ export const WALLET_ACTIONS = {
         r,
         s
       );
-      dispatch({
-        type: WALLET_TYPES.ESTIMATED_GAS,
-        estimatedGas
-      });
 
+      // STEP 5: await the DTX transfer
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
-        index: TX_WITHDRAW_REQUEST_WITHDRAW
+        index: TX_WITHDRAW_AWAIT_TRANSFER
       });
-      const withdrawResult = await bridgeAPI.executeWithdraw(
+      await bridgeAPI.waitForTransfer(
+        mainNetDTX,
         sender,
         amount,
-        withdrawBlock,
-        v,
-        r,
-        s
+        beforeWithdrawBlockNum
       );
-      console.log(withdrawResult);
 
       dispatch({
         type: WALLET_TYPES.WITHDRAWING_TOKENS,
