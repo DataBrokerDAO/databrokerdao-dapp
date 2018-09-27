@@ -135,6 +135,7 @@ export const WALLET_ACTIONS = {
         type: WALLET_TYPES.TRANSACTION_INDEX,
         index: TX_DEPOSIT_APPROVE
       });
+
       await bridgeAPI.approveDeposit(
         web3,
         mainNetDTX,
@@ -219,7 +220,7 @@ export const WALLET_ACTIONS = {
         type: WALLET_TYPES.TRANSACTION_INDEX,
         index: TX_WITHDRAW_REQUEST_TRANSFER
       });
-      const txHash = await bridgeAPI.requestWithdrawal(amount);
+      const txHash = await bridgeAPI.requestWithdrawal(amount, sender);
 
       // STEP 3: await for withdrawal to be granted by the validators
       dispatch({
@@ -253,7 +254,7 @@ export const WALLET_ACTIONS = {
         s
       );
 
-      // STEP 5: await the DTX transfer
+      // STEP 5: await the DTX transfer & balance update
       dispatch({
         type: WALLET_TYPES.TRANSACTION_INDEX,
         index: TX_WITHDRAW_AWAIT_TRANSFER
@@ -264,6 +265,13 @@ export const WALLET_ACTIONS = {
         amount,
         beforeWithdrawBlockNum
       );
+
+      const wallets = await axios(true).get('/wallet/balance?force=true');
+      const dtxWallet = wallets.data.DTX;
+      dispatch({
+        type: WALLET_TYPES.FETCH_WALLET,
+        wallet: dtxWallet
+      });
 
       dispatch({
         type: WALLET_TYPES.WITHDRAWING_TOKENS,

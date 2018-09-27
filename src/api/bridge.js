@@ -3,6 +3,7 @@ import * as DTXToken from '../assets/DTXToken.json';
 import * as HomeBridge from '../assets/HomeBridge.json';
 import * as ForeignBridge from '../assets/ForeignBridge.json';
 import { approveAndCallDtx, transactionReceipt } from './util';
+import { convertDtxToWei } from '../utils/transforms';
 
 const options = {
   HOME_TOKEN: process.env.REACT_APP_HOME_TOKEN,
@@ -21,11 +22,12 @@ export async function getDatabrokerWeb3() {
   return await new Web3(new Web3.providers.HttpProvider(options.FOREIGN_URL));
 }
 
-export async function requestWithdrawal(amount) {
+export async function requestWithdrawal(amount, recipient) {
   const receiptUrl = await approveAndCallDtx(
     options.FOREIGN_TOKEN,
     options.FOREIGN_BRIDGE,
-    amount
+    amount,
+    recipient
   );
   const receipt = await transactionReceipt(receiptUrl);
   return receipt.transactionHash;
@@ -100,8 +102,9 @@ export async function awaitWithdrawRequestSignatures(
   await waitForEvent({
     contract: bridge,
     event: 'WithdrawRequestGranted',
+    filter,
     fromBlock,
-    filter
+    timeoutMs: 6e5
   });
 
   const signatures = new Map();
@@ -134,31 +137,31 @@ export async function awaitWithdrawRequestSignatures(
   return { v, r, s, withdrawBlock };
 }
 
-export async function estimateWithdrawGasCosts(
-  web3,
-  from,
-  amount,
-  withdrawBlock,
-  v,
-  r,
-  s
-) {
-  const homeToken = await fetchMainNetDTX(web3);
-  const homeBridge = await this.fetchHomeBridge();
-  const call = homeBridge.methods.withdraw(
-    homeToken._address,
-    from,
-    amount,
-    withdrawBlock,
-    v,
-    r,
-    s
-  );
+// export async function estimateWithdrawGasCosts(
+//   web3,
+//   from,
+//   amount,
+//   withdrawBlock,
+//   v,
+//   r,
+//   s
+// ) {
+//   const homeToken = await fetchMainNetDTX(web3);
+//   const homeBridge = await this.fetchHomeBridge();
+//   const call = homeBridge.methods.withdraw(
+//     homeToken._address,
+//     from,
+//     amount,
+//     withdrawBlock,
+//     v,
+//     r,
+//     s
+//   );
 
-  const gasEstimate = await call.estimateGas();
-  const gasEstimateSafe = Math.ceil(gasEstimate * 2);
-  return gasEstimateSafe;
-}
+//   const gasEstimate = await call.estimateGas();
+//   const gasEstimateSafe = Math.ceil(gasEstimate * 2);
+//   return gasEstimateSafe;
+// }
 
 export async function executeWithdraw(
   web3,
@@ -174,14 +177,14 @@ export async function executeWithdraw(
   const call = homeBridge.methods.withdraw(
     homeToken._address,
     from,
-    amount,
+    convertDtxToWei(amount),
     withdrawBlock,
     v,
     r,
     s
   );
-
-  return await call.send({ from });
+  const result = await call.send({ from });
+  return result;
 }
 
 // Utils

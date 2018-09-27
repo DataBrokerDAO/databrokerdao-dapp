@@ -8,13 +8,15 @@ const anonymousAxiosClient = axios(null, true);
 export async function approveAndCallDtx(
   tokenAddress,
   spenderAddress,
-  amountInDtx
+  amountInDtx,
+  recipientAddress
 ) {
   const url = `/localdtxtoken/${tokenAddress}/approveandcall`;
   const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _spender: spenderAddress,
-    _value: convertDtxToWei(amountInDtx)
+    _value: convertDtxToWei(amountInDtx),
+    _data: recipientAddress
   });
 
   return `${url}/${response.data.uuid}`;

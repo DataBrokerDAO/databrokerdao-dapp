@@ -141,14 +141,7 @@ function mapDispatchToProps(dispatch) {
     logout: () => dispatch(AUTH_ACTIONS.logout()),
     clearErrors: () => dispatch(WALLET_ACTIONS.clearErrors()),
     fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance()),
-    fetchMainnetBalance: () => dispatch(WALLET_ACTIONS.fetchMainnetBalance()),
-    removeMePls: () =>
-      dispatch(
-        WALLET_ACTIONS.withdrawTokens(
-          10,
-          '0xfEA9698ce70e90CeE91D4C9148F9605c6CF1742C'
-        )
-      )
+    fetchMainnetBalance: () => dispatch(WALLET_ACTIONS.fetchMainnetBalance())
   };
 }
 

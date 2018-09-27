@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import LoginForm from '../authentication/LoginForm';
 import TransactionDialog from '../generic/TransactionDialog';
-import { convertDtxToWei, convertWeiToDtx } from '../../utils/transforms';
+import { convertWeiToDtx } from '../../utils/transforms';
 import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import { AUTH_ACTIONS } from '../../redux/authentication/actions';
 import styled from 'styled-components';
@@ -199,16 +199,17 @@ class WithdrawDtxDialog extends Component {
         stepIndex={this.state.stepIndex}
         nextStepHandler={this.finishStep.bind(this)}
         showContinue={
-          this.state.stepIndex !== STEP_AUTHENTICATION && !this.props.depositing
+          this.state.stepIndex !== STEP_AUTHENTICATION &&
+          !this.props.withdrawing
         }
         showTransactions={this.state.stepIndex === STEP_TRANSFER}
         transactions={this.state.transactions}
         transactionIndex={this.props.transactionIndex}
         transactionError={this.props.transactionError}
-        loading={this.props.depositing}
+        loading={this.props.withdrawing}
         done={
           this.state.stepIndex === STEP_TRANSFER &&
-          !this.props.depositing &&
+          !this.props.withdrawing &&
           !this.props.transactionError
         }
         modal={true}
@@ -216,7 +217,10 @@ class WithdrawDtxDialog extends Component {
         <div style={this.showOrHide(STEP_INTRO)}>
           <h1>DTX Token Withdraw </h1>
           <p>
-            Please note withdrawing DTX tokens to the Main network costs Gas.
+            Please note withdrawing DTX tokens requires you to first transfer
+            the tokens from your Databroker DAO wallet onto our ERC20
+            TokenBridge, after which a withdrawal can be made to transfer them
+            into mainnet walet. The latter entails a gas cost.
           </p>
         </div>
 
@@ -282,11 +286,13 @@ class WithdrawDtxDialog extends Component {
         </div>
 
         <div style={this.showOrHide(STEP_TRANSFER)}>
-          <h1>Transfering from ERC20 Token Bridge</h1>
+          <h1>Withdrawing from ERC20 Token Bridge</h1>
           <p>
-            It takes a while to transfer your DTX onto the Bridge because the
-            transaction needs to be taken up in a block on the mainnet after
-            which validator nodes need to sign off on all transactions.
+            It takes a while to withdraw your DTX tokens from the Bridge because
+            the transaction needs to be taken up in a block on the mainnet after
+            which the TokenBridgeValidator needs to sign off on all
+            transactions. Please do not close this window until you get
+            confirmation your withdrawal was a success.
           </p>
         </div>
       </TransactionDialog>

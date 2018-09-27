@@ -572,14 +572,14 @@
     "absolutePath": "/Users/peterjanbrone/databrokerdao/databrokerdao-dapi/contracts/token/DTXToken.sol",
     "exportedSymbols": {
       "DTXToken": [
-        2987
+        2992
       ]
     },
-    "id": 2988,
+    "id": 2993,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2968,
+        "id": 2973,
         "literals": [
           "solidity",
           "^",
@@ -592,10 +592,10 @@
       {
         "absolutePath": "/Users/peterjanbrone/databrokerdao/databrokerdao-dapi/contracts/external/MiniMeToken.sol",
         "file": "../external/MiniMeToken.sol",
-        "id": 2969,
+        "id": 2974,
         "nodeType": "ImportDirective",
-        "scope": 2988,
-        "sourceUnit": 2227,
+        "scope": 2993,
+        "sourceUnit": 2232,
         "src": "26:37:15",
         "symbolAliases": [],
         "unitAlias": ""
@@ -606,46 +606,46 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 2970,
+              "id": 2975,
               "name": "MiniMeToken",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2185,
+              "referencedDeclaration": 2190,
               "src": "87:11:15",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_MiniMeToken_$2185",
+                "typeIdentifier": "t_contract$_MiniMeToken_$2190",
                 "typeString": "contract MiniMeToken"
               }
             },
-            "id": 2971,
+            "id": 2976,
             "nodeType": "InheritanceSpecifier",
             "src": "87:11:15"
           }
         ],
         "contractDependencies": [
-          1153,
-          2185
+          1158,
+          2190
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 2987,
+        "id": 2992,
         "linearizedBaseContracts": [
-          2987,
-          2185,
-          1153
+          2992,
+          2190,
+          1158
         ],
         "name": "DTXToken",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 2985,
+              "id": 2990,
               "nodeType": "Block",
               "src": "473:2:15",
               "statements": []
             },
             "documentation": null,
-            "id": 2986,
+            "id": 2991,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -654,11 +654,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 2976,
+                    "id": 2981,
                     "name": "_tokenFactory",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2973,
+                    "referencedDeclaration": 2978,
                     "src": "170:13:15",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -668,7 +668,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "307830",
-                    "id": 2977,
+                    "id": 2982,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -686,7 +686,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "30",
-                    "id": 2978,
+                    "id": 2983,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -704,7 +704,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "446154612065586368616e676520546f6b656e",
-                    "id": 2979,
+                    "id": 2984,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -722,7 +722,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "3138",
-                    "id": 2980,
+                    "id": 2985,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -740,7 +740,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "445458",
-                    "id": 2981,
+                    "id": 2986,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -758,7 +758,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "74727565",
-                    "id": 2982,
+                    "id": 2987,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -774,17 +774,17 @@
                     "value": "true"
                   }
                 ],
-                "id": 2983,
+                "id": 2988,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 2975,
+                  "id": 2980,
                   "name": "MiniMeToken",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 2185,
+                  "referencedDeclaration": 2190,
                   "src": "152:11:15",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_type$_t_contract$_MiniMeToken_$2185_$",
+                    "typeIdentifier": "t_type$_t_contract$_MiniMeToken_$2190_$",
                     "typeString": "type(contract MiniMeToken)"
                   }
                 },
@@ -795,15 +795,15 @@
             "name": "DTXToken",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 2974,
+              "id": 2979,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2973,
+                  "id": 2978,
                   "name": "_tokenFactory",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2986,
+                  "scope": 2991,
                   "src": "122:21:15",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -812,7 +812,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2972,
+                    "id": 2977,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "122:7:15",
@@ -829,19 +829,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 2984,
+              "id": 2989,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "473:0:15"
             },
-            "scope": 2987,
+            "scope": 2992,
             "src": "104:371:15",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 2988,
+        "scope": 2993,
         "src": "66:412:15"
       }
     ],
@@ -851,14 +851,14 @@
     "absolutePath": "/Users/peterjanbrone/databrokerdao/databrokerdao-dapi/contracts/token/DTXToken.sol",
     "exportedSymbols": {
       "DTXToken": [
-        2987
+        2992
       ]
     },
-    "id": 2988,
+    "id": 2993,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2968,
+        "id": 2973,
         "literals": [
           "solidity",
           "^",
@@ -871,10 +871,10 @@
       {
         "absolutePath": "/Users/peterjanbrone/databrokerdao/databrokerdao-dapi/contracts/external/MiniMeToken.sol",
         "file": "../external/MiniMeToken.sol",
-        "id": 2969,
+        "id": 2974,
         "nodeType": "ImportDirective",
-        "scope": 2988,
-        "sourceUnit": 2227,
+        "scope": 2993,
+        "sourceUnit": 2232,
         "src": "26:37:15",
         "symbolAliases": [],
         "unitAlias": ""
@@ -885,46 +885,46 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 2970,
+              "id": 2975,
               "name": "MiniMeToken",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2185,
+              "referencedDeclaration": 2190,
               "src": "87:11:15",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_MiniMeToken_$2185",
+                "typeIdentifier": "t_contract$_MiniMeToken_$2190",
                 "typeString": "contract MiniMeToken"
               }
             },
-            "id": 2971,
+            "id": 2976,
             "nodeType": "InheritanceSpecifier",
             "src": "87:11:15"
           }
         ],
         "contractDependencies": [
-          1153,
-          2185
+          1158,
+          2190
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 2987,
+        "id": 2992,
         "linearizedBaseContracts": [
-          2987,
-          2185,
-          1153
+          2992,
+          2190,
+          1158
         ],
         "name": "DTXToken",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "body": {
-              "id": 2985,
+              "id": 2990,
               "nodeType": "Block",
               "src": "473:2:15",
               "statements": []
             },
             "documentation": null,
-            "id": 2986,
+            "id": 2991,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -933,11 +933,11 @@
                 "arguments": [
                   {
                     "argumentTypes": null,
-                    "id": 2976,
+                    "id": 2981,
                     "name": "_tokenFactory",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 2973,
+                    "referencedDeclaration": 2978,
                     "src": "170:13:15",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -947,7 +947,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "307830",
-                    "id": 2977,
+                    "id": 2982,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -965,7 +965,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "30",
-                    "id": 2978,
+                    "id": 2983,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -983,7 +983,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "446154612065586368616e676520546f6b656e",
-                    "id": 2979,
+                    "id": 2984,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -1001,7 +1001,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "3138",
-                    "id": 2980,
+                    "id": 2985,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -1019,7 +1019,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "445458",
-                    "id": 2981,
+                    "id": 2986,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -1037,7 +1037,7 @@
                   {
                     "argumentTypes": null,
                     "hexValue": "74727565",
-                    "id": 2982,
+                    "id": 2987,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -1053,17 +1053,17 @@
                     "value": "true"
                   }
                 ],
-                "id": 2983,
+                "id": 2988,
                 "modifierName": {
                   "argumentTypes": null,
-                  "id": 2975,
+                  "id": 2980,
                   "name": "MiniMeToken",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 2185,
+                  "referencedDeclaration": 2190,
                   "src": "152:11:15",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_type$_t_contract$_MiniMeToken_$2185_$",
+                    "typeIdentifier": "t_type$_t_contract$_MiniMeToken_$2190_$",
                     "typeString": "type(contract MiniMeToken)"
                   }
                 },
@@ -1074,15 +1074,15 @@
             "name": "DTXToken",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 2974,
+              "id": 2979,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2973,
+                  "id": 2978,
                   "name": "_tokenFactory",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2986,
+                  "scope": 2991,
                   "src": "122:21:15",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1091,7 +1091,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2972,
+                    "id": 2977,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "122:7:15",
@@ -1108,19 +1108,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 2984,
+              "id": 2989,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "473:0:15"
             },
-            "scope": 2987,
+            "scope": 2992,
             "src": "104:371:15",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 2988,
+        "scope": 2993,
         "src": "66:412:15"
       }
     ],
@@ -1130,26 +1130,7 @@
     "name": "solc",
     "version": "0.4.24+commit.e67f0147.Emscripten.clang"
   },
-  "networks": {
-    "1": {
-      "events": {},
-      "links": {},
-      "address": "0x765f0c16d1ddc279295c1a7c24b0883f62d33f75",
-      "transactionHash": "0x69f6b3dec9196e1a5838c0c52200fe285897d533894ef48afc205ad904e55c99"
-    },
-    "5777": {
-      "events": {},
-      "links": {},
-      "address": "0xc83ed81044767cde7b8c4c297b69e8d9a723adb6",
-      "transactionHash": "0x7496d72dc75e4602b17871fb399dd1d1a0cdaa2826e247d9589e793402ca3594"
-    },
-    "8995": {
-      "events": {},
-      "links": {},
-      "address": "0x052f6f020a55c2db7264f03246bf4dd0b48e1a77",
-      "transactionHash": "0xd5031a3522f5da8e4d312214599f9dd0deae5f5284b5ef1a545f5e5d564a372b"
-    }
-  },
+  "networks": {},
   "schemaVersion": "3.0.0-beta.0",
-  "updatedAt": "2018-09-25T12:45:58.985Z"
+  "updatedAt": "2018-09-25T20:11:46.465Z"
 }
