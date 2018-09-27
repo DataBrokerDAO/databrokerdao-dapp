@@ -25,7 +25,7 @@ export default function getAxios(
     });
   } else if (anonymous) {
     const anonymousJWTToken =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3YWxsZXRJZCI6IjViOTY2MWRkOGZkNzZiMDAyNTlmNmZiZCIsImlhdCI6MTUzNjU4MjE0OH0.TXY-FCjgn_T7EVPaJtWSLs3G2rfpgXjyraxz8CHoxX4';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1YmFjYjBiZDkyOWM4ZDAwMjVkOGI5ZmEiLCJpYXQiOjE1MzgwNDQxMjN9.pI4WOEmFZpGEdfzuavuZbmLIrQuN9TXaCVrpaGjmNkk';
     instance = axios.create({
       baseURL: process.env.REACT_APP_DAPI_URL,
       headers: { Authorization: anonymousJWTToken }
