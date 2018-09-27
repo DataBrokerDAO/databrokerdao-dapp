@@ -97,7 +97,7 @@ class ChallengeSensorDialog extends Component {
   }
 
   componentDidMount() {
-    this.props.fetchWallet();
+    this.props.fetchDBDAOBalance();
   }
 
   finishStep(step) {
@@ -290,7 +290,7 @@ function mapDispatchToProps(dispatch) {
     clearErrors: () => dispatch(SENSORS_ACTIONS.clearErrors()),
     challengeSensor: (stream, reason, amount) =>
       dispatch(SENSORS_ACTIONS.challengeSensor(stream, reason, amount)),
-    fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())
+    fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance())
   };
 }
 

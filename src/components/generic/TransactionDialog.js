@@ -212,10 +212,10 @@ export default class TransactionDialog extends Component {
                 this.props.nextStepHandler(this.props.stepIndex)
               }
             >
-              {this.props.done
-                ? 'Done'
-                : this.props.transactionError
-                  ? 'Cancel'
+              {this.props.transactionError
+                ? 'Cancel'
+                : this.props.done
+                  ? 'Done'
                   : 'Continue'}
             </Button>
           )}

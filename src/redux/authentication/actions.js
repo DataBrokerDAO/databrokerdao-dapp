@@ -12,7 +12,7 @@ export const AUTH_ACTIONS = {
     return async (dispatch, getState) => {
       const axiosClient = axios();
       try {
-        const retrieveResponse = await axiosClient.post('/accounts', {
+        const retrieveResponse = await axiosClient.post('/users', {
           username: encodeURIComponent(values.email),
           password: encodeURIComponent(values.password)
         });
@@ -55,7 +55,7 @@ export const AUTH_ACTIONS = {
       const axiosClient = axios();
       try {
         const retrieveResponse = await axiosClient.post(
-          '/accounts/authenticate',
+          '/users/authenticate',
           {
             username: encodeURIComponent(values.email),
             password: encodeURIComponent(values.password)

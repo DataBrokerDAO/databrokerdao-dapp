@@ -1,16 +1,36 @@
 import axios from '../../utils/axios';
-import { dtxMint, transactionReceipt } from '../../api/util';
+import * as bridgeAPI from '../../api/bridge';
+import {
+  TX_DEPOSIT_CHECK_BALANCE,
+  TX_DEPOSIT_APPROVE,
+  TX_DEPOSIT_TRANSFER
+} from '../../components/wallet/DepositDtxDialog';
 import { ERROR_TYPES } from '../errors/actions';
 import {
-  TX_MINTING,
-  TX_VERIFY_MINT,
-  TX_ENSURE_MINTING
-} from '../../components/wallet/MintConfirmationDialog';
+  TX_WITHDRAW_CHECK_BALANCE,
+  TX_WITHDRAW_REQUEST_TRANSFER,
+  TX_WITHDRAW_AWAIT_WITHDRAW_GRANTED,
+  TX_WITHDRAW_WITHDRAW_DTX,
+  TX_WITHDRAW_AWAIT_TRANSFER
+} from '../../components/wallet/WithdrawDtxDialog';
 
 export const WALLET_TYPES = {
   FETCH_WALLET: 'FETCH_WALLET',
+
   FETCHING_WALLET: 'FETCHING_WALLET',
-  MINTING_TOKENS: 'MINTING_TOKENS',
+  FETCHING_WALLET_ERROR: 'FETCHING_WALLET_ERROR',
+
+  PROVIDER_CONNECTED: 'PROVIDER_CONNECTED',
+
+  FETCHING_SENDER_BALANCE: 'FETCHING_SENDER_BALANCE',
+  FETCHING_SENDER_BALANCE_ERROR: 'FETCHING_SENDER_BALANCE_ERROR',
+
+  DEPOSITING_TOKENS: 'DEPOSITING_TOKENS',
+  DEPOSITING_TOKENS_ERROR: 'DEPOSITING_TOKENS_ERROR',
+
+  ESTIMATED_GAS: 'ESTIMATED_GAS',
+  WITHDRAWING_TOKENS: 'WITHDRAWING_TOKENS',
+  WITHDRAWING_TOKENS_ERROR: 'WITHDRAWING_TOKENS_ERROR',
 
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
   TRANSACTION_ERROR: 'TRANSACTION_ERROR',
@@ -27,7 +47,7 @@ export const WALLET_ACTIONS = {
     };
   },
 
-  fetchWallet: () => {
+  fetchDBDAOBalance: () => {
     return async (dispatch, getState) => {
       dispatch({
         type: WALLET_TYPES.FETCHING_WALLET,
@@ -48,56 +68,259 @@ export const WALLET_ACTIONS = {
             error
           });
         }
+        dispatch({
+          type: WALLET_TYPES.FETCHING_WALLET_ERROR,
+          error
+        });
         console.log(error);
       }
     };
   },
-  mintTokens: amount => {
-    return async (dispatch, getState) => {
-      try {
-        dispatch({
-          type: WALLET_TYPES.MINTING_TOKENS,
-          value: true
-        });
 
-        dispatch({
-          type: WALLET_TYPES.TRANSACTION_INDEX,
-          index: TX_MINTING
-        });
-        const receiptUrl = await dtxMint(amount);
+  fetchMainnetBalance: () => async dispatch => {
+    dispatch({ type: WALLET_TYPES.FETCHING_SENDER_BALANCE, value: true });
 
-        dispatch({
-          type: WALLET_TYPES.TRANSACTION_INDEX,
-          index: TX_ENSURE_MINTING
-        });
-        await transactionReceipt(receiptUrl);
+    try {
+      const { sender, mainNetDTX } = await connect(dispatch);
+      const balance = await bridgeAPI.getBalanceOf(mainNetDTX, sender);
+      dispatch({
+        type: WALLET_TYPES.FETCHING_SENDER_BALANCE,
+        value: false,
+        mainnetBalance: balance.toString(10)
+      });
+    } catch (error) {
+      dispatch({
+        type: WALLET_TYPES.FETCHING_SENDER_BALANCE_ERROR,
+        error
+      });
+    }
+  },
 
-        dispatch({
-          type: WALLET_TYPES.TRANSACTION_INDEX,
-          index: TX_VERIFY_MINT
-        });
-        const response = await axios(true).get('/wallet/balance?force=true');
+  depositTokens: (amount, recipient) => async dispatch => {
+    if (!amount || !recipient) {
+      dispatch({
+        type: WALLET_TYPES.DEPOSITING_TOKENS_ERROR,
+        error: new Error('Amount and recipient are required to deposit')
+      });
+      return;
+    }
 
-        dispatch({
-          type: WALLET_TYPES.MINTING_TOKENS,
-          value: false
-        });
-        dispatch({
-          type: WALLET_TYPES.FETCH_WALLET,
-          wallet: response.data.DTX
-        });
-      } catch (error) {
-        if (error && error.response && error.response.status === 401) {
-          dispatch({
-            type: ERROR_TYPES.AUTHENTICATION_ERROR,
-            error
-          });
-        }
-        dispatch({
-          type: WALLET_TYPES.TRANSACTION_ERROR,
-          error
-        });
+    dispatch({
+      type: WALLET_TYPES.DEPOSITING_TOKENS,
+      value: true,
+      amount,
+      recipient
+    });
+
+    try {
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_DEPOSIT_CHECK_BALANCE
+      });
+
+      const {
+        web3,
+        sender,
+        mainNetDTX,
+        databrokerDTX,
+        databrokerWeb3
+      } = await connect(dispatch);
+
+      const mainnetBalance = await bridgeAPI.getBalanceOf(mainNetDTX, sender);
+      if (mainnetBalance < amount) {
+        throw new Error('Balance too low');
       }
-    };
+
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_DEPOSIT_APPROVE
+      });
+
+      await bridgeAPI.approveDeposit(
+        web3,
+        mainNetDTX,
+        sender,
+        recipient,
+        amount
+      );
+
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_DEPOSIT_TRANSFER
+      });
+      const currentBlockNum = await databrokerWeb3.eth.getBlockNumber();
+      await bridgeAPI.waitForTransfer(
+        databrokerDTX,
+        recipient,
+        amount,
+        currentBlockNum
+      );
+
+      const wallets = await axios(true).get('/wallet/balance?force=true');
+      const dtxWallet = wallets.data.DTX;
+      dispatch({
+        type: WALLET_TYPES.FETCH_WALLET,
+        wallet: dtxWallet
+      });
+
+      dispatch({
+        type: WALLET_TYPES.DEPOSITING_TOKENS,
+        value: false
+      });
+    } catch (error) {
+      dispatch({
+        type: WALLET_TYPES.DEPOSITING_TOKENS_ERROR,
+        error
+      });
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_ERROR,
+        error
+      });
+      console.log(error);
+    }
+  },
+
+  withdrawTokens: (amount, recipient) => async dispatch => {
+    if (!amount || !recipient) {
+      dispatch({
+        type: WALLET_TYPES.WITHDRAWING_TOKENS_ERROR,
+        error: new Error('Amount and recipient are required to withdraw')
+      });
+      return;
+    }
+
+    dispatch({
+      type: WALLET_TYPES.WITHDRAWING_TOKENS,
+      value: true
+    });
+
+    try {
+      // STEP 1: verify balance
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_CHECK_BALANCE
+      });
+      const {
+        sender,
+        databrokerDTX,
+        databrokerWeb3,
+        mainNetDTX,
+        web3
+      } = await connect(dispatch);
+      const mainnetBalance = await bridgeAPI.getBalanceOf(
+        databrokerDTX,
+        recipient
+      );
+      if (mainnetBalance < amount) {
+        throw new Error('Balance too low');
+      }
+
+      // STEP 2: request token transfer onto bridge (approveAndCall)
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_REQUEST_TRANSFER
+      });
+      const txHash = await bridgeAPI.requestWithdrawal(amount, sender);
+
+      // STEP 3: await for withdrawal to be granted by the validators
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_AWAIT_WITHDRAW_GRANTED
+      });
+      const currentBlockNum = await databrokerWeb3.eth.getBlockNumber();
+      const {
+        v,
+        r,
+        s,
+        withdrawBlock
+      } = await bridgeAPI.awaitWithdrawRequestSignatures(
+        currentBlockNum,
+        txHash
+      );
+
+      // STEP 4: effictively withdraw DTX from the homebridge onto the wallet
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_WITHDRAW_DTX
+      });
+      const beforeWithdrawBlockNum = await web3.eth.getBlockNumber();
+      await bridgeAPI.executeWithdraw(
+        web3,
+        sender,
+        amount,
+        withdrawBlock,
+        v,
+        r,
+        s
+      );
+
+      // STEP 5: await the DTX transfer & balance update
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_INDEX,
+        index: TX_WITHDRAW_AWAIT_TRANSFER
+      });
+      await bridgeAPI.waitForTransfer(
+        mainNetDTX,
+        sender,
+        amount,
+        beforeWithdrawBlockNum
+      );
+
+      const wallets = await axios(true).get('/wallet/balance?force=true');
+      const dtxWallet = wallets.data.DTX;
+      dispatch({
+        type: WALLET_TYPES.FETCH_WALLET,
+        wallet: dtxWallet
+      });
+
+      dispatch({
+        type: WALLET_TYPES.WITHDRAWING_TOKENS,
+        value: false
+      });
+    } catch (error) {
+      dispatch({
+        type: WALLET_TYPES.WITHDRAWING_TOKENS_ERROR,
+        error
+      });
+      dispatch({
+        type: WALLET_TYPES.TRANSACTION_ERROR,
+        error
+      });
+      console.log(error);
+    }
   }
 };
+
+async function connectToProvider() {
+  const web3 = await bridgeAPI.getMainNetWeb3();
+  const databrokerWeb3 = await bridgeAPI.getDatabrokerWeb3();
+  const sender = await bridgeAPI.fetchAccount(web3);
+
+  if (!sender) {
+    throw new Error('Provider connected but no account found');
+  }
+
+  const mainNetDTX = await bridgeAPI.fetchMainNetDTX(web3);
+  const databrokerDTX = await bridgeAPI.fetchDatabrokerDTX(databrokerWeb3);
+
+  return { web3, sender, mainNetDTX, databrokerWeb3, databrokerDTX };
+}
+
+async function connect(dispatch) {
+  let result;
+  while (true) {
+    try {
+      result = await connectToProvider();
+      break;
+    } catch (err) {
+      await bridgeAPI.timeout(5e3);
+    }
+  }
+
+  dispatch({
+    type: WALLET_TYPES.PROVIDER_CONNECTED,
+    address: result.sender
+  });
+
+  return result;
+}

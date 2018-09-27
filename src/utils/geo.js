@@ -34,9 +34,10 @@ export async function fetchLocation(lat, lng) {
 
 export async function getGeolocationByAddress(address) {
   const unAuthenticatedAxiosClient = axios(false, true, true);
-  const data = await unAuthenticatedAxiosClient.get(
+  const response = await unAuthenticatedAxiosClient.get(
     `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${APIKey}&result_type=locality`
   );
-  const geoLocation = data.results.shift().geometry.location;
+
+  const geoLocation = response.data.results.shift().geometry.location;
   return geoLocation;
 }

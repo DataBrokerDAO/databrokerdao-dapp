@@ -59,6 +59,7 @@
     "semantic-release": "^12.4.1",
     "styled-components": "^3.2.3",
     "supercluster": "^3.0.2",
+    "web3": "^1.0.0-beta.35",
     "webfontloader": "^1.6.28",
     "webpack-bundle-analyzer": "^2.13.1",
     "yup": "^0.24.1"

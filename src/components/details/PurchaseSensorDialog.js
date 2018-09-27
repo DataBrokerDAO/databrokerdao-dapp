@@ -99,7 +99,7 @@ class PurchaseSensorDialog extends Component {
   }
 
   componentDidMount() {
-    this.props.fetchWallet();
+    this.props.fetchDBDAOBalance();
   }
 
   finishStep(step) {
@@ -199,7 +199,7 @@ class PurchaseSensorDialog extends Component {
           <LoginForm
             login={this.props.login}
             callBack={async () => {
-              await this.props.fetchWallet();
+              await this.props.fetchDBDAOBalance();
               this.finishStep(STEP_AUTHENTICATION);
             }}
           />
@@ -292,7 +292,7 @@ function mapDispatchToProps(dispatch) {
     login: (values, settings) => dispatch(AUTH_ACTIONS.login(values, settings)),
     purchaseAccess: (stream, endTime) =>
       dispatch(PURCHASES_ACTIONS.purchaseAccess(stream, endTime)),
-    fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
+    fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance()),
     fetchPurchase: sensor =>
       dispatch(PURCHASES_ACTIONS.fetchPurchase(null, sensor, purchaser)),
     clearErrors: () => dispatch(PURCHASES_ACTIONS.clearErrors())

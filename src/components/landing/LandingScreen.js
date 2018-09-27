@@ -9,7 +9,7 @@ import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 
 class LandingScreen extends Component {
   componentDidMount() {
-    if (this.props.token) this.props.fetchWallet();
+    if (this.props.token) this.props.fetchDBDAOBalance();
   }
 
   render() {
@@ -33,7 +33,7 @@ const mapStateToProps = state => ({
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet())
+    fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance())
   };
 }
 

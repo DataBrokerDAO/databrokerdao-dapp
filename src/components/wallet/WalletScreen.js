@@ -11,24 +11,35 @@ import { WALLET_ACTIONS } from '../../redux/wallet/actions';
 import TitleCTAButton from '../generic/TitleCTAButton';
 import localStorage from '../../localstorage';
 import { convertWeiToDtx } from '../../utils/transforms';
-import MintConfirmationDialog from './MintConfirmationDialog';
+import DepositDtxDialog from './DepositDtxDialog';
+import WithdrawDtxDialog from './WithdrawDtxDialog';
 
 class WalletScreen extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      MintConfirmationDialogVisible: false
+      DepositDtxDialogVisible: false,
+      WithdrawDtxDialogVisible: false
     };
   }
 
   componentDidMount() {
-    this.props.fetchWallet();
+    this.props.fetchDBDAOBalance();
+    this.props.fetchMainnetBalance();
   }
 
-  toggleConfirmationDialog() {
+  toggleDepositDtxDialog() {
+    this.props.clearErrors();
     this.setState({
-      MintConfirmationDialogVisible: !this.state.MintConfirmationDialogVisible
+      DepositDtxDialogVisible: !this.state.DepositDtxDialogVisible
+    });
+  }
+
+  toggleWithdrawDtxDialog() {
+    this.props.clearErrors();
+    this.setState({
+      WithdrawDtxDialogVisible: !this.state.WithdrawDtxDialogVisible
     });
   }
 
@@ -72,15 +83,26 @@ class WalletScreen extends Component {
           <CardContent>
             <StyledTitleContainer>
               <h1>DTX balance: {DTXBalance}</h1>
-              <TitleCTAButton
-                flat
-                primary
-                swapTheming
-                disabled={this.props.minting}
-                onClick={this.toggleConfirmationDialog.bind(this)}
-              >
-                Fund wallet
-              </TitleCTAButton>
+              <div>
+                <TitleCTAButton
+                  flat
+                  primary
+                  swapTheming
+                  disabled={this.props.depositing}
+                  onClick={this.toggleDepositDtxDialog.bind(this)}
+                >
+                  Deposit
+                </TitleCTAButton>
+                <TitleCTAButton
+                  flat
+                  primary
+                  swapTheming
+                  disabled={this.props.withdrawing}
+                  onClick={this.toggleWithdrawDtxDialog.bind(this)}
+                >
+                  Withdraw
+                </TitleCTAButton>
+              </div>
             </StyledTitleContainer>
             <DesktopAddress>Address: {address}</DesktopAddress>
             <MobileAddress>Address: {shortAddress}</MobileAddress>
@@ -92,9 +114,13 @@ class WalletScreen extends Component {
             </p>
           </CardContent>
         </CenteredCard>
-        <MintConfirmationDialog
-          visible={this.state.MintConfirmationDialogVisible}
-          hideEventHandler={() => this.toggleConfirmationDialog()}
+        <DepositDtxDialog
+          visible={this.state.DepositDtxDialogVisible}
+          hideEventHandler={() => this.toggleDepositDtxDialog()}
+        />
+        <WithdrawDtxDialog
+          visible={this.state.WithdrawDtxDialogVisible}
+          hideEventHandler={() => this.toggleWithdrawDtxDialog()}
         />
       </div>
     );
@@ -105,15 +131,17 @@ const mapStateToProps = state => ({
   token: state.auth.token,
   balance: state.wallet.wallet.balance,
   fetchingWallet: state.wallet.fetchingWallet,
-  minting: state.wallet.minting,
+  depositing: state.wallet.depositing,
+  withdrawing: state.wallet.withdrawing,
   stepIndex: state.wallet.stepIndex
 });
 
 function mapDispatchToProps(dispatch) {
   return {
     logout: () => dispatch(AUTH_ACTIONS.logout()),
-    fetchWallet: () => dispatch(WALLET_ACTIONS.fetchWallet()),
-    mintTokens: amount => dispatch(WALLET_ACTIONS.mintTokens(amount))
+    clearErrors: () => dispatch(WALLET_ACTIONS.clearErrors()),
+    fetchDBDAOBalance: () => dispatch(WALLET_ACTIONS.fetchDBDAOBalance()),
+    fetchMainnetBalance: () => dispatch(WALLET_ACTIONS.fetchMainnetBalance())
   };
 }
 

@@ -3,8 +3,9 @@ import styled from 'styled-components';
 import { Button } from 'react-md';
 
 export default class TitleCTAButton extends Component {
-  render(){
+  render() {
     const StyledButton = styled(Button)`
+      margin-left: 10px;
       margin-top: 10px;
       font-size: 13px;
 
@@ -15,8 +16,15 @@ export default class TitleCTAButton extends Component {
       }
     `;
 
-    return(
-      <StyledButton flat primary swapTheming onClick={event => this.props.onClick(event)} disabled={this.props.disabled} className={this.props.disabled?"disabled-button":""}>
+    return (
+      <StyledButton
+        flat
+        primary
+        swapTheming
+        onClick={event => this.props.onClick(event)}
+        disabled={this.props.disabled}
+        className={this.props.disabled ? 'disabled-button' : ''}
+      >
         {this.props.children}
       </StyledButton>
     );
