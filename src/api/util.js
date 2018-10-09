@@ -23,7 +23,7 @@ export async function approveAndCallDtx(
 }
 
 export async function approveDtx(dtxTokenAddress, spenderAddress, amountInDtx) {
-  const url = `/dtxtoken/${dtxTokenAddress}/approve`;
+  const url = `/localdtxtoken/${dtxTokenAddress}/approve`;
   const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _spender: spenderAddress,
@@ -202,9 +202,11 @@ export async function transactionReceipt(url) {
 }
 
 function getDtxTokenAddress() {
-  return anonymousAxiosClient.get('/dtxtokenregistry/list').then(response => {
-    return response.data.items[0].contractAddress;
-  });
+  return anonymousAxiosClient
+    .get('/localdtxtokenregistry/list')
+    .then(response => {
+      return response.data.items[0].contractAddress;
+    });
 }
 
 function getSensorRegistryAddress() {
