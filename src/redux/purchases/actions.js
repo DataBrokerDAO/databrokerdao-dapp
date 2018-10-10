@@ -93,8 +93,8 @@ export const PURCHASES_ACTIONS = {
         if (endTime === 0) {
           purchasePrice = stream.price;
         } else {
-          const durationMs = moment(endTime).diff(moment());
-          purchasePrice = (stream.price * durationMs) / 1000;
+          const durationS = moment(endTime).diff(moment()) / 1000;
+          purchasePrice = stream.price * durationS;
         }
 
         const metadataHash = await getIpfsHashForMetadata({
