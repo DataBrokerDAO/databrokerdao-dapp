@@ -254,7 +254,7 @@ export default class EnlistForm extends Component {
             example: values.example,
             sensorid: [values.name, values.type, moment.now()].join('_'),
             updateinterval: values.updateinterval,
-            price: values.price / values.updateinterval,
+            price: values.price,
             stake: values.stake
           }
         });
