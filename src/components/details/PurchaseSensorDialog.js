@@ -258,14 +258,10 @@ class PurchaseSensorDialog extends Component {
   calculatePurchasePrice() {
     let purchasePrice;
     if (this.props.sensor.updateinterval) {
-      const now = moment();
-      const intervalMs = this.props.sensor.updateinterval;
-      const durationMs = moment(this.state.purchaseEndTime).diff(now);
-      const numIntervals = Math.ceil(durationMs / intervalMs);
-
-      purchasePrice = BigNumber(this.props.sensor.price).multipliedBy(
-        numIntervals
-      );
+      const durationMs = moment(this.state.purchaseEndTime).diff(moment());
+      purchasePrice = BigNumber(this.props.sensor.price)
+        .multipliedBy(durationMs)
+        .div(1000);
     } else {
       purchasePrice = BigNumber(this.props.sensor.price);
     }

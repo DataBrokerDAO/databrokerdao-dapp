@@ -134,7 +134,8 @@ class StreamDetailsScreen extends Component {
       // Not a JSON example - OK no problem
     }
 
-    const price = convertWeiToDtx(stream.price);
+    const intervalInS = stream.updateinterval / 1000;
+    const price = convertWeiToDtx(intervalInS * stream.price);
     const stake = convertWeiToDtx(stream.stake);
 
     const address = localStorage.getItem('address');
