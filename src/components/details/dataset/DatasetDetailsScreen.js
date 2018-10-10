@@ -144,14 +144,7 @@ class DatasetDetailsScreen extends Component {
       // Not a JSON example - OK no problem
     }
 
-    const price = dataset.updateinterval
-      ? convertWeiToDtx(
-          BigNumber(dataset.price)
-            .multipliedBy(dataset.updateinterval)
-            .div(1000)
-        )
-      : convertWeiToDtx(dataset.price);
-
+    const price = convertWeiToDtx(dataset.price);
     const stake = convertWeiToDtx(dataset.stake);
 
     const address = localStorage.getItem('address');
