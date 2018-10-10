@@ -256,15 +256,14 @@ class PurchaseSensorDialog extends Component {
   }
 
   calculatePurchasePrice() {
-    let purchasePrice;
-    if (this.props.sensor.updateinterval) {
-      const durationMs = moment(this.state.purchaseEndTime).diff(moment());
-      purchasePrice = BigNumber(this.props.sensor.price)
-        .multipliedBy(durationMs)
-        .div(1000);
-    } else {
-      purchasePrice = BigNumber(this.props.sensor.price);
-    }
+    const durationSeconds =
+      moment(this.state.purchaseEndTime).diff(moment()) / 1000;
+
+    // Only multiply price by duration when it's not a forever-purchase:
+    // when there is an updateinterval
+    const purchasePrice = this.props.sensor.updateinterval
+      ? BigNumber(this.props.sensor.price).multipliedBy(durationSeconds)
+      : BigNumber(this.props.sensor.price);
 
     return purchasePrice;
   }
