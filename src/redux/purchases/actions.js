@@ -93,7 +93,7 @@ export const PURCHASES_ACTIONS = {
         if (endTime === 0) {
           purchasePrice = stream.price;
         } else {
-          const durationS = moment(endTime).diff(moment()) / 1000;
+          const durationS = Math.ceil(moment(endTime).diff(moment()) / 1000);
           purchasePrice = stream.price * durationS;
         }
 
