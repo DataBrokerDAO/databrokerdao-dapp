@@ -20,7 +20,7 @@ node_js:
 
 before_install:
   - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-  - npm install -g npm@5
+  - npm install -g npm@6.4.1
 
 after_success:
   - npm run semantic-release
