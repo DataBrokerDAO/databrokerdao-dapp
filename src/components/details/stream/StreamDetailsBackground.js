@@ -30,19 +30,23 @@ export default class StreamDetailsBackground extends Component {
     return (
       <div>
         <MapErrorBoundary>
-        {
-          (error) => {
-            return <DetailsMap
-              googleMapURL={!error.message ? `https://maps.googleapis.com/maps/api/js?v=3.exp&key=${APIKey}` : `https://maps.google.cn/maps/api/js?v=3.exp&key=${APIKey}`}
-              loadingElement={<div style={mapElementsStyle} />}
-              containerElement={
-                <div style={{ zIndex: '-1', ...mapElementsStyle }} />
-              }
-              mapElement={<div style={mapElementsStyle} />}
-              stream={this.props.stream}
-            />
-          }
-        }
+          {error => {
+            return (
+              <DetailsMap
+                googleMapURL={
+                  !error.message
+                    ? `https://maps.googleapis.com/maps/api/js?v=3.3.33&key=${APIKey}`
+                    : `https://maps.google.cn/maps/api/js?v=3.3.33&key=${APIKey}`
+                }
+                loadingElement={<div style={mapElementsStyle} />}
+                containerElement={
+                  <div style={{ zIndex: '-1', ...mapElementsStyle }} />
+                }
+                mapElement={<div style={mapElementsStyle} />}
+                stream={this.props.stream}
+              />
+            );
+          }}
         </MapErrorBoundary>
         <StyledGradient />
       </div>

@@ -18,7 +18,7 @@ class LandingMap extends Component {
     const script = document.createElement('script');
 
     script.src =
-      'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&key=AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
+      'https://maps.googleapis.com/maps/api/js?v=3.33&libraries=places&key=AIzaSyBv4e2Uj5ZFp82G8QXKfYv7Ea3YutD4eTg';
     script.async = true;
     document.body.appendChild(script);
 

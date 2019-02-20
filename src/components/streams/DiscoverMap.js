@@ -59,26 +59,28 @@ class DiscoverMap extends Component {
     const lat = this.state.mapRef.getCenter().lat();
     const lng = this.state.mapRef.getCenter().lng();
     const bounds = this.state.mapRef.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
     //Distance = distance between top left and bottom right corner, so twice distance from center.
     //This means we fetch streams in a circle twice the bounds of map, in which user can pan around without having to fetch new streams from dapi
     const distance = this.distanceInMeter(
-      bounds.f.f,
-      bounds.b.b,
-      bounds.f.b,
-      bounds.b.f
+      ne.lat(),
+      ne.lng(),
+      sw.lat(),
+      sw.lng()
     );
     const zoom = this.state.mapRef.getZoom();
 
     //Only get new streams if new map bounds are further away than distance from center of last time we got streams from server
     const distanceTopLeftToPreviousCenter = this.distanceInMeter(
-      bounds.f.f,
-      bounds.b.b,
+      ne.lat(),
+      ne.lng(),
       this.props.map.fetchLat,
       this.props.map.fetchLng
     );
     const distanceBottomRightToPreviousCenter = this.distanceInMeter(
-      bounds.f.b,
-      bounds.b.f,
+      sw.lat(),
+      sw.lng(),
       this.props.map.fetchLat,
       this.props.map.fetchLng
     );
@@ -126,10 +128,11 @@ class DiscoverMap extends Component {
     //Only render markers and clusters within 1.25 times diagonal of screen
     //So if you zoom in you don't render streams that cannot be seen (= clipping)
     const bounds = this.state.mapRef.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
     const nearbyClusters = filter(clusters, cluster => {
       const distance =
-        (this.distanceInMeter(bounds.f.f, bounds.b.b, bounds.f.b, bounds.b.f) /
-          2) *
+        (this.distanceInMeter(ne.lat(), ne.lng(), sw.lat(), sw.lng()) / 2) *
         1.25; //divide by 2 to get distance from center, then *1.25 to have slightly larger circle
       const mapCenter = this.state.mapRef.getCenter();
       const clusterDistance = this.distanceInMeter(
