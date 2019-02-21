@@ -75,6 +75,7 @@ module.exports = {
     /peer-id/,
     /ipfs-block/,
     /ipfs-unixfs/,
-    /p-iteration/
+    /p-iteration/,
+    /web3-utils/
   ]
 };

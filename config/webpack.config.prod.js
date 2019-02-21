@@ -121,12 +121,7 @@ module.exports = {
             loader: require.resolve('eslint-loader')
           }
         ],
-        include: [
-          paths.appSrc,
-          ...['web3-utils', 'eslint-loader', 'eth-lib'].map(
-            moduleName => `${paths.appNodeModules}/${moduleName}`
-          )
-        ]
+        include: paths.appSrc
       },
       {
         // "oneOf" will traverse all following loaders until one will
