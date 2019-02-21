@@ -123,7 +123,7 @@ module.exports = {
         ],
         include: [
           paths.appSrc,
-          ...['web3-utils', 'eth-lib'].map(
+          ...['web3-utils', 'eslint-loader', 'eth-lib'].map(
             moduleName => `${paths.appNodeModules}/${moduleName}`
           )
         ]
