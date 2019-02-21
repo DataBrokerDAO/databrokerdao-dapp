@@ -189,10 +189,7 @@ class PurchaseSensorDialog extends Component {
       >
         <div style={this.showOrHide(STEP_INTRO)}>
           <h1>Purchase access</h1>
-          <p>
-            Purchases are made using DTX tokens. As DataBroker DAO is currently
-            in beta, we will provide you with free demo tokens.
-          </p>
+          <p>Purchases are made using DTX tokens.</p>
         </div>
         <StyledFormDiv style={this.showOrHide(STEP_AUTHENTICATION)}>
           <h1>Login</h1>
@@ -238,10 +235,6 @@ class PurchaseSensorDialog extends Component {
               DTX short of the purchase price
             </p>
           )}
-          <p>
-            As DataBroker DAO is currently in beta, you can fund your wallet
-            with demo tokens free of charge.
-          </p>
         </div>
         <div style={this.showOrHide(STEP_PURCHASING)}>
           <h1>Saving to the blockchain</h1>

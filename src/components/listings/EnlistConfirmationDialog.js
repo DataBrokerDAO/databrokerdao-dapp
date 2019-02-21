@@ -175,10 +175,7 @@ class EnlistConfirmationDialog extends Component {
       >
         <div style={this.showOrHide(STEP_INTRO)}>
           <h1>Enlist your {this.props.type}</h1>
-          <p>
-            To enlist your {this.props.type} you need DTX tokens. As DataBroker
-            DAO is currently in beta, we will provide you with free demo tokens.
-          </p>
+          <p>To enlist your {this.props.type} you need DTX tokens.</p>
         </div>
 
         <StyledFormDiv style={this.showOrHide(STEP_AUTHENTICATION)}>

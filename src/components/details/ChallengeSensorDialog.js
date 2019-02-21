@@ -253,10 +253,6 @@ class ChallengeSensorDialog extends Component {
               DTX short of the purchase price
             </p>
           )}
-          <p>
-            As DataBroker DAO is currently in beta, you can fund your wallet
-            with demo tokens free of charge.
-          </p>
         </div>
         <div style={this.showOrHide(STEP_CHALLENGING)}>
           <h1>Saving to the blockchain</h1>
