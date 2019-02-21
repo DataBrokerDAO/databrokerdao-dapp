@@ -5,18 +5,13 @@ addons:
     packages:
       - docker-ce
 
-cache:
-  directories:
-    - node_modules
-    - ~/.npm
-
 notifications:
   slack:
     rooms:
       - settlemint:5QuOPa3Z4kJbfbNIgei0asur#mint
 
 node_js:
-  - '8'
+  - '10'
 
 before_install:
   - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
