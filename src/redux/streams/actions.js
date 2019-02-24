@@ -47,7 +47,7 @@ export const STREAMS_ACTIONS = {
         value: true
       });
 
-      const limit = 5000;
+      const limit = 1000;
       const filterUrlQuery = buildFilterQuery(
         dispatch,
         state,
@@ -82,8 +82,8 @@ export const STREAMS_ACTIONS = {
               });
 
               if (!itemAtSameCoordinates) {
-                parsedResponse[item.key] = {
-                  key: item.key,
+                parsedResponse[item.contractAddress] = {
+                  key: item.contractAddress,
                   name: item.name,
                   type: item.type,
                   price: item.price,
@@ -103,6 +103,7 @@ export const STREAMS_ACTIONS = {
                 };
               }
             });
+
             dispatch({
               type: STREAMS_TYPES.FETCH_STREAMS,
               streams: parsedResponse
