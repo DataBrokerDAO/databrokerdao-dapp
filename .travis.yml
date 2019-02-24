@@ -25,7 +25,7 @@ after_success:
     docker push settlemint/${PROJECT_NAME};
     fi
   - if ([ $TRAVIS_BRANCH == "production" ] && [ $TRAVIS_PULL_REQUEST == "false" ]); then
-    docker build --build-arg NPM_TOKEN=${NPM_TOKEN} --build-arg REACT_APP_DAPI_URL="https://dapi.databrokerdao.com/" -t settlemint/${PROJECT_NAME}:${TRAVIS_BRANCH} -t settlemint/${PROJECT_NAME}:${TRAVIS_BRANCH}-`date +%s` .;
+    docker build --build-arg NPM_TOKEN=${NPM_TOKEN} --build-arg REACT_APP_DAPI_URL="https://d3v.databrokerdao.com/dapi" -t settlemint/${PROJECT_NAME}:${TRAVIS_BRANCH} -t settlemint/${PROJECT_NAME}:${TRAVIS_BRANCH}-`date +%s` .;
     docker push settlemint/${PROJECT_NAME};
     fi
   - if ([ $TRAVIS_BRANCH == "demo" ] && [ $TRAVIS_PULL_REQUEST == "false" ]); then
