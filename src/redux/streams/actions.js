@@ -47,7 +47,7 @@ export const STREAMS_ACTIONS = {
         value: true
       });
 
-      const limit = 1000;
+      const limit = 5000;
       const filterUrlQuery = buildFilterQuery(
         dispatch,
         state,
