@@ -7,7 +7,7 @@ import {
   sensorPurchaseRegistered,
   getPurchaseRegistryMeta,
   getIpfsHashForMetadata,
-  transactionReceipt
+  transactionReceipt,
 } from '../../api/util';
 
 import { ERROR_TYPES } from '../errors/actions';
@@ -16,7 +16,7 @@ import {
   TX_ENSURE_APPROVE,
   TX_PURCHASE,
   TX_ENSURE_PURCHASE,
-  TX_VERIFY_PURCHASE
+  TX_VERIFY_PURCHASE,
 } from '../../components/details/PurchaseSensorDialog';
 
 export const PURCHASES_TYPES = {
@@ -27,14 +27,14 @@ export const PURCHASES_TYPES = {
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
   TRANSACTION_ERROR: 'TRANSACTION_ERROR',
   TOGGLE_DELIVERY_EXPLAINER: 'TOGGLE_DELIVERY_EXPLAINER',
-  CLEAR_ERRORS: 'CLEAR_ERRORS'
+  CLEAR_ERRORS: 'CLEAR_ERRORS',
 };
 
 export const PURCHASES_ACTIONS = {
   clearErrors: () => {
     return dispatch => {
       dispatch({
-        type: PURCHASES_TYPES.CLEAR_ERRORS
+        type: PURCHASES_TYPES.CLEAR_ERRORS,
       });
     };
   },
@@ -42,12 +42,12 @@ export const PURCHASES_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: PURCHASES_TYPES.FETCHING_PURCHASE,
-        value: true
+        value: true,
       });
 
       const url = key
         ? `/purchase/${key}`
-        : `/purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${purchaser}`;
+        : `/purchaseregistry/list?sensor=~${sensor}&purchaser=~${purchaser}`;
 
       axios(true)
         .get(url)
@@ -59,19 +59,19 @@ export const PURCHASES_ACTIONS = {
           dispatch({
             type: PURCHASES_TYPES.FETCHING_PURCHASE,
             value: false,
-            purchase
+            purchase,
           });
         })
         .catch(error => {
           if (error && error.response && error.response.status === 401) {
             dispatch({
               type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
+              error,
             });
           }
           dispatch({
             type: PURCHASES_TYPES.FETCHING_PURCHASE_ERROR,
-            error
+            error,
           });
         });
     };
@@ -81,7 +81,7 @@ export const PURCHASES_ACTIONS = {
       try {
         dispatch({
           type: PURCHASES_TYPES.PURCHASING_ACCESS,
-          value: true
+          value: true,
         });
 
         const responses = await getPurchaseRegistryMeta();
@@ -100,13 +100,13 @@ export const PURCHASES_ACTIONS = {
         const metadataHash = await getIpfsHashForMetadata({
           data: {
             sensortype: stream.sensortype || 'STREAM', // default to stream type, since old streams are not enlisted with the sensortype property.
-            email: localStorage.getItem('email')
-          }
+            email: localStorage.getItem('email'),
+          },
         });
 
         dispatch({
           type: PURCHASES_TYPES.TRANSACTION_INDEX,
-          index: TX_APPROVE
+          index: TX_APPROVE,
         });
         let receiptUrl = await approveDtx(
           deployedTokenContractAddress,
@@ -116,25 +116,25 @@ export const PURCHASES_ACTIONS = {
 
         dispatch({
           type: PURCHASES_TYPES.TRANSACTION_INDEX,
-          index: TX_ENSURE_APPROVE
+          index: TX_ENSURE_APPROVE,
         });
         await transactionReceipt(receiptUrl);
 
         dispatch({
           type: PURCHASES_TYPES.TRANSACTION_INDEX,
-          index: TX_PURCHASE
+          index: TX_PURCHASE,
         });
         receiptUrl = await sensorPurchase(stream.key, endTime, metadataHash);
 
         dispatch({
           type: PURCHASES_TYPES.TRANSACTION_INDEX,
-          index: TX_ENSURE_PURCHASE
+          index: TX_ENSURE_PURCHASE,
         });
         await transactionReceipt(receiptUrl);
 
         dispatch({
           type: PURCHASES_TYPES.TRANSACTION_INDEX,
-          index: TX_VERIFY_PURCHASE
+          index: TX_VERIFY_PURCHASE,
         });
 
         const purchaser = localStorage.getItem('address');
@@ -143,38 +143,38 @@ export const PURCHASES_ACTIONS = {
         if (!purchase) {
           dispatch({
             type: PURCHASES_TYPES.TRANSACTION_ERROR,
-            value: true
+            value: true,
           });
           dispatch({
             type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
-            error: 'Purchase was not synced'
+            error: 'Purchase was not synced',
           });
         } else {
           dispatch({
             type: PURCHASES_TYPES.FETCHING_PURCHASE,
             value: false,
-            purchase
+            purchase,
           });
         }
 
         dispatch({
           type: PURCHASES_TYPES.PURCHASING_ACCESS,
-          value: false
+          value: false,
         });
       } catch (error) {
         if (error && error.response && error.response.status === 401) {
           dispatch({
             type: ERROR_TYPES.AUTHENTICATION_ERROR,
-            error
+            error,
           });
         }
         dispatch({
           type: PURCHASES_TYPES.TRANSACTION_ERROR,
-          value: true
+          value: true,
         });
         dispatch({
           type: PURCHASES_TYPES.PURCHASING_ACCESS_ERROR,
-          error
+          error,
         });
       }
     };
@@ -182,7 +182,7 @@ export const PURCHASES_ACTIONS = {
   toggleDeliveryExplainer: () => {
     return dispatch => {
       dispatch({
-        type: PURCHASES_TYPES.TOGGLE_DELIVERY_EXPLAINER
+        type: PURCHASES_TYPES.TOGGLE_DELIVERY_EXPLAINER,
       });
     };
   },
@@ -195,5 +195,5 @@ export const PURCHASES_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({ type, rows });
     };
-  }
+  },
 };

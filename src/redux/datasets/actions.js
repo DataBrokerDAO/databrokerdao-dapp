@@ -4,7 +4,7 @@ import {
   fetchSensors,
   fetchSensor,
   parseDatasets,
-  parseDataset
+  parseDataset,
 } from '../../api/sensors';
 import { fetchChallenges } from '../../api/challenges';
 import { fetchSensorMeta } from '../../api/sensors';
@@ -25,7 +25,7 @@ export const DATASET_TYPES = {
   FETCH_AVAILABLE_CATEGORIES: 'FETCH_AVAILABLE_CATEGORIES',
   FETCH_AVAILABLE_FILETYPES: 'FETCH_AVAILABLE_FILETYPES',
   UPDATE_CURRENT_PAGE: 'UPDATE_CURRENT_PAGE',
-  UPDATE_ROWS_PER_PAGE: 'UPDATE_ROWS_PER_PAGE'
+  UPDATE_ROWS_PER_PAGE: 'UPDATE_ROWS_PER_PAGE',
 };
 
 export const DATASET_ACTIONS = {
@@ -35,40 +35,40 @@ export const DATASET_ACTIONS = {
 
       dispatch({
         type: DATASET_TYPES.FETCHING_DATASETS,
-        value: true
+        value: true,
       });
 
       const filter = _filter ? _filter : state.datasets.filter;
 
       // Start with filtering only the datasets
-      let filterUrlQuery = 'item.sensortype=DATASET&';
+      let filterUrlQuery = 'sensortype=DATASET&';
 
       // Filter on category
       if (filter.categories && filter.categories.length === 0)
-        filterUrlQuery += `item.category=none`;
+        filterUrlQuery += `category=none`;
       else if (filter.categories && filter.categories.length === 1)
-        filterUrlQuery += `item.category=${filter.categories[0]}`;
+        filterUrlQuery += `category=${filter.categories[0]}`;
       else
         filterUrlQuery += map(filter.categories, cat => {
-          return `item.category[]=${cat}`;
+          return `category[]=${cat}`;
         }).join('&');
 
       filterUrlQuery += '&';
 
       // Filter on filetype
       if (filter.filetypes && filter.filetypes.length === 0)
-        filterUrlQuery += `item.filetype=none`;
+        filterUrlQuery += `filetype=none`;
       else if (filter.filetypes && filter.filetypes.length === 1)
-        filterUrlQuery += `item.filetype=${filter.filetypes[0]}`;
+        filterUrlQuery += `filetype=${filter.filetypes[0]}`;
       else
         filterUrlQuery += map(filter.filetypes, type => {
-          return `item.filetype[]=${type}`;
+          return `filetype[]=${type}`;
         }).join('&');
 
       if (_filter) {
         dispatch({
           type: DATASET_TYPES.DATASET_UPDATED_FILTER,
-          filter
+          filter,
         });
       }
 
@@ -85,7 +85,7 @@ export const DATASET_ACTIONS = {
             limit,
             start,
             sort,
-            filterUrlQuery
+            filterUrlQuery,
           },
           true
         )
@@ -98,7 +98,7 @@ export const DATASET_ACTIONS = {
               type: DATASET_TYPES.FETCHING_DATASETS,
               value: false,
               datasets: parsedResponse,
-              total: response.data.total
+              total: response.data.total,
             });
 
             // Dispatch an update with decorated purchase | ownership info
@@ -114,7 +114,7 @@ export const DATASET_ACTIONS = {
                 if (error && error.response && error.response.status === 401) {
                   dispatch({
                     type: ERROR_TYPES.AUTHENTICATION_ERROR,
-                    error
+                    error,
                   });
                 }
               }
@@ -123,7 +123,7 @@ export const DATASET_ACTIONS = {
                 type: DATASET_TYPES.FETCHING_DATASETS,
                 value: false,
                 datasets: parsedResponse,
-                total: response.data.total
+                total: response.data.total,
               });
             }
           })
@@ -131,18 +131,18 @@ export const DATASET_ACTIONS = {
             if (error && error.response && error.response.status === 401) {
               dispatch({
                 type: ERROR_TYPES.AUTHENTICATION_ERROR,
-                error
+                error,
               });
             }
             dispatch({
               type: DATASET_TYPES.FETCHING_DATASETS_ERROR,
-              error
+              error,
             });
           });
       })(fetchDatasetCounter);
       dispatch({
         type: DATASET_TYPES.FETCH_DATASET_COUNTER,
-        value: fetchDatasetCounter
+        value: fetchDatasetCounter,
       });
     };
   },
@@ -151,7 +151,7 @@ export const DATASET_ACTIONS = {
       try {
         dispatch({
           type: DATASET_TYPES.FETCHING_DATASET,
-          value: true
+          value: true,
         });
 
         const anonymousAxiosClient = axios(null, true);
@@ -161,7 +161,7 @@ export const DATASET_ACTIONS = {
           ? parseDataset(response.data)
           : {};
 
-        const urlParametersChallenges = `item.listing=~${dataset}`;
+        const urlParametersChallenges = `listing=~${dataset}`;
         response = await fetchChallenges(
           anonymousAxiosClient,
           urlParametersChallenges
@@ -172,18 +172,18 @@ export const DATASET_ACTIONS = {
         dispatch({
           type: DATASET_TYPES.FETCHING_DATASET,
           value: false,
-          dataset: parsedDataset
+          dataset: parsedDataset,
         });
       } catch (error) {
         if (error && error.response && error.response.status === 401) {
           dispatch({
             type: ERROR_TYPES.AUTHENTICATION_ERROR,
-            error
+            error,
           });
         }
         dispatch({
           type: DATASET_TYPES.FETCHING_DATASET_ERROR,
-          error
+          error,
         });
       }
     };
@@ -195,17 +195,17 @@ export const DATASET_ACTIONS = {
         availableFiletypes: {
           json: {
             name: 'json',
-            id: 'json'
+            id: 'json',
           },
           xls: {
             name: 'xls',
-            id: 'xls'
+            id: 'xls',
           },
           csv: {
             name: 'csv',
-            id: 'csv'
-          }
-        }
+            id: 'csv',
+          },
+        },
       });
     };
   },
@@ -216,21 +216,21 @@ export const DATASET_ACTIONS = {
         availableCategories: {
           agriculture: {
             name: 'Agriculture',
-            id: 'agriculture'
+            id: 'agriculture',
           },
           environment: {
             name: 'Environment',
-            id: 'environment'
+            id: 'environment',
           },
           health: {
             name: 'Health',
-            id: 'health'
+            id: 'health',
           },
           energy: {
             name: 'Energy',
-            id: 'energy'
-          }
-        }
+            id: 'energy',
+          },
+        },
       });
     };
   },
@@ -238,7 +238,7 @@ export const DATASET_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: DATASET_TYPES.UPDATE_CURRENT_PAGE,
-        page: currentPage
+        page: currentPage,
       });
     };
   },
@@ -246,10 +246,10 @@ export const DATASET_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: DATASET_TYPES.UPDATE_ROWS_PER_PAGE,
-        rows: rowsPerPage
+        rows: rowsPerPage,
       });
     };
-  }
+  },
 };
 
 async function decorateMetaInfo(axios, datasets) {

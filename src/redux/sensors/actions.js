@@ -9,7 +9,7 @@ import {
   approveDtx,
   getSensorRegistryMeta,
   sensorChallenge,
-  sensorChallengeRegistered
+  sensorChallengeRegistered,
 } from '../../api/util';
 import {
   TX_IPFS_HASH,
@@ -17,7 +17,7 @@ import {
   TX_ENSURE_APPROVE,
   TX_CHALLENGE,
   TX_ENSURE_CHALLENGE,
-  TX_VERIFY_CHALLENGE
+  TX_VERIFY_CHALLENGE,
 } from '../../components/details/ChallengeSensorDialog';
 import { fetchSensorsBulk } from '../../api/sensors';
 
@@ -36,14 +36,14 @@ export const SENSORS_TYPES = {
   TRANSACTION_INDEX: 'TRANSACTION_INDEX',
   TRANSACTION_ERROR: 'TRANSACTION_ERROR',
 
-  CLEAR_ERRORS: 'CLEAR_ERRORS'
+  CLEAR_ERRORS: 'CLEAR_ERRORS',
 };
 
 export const SENSORS_ACTIONS = {
   clearErrors: () => {
     return dispatch => {
       dispatch({
-        type: SENSORS_TYPES.CLEAR_ERRORS
+        type: SENSORS_TYPES.CLEAR_ERRORS,
       });
     };
   },
@@ -51,7 +51,7 @@ export const SENSORS_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: SENSORS_TYPES.FETCHING_DATASETS,
-        value: true
+        value: true,
       });
 
       const registry = email ? 'purchaseregistry' : 'sensorregistry';
@@ -65,19 +65,19 @@ export const SENSORS_ACTIONS = {
             type: SENSORS_TYPES.FETCHING_DATASETS,
             value: false,
             datasets: items,
-            rows: response.data.total
+            rows: response.data.total,
           });
         })
         .catch(error => {
           if (error && error.response && error.response.status === 401) {
             dispatch({
               type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
+              error,
             });
           }
           dispatch({
             type: SENSORS_TYPES.FETCHING_DATASETS_ERROR,
-            error
+            error,
           });
         });
     };
@@ -87,7 +87,7 @@ export const SENSORS_ACTIONS = {
       dispatch({
         type: SENSORS_TYPES.UPDATE_DATASETS_PAGE,
         page,
-        rowsPerPage
+        rowsPerPage,
       });
     };
   },
@@ -95,7 +95,7 @@ export const SENSORS_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: SENSORS_TYPES.FETCHING_STREAMS,
-        value: true
+        value: true,
       });
 
       const registry = email ? 'purchaseregistry' : 'sensorregistry';
@@ -113,19 +113,19 @@ export const SENSORS_ACTIONS = {
             type: SENSORS_TYPES.FETCHING_STREAMS,
             value: false,
             streams: items,
-            rows: response.data.total
+            rows: response.data.total,
           });
         })
         .catch(error => {
           if (error && error.response && error.response.status === 401) {
             dispatch({
               type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
+              error,
             });
           }
           dispatch({
             type: SENSORS_TYPES.FETCHING_STREAMS_ERROR,
-            error
+            error,
           });
         });
     };
@@ -135,7 +135,7 @@ export const SENSORS_ACTIONS = {
       try {
         dispatch({
           type: SENSORS_TYPES.CHALLENGING_SENSOR,
-          value: true
+          value: true,
         });
 
         const responses = await getSensorRegistryMeta();
@@ -144,15 +144,15 @@ export const SENSORS_ACTIONS = {
 
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
-          index: TX_IPFS_HASH
+          index: TX_IPFS_HASH,
         });
         const metadataHash = await getIpfsHashForMetadata({
-          data: { reason }
+          data: { reason },
         });
 
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
-          index: TX_APPROVE
+          index: TX_APPROVE,
         });
         let receiptUrl = await approveDtx(
           deployedTokenContractAddress,
@@ -162,25 +162,25 @@ export const SENSORS_ACTIONS = {
 
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
-          index: TX_ENSURE_APPROVE
+          index: TX_ENSURE_APPROVE,
         });
         await transactionReceipt(receiptUrl);
 
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
-          index: TX_CHALLENGE
+          index: TX_CHALLENGE,
         });
         receiptUrl = await sensorChallenge(sensor.key, amount, metadataHash);
 
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
-          index: TX_ENSURE_CHALLENGE
+          index: TX_ENSURE_CHALLENGE,
         });
         await transactionReceipt(receiptUrl);
 
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_INDEX,
-          index: TX_VERIFY_CHALLENGE
+          index: TX_VERIFY_CHALLENGE,
         });
         const challenger = localStorage.getItem('address');
         const registered = await sensorChallengeRegistered(
@@ -190,28 +190,28 @@ export const SENSORS_ACTIONS = {
         if (!registered) {
           dispatch({
             type: SENSORS_TYPES.TRANSACTION_ERROR,
-            value: true
+            value: true,
           });
         }
 
         dispatch({
           type: SENSORS_TYPES.CHALLENGING_SENSOR,
-          value: false
+          value: false,
         });
       } catch (error) {
         if (error && error.response && error.response.status === 401) {
           dispatch({
             type: ERROR_TYPES.AUTHENTICATION_ERROR,
-            error
+            error,
           });
         }
         dispatch({
           type: SENSORS_TYPES.TRANSACTION_ERROR,
-          value: true
+          value: true,
         });
         dispatch({
           type: SENSORS_TYPES.CHALLENGING_SENSOR_ERROR,
-          value: error
+          value: error,
         });
         console.log(error);
       }
@@ -222,22 +222,22 @@ export const SENSORS_ACTIONS = {
       dispatch({
         type: SENSORS_TYPES.UPDATE_STREAMS_PAGE,
         page,
-        rowsPerPage
+        rowsPerPage,
       });
     };
-  }
+  },
 };
 
 function buildUrl(registry, type, skip, limit, owner, email, endTime) {
-  let url = `/${registry}/list?skip=${skip}&limit=${limit}&item.sensortype=${type}`;
+  let url = `/${registry}/list?skip=${skip}&limit=${limit}&sensortype=${type}`;
   if (owner) {
-    url = `${url}&item.owner=~${owner}`;
+    url = `${url}&owner=~${owner}`;
   }
   if (email) {
-    url = `${url}&item.email=${email}`;
+    url = `${url}&email=${email}`;
   }
   if (endTime) {
-    url = `${url}&item.endTime=${endTime}`;
+    url = `${url}&endTime=${endTime}`;
   }
   return url;
 }
@@ -258,7 +258,7 @@ async function parseResponse(registry, response) {
           type: item.type,
           filetype: item.filetype,
           category: item.category,
-          updateinterval: item.updateinterval
+          updateinterval: item.updateinterval,
         });
       });
       break;
@@ -276,7 +276,7 @@ async function parseResponse(registry, response) {
           category: sensor.category,
           updateinterval: sensor.updateinterval,
           sensortype: sensor.sensortype,
-          endTime: purchase.endTime
+          endTime: purchase.endTime,
         });
       }
       break;

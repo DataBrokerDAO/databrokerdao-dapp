@@ -16,7 +16,7 @@ export async function approveAndCallDtx(
   const response = await authenticatedAxiosClient.post(url, {
     _spender: spenderAddress,
     _value: convertDtxToWei(amountInDtx),
-    _data: recipientAddress
+    _data: recipientAddress,
   });
 
   return `${url}/${response.data.uuid}`;
@@ -27,7 +27,7 @@ export async function approveDtx(dtxTokenAddress, spenderAddress, amountInDtx) {
   const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
     _spender: spenderAddress,
-    _value: convertDtxToWei(amountInDtx)
+    _value: convertDtxToWei(amountInDtx),
   });
 
   return `${url}/${response.data.uuid}`;
@@ -41,7 +41,7 @@ export async function sensorEnlisting(stakeInDtx, priceInDtx, metadataHash) {
     {
       _stakeAmount: convertDtxToWei(stakeInDtx),
       _price: convertDtxToWei(priceInDtx),
-      _metadata: metadataHash
+      _metadata: metadataHash,
     }
   );
 
@@ -59,7 +59,7 @@ export async function sensorPurchase(sensorKey, endTime, metadataHash) {
             .unix()
             .toString()
         : '0',
-    _metadata: metadataHash
+    _metadata: metadataHash,
   });
 
   return `${url}/${response.data.uuid}`;
@@ -71,7 +71,7 @@ export async function sensorChallenge(sensorKey, amount, metadataHash) {
   const response = await authenticatedAxiosClient.post(url, {
     _listing: sensorKey,
     _stakeAmount: amount,
-    _metadata: metadataHash
+    _metadata: metadataHash,
   });
 
   return `${url}/${response.data.uuid}`;
@@ -81,7 +81,7 @@ export async function dtxMint(amount) {
   const url = '/dtxminter/mint';
   const authenticatedAxiosClient = axios(true);
   const response = await authenticatedAxiosClient.post(url, {
-    _amount: amount
+    _amount: amount,
   });
 
   return `${url}/${response.data.uuid}`;
@@ -91,7 +91,7 @@ export async function sensorEnlistingRegistered(owner, type, sensorid) {
   const authenticatedAxiosClient = axios(true);
   const registered = await retry(
     async bail => {
-      const url = `/sensorregistry/list?item.owner=~${owner}&item.sensortype=${type}&item.sensorid=${sensorid}`;
+      const url = `/sensorregistry/list?owner=~${owner}&sensortype=${type}&sensorid=${sensorid}`;
       const response = await authenticatedAxiosClient.get(url);
       if (response.data.total >= 1) {
         return true;
@@ -103,7 +103,7 @@ export async function sensorEnlistingRegistered(owner, type, sensorid) {
       factor: 1.2,
       minTimeout: 1000,
       maxTimeout: 5000,
-      retries: 60
+      retries: 60,
     }
   );
   return registered;
@@ -113,7 +113,7 @@ export async function sensorChallengeRegistered(sensor, challenger) {
   const authenticatedAxiosClient = axios(true);
   const registered = await retry(
     async bail => {
-      const url = `/challengeregistry/list?item.listing=~${sensor}&item.challenger=~${challenger}`;
+      const url = `/challengeregistry/list?listing=~${sensor}&challenger=~${challenger}`;
       const response = await authenticatedAxiosClient.get(url);
       if (response.data.total >= 1) {
         return true;
@@ -125,7 +125,7 @@ export async function sensorChallengeRegistered(sensor, challenger) {
       factor: 1.2,
       minTimeout: 1000,
       maxTimeout: 5000,
-      retries: 60
+      retries: 60,
     }
   );
   return registered;
@@ -135,7 +135,7 @@ export async function sensorPurchaseRegistered(sensor, purchaser) {
   const authenticatedAxiosClient = axios(true);
   const purchase = await retry(
     async bail => {
-      const url = `/purchaseregistry/list?item.sensor=~${sensor}&item.purchaser=~${purchaser}`;
+      const url = `/purchaseregistry/list?sensor=~${sensor}&purchaser=~${purchaser}`;
       const response = await authenticatedAxiosClient.get(url);
       if (response.data && response.data.total >= 1) {
         return response.data.items[response.data.total - 1];
@@ -146,7 +146,7 @@ export async function sensorPurchaseRegistered(sensor, purchaser) {
       factor: 1.2,
       minTimeout: 1000,
       maxTimeout: 5000,
-      retries: 60
+      retries: 60,
     }
   );
   return purchase;
@@ -196,7 +196,7 @@ export async function transactionReceipt(url) {
       factor: 1.2,
       minTimeout: 1000,
       maxTimeout: 5000,
-      retries: 60
+      retries: 60,
     }
   );
 }

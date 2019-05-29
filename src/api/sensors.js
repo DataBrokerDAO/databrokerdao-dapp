@@ -4,9 +4,9 @@ import { stripHexPrefix } from '../utils/hex';
 export async function fetchSensorsBulk(axiosClient, sensors) {
   const contractAddressQueryString =
     sensors.length === 1
-      ? `item.contractAddress=~${sensors[0]}`
+      ? `contractAddress=~${sensors[0]}`
       : sensors
-          .map(sensor => `item.contractAddress[]=${stripHexPrefix(sensor)}`)
+          .map(sensor => `contractAddress[]=${stripHexPrefix(sensor)}`)
           .join('&');
 
   const response = await axiosClient.get(
@@ -18,23 +18,23 @@ export async function fetchSensorsBulk(axiosClient, sensors) {
 export function fetchSensorMeta(axiosClient, sensors, user) {
   const sensorQueryString =
     sensors.length === 1
-      ? `item.sensor=~${sensors[0]}`
+      ? `sensor=~${sensors[0]}`
       : sensors
-          .map(sensor => `item.sensor[]=${stripHexPrefix(sensor)}`)
+          .map(sensor => `sensor[]=${stripHexPrefix(sensor)}`)
           .join('&');
 
   const contractAddressQueryString =
     sensors.length === 1
-      ? `item.contractAddress=~${sensors[0]}`
+      ? `contractAddress=~${sensors[0]}`
       : sensors
-          .map(sensor => `item.contractAddress[]=${stripHexPrefix(sensor)}`)
+          .map(sensor => `contractAddress[]=${stripHexPrefix(sensor)}`)
           .join('&');
 
   return Promise.all([
     new Promise((resolve, reject) => {
       axiosClient
         .get(
-          `purchaseregistry/list?item.purchaser=~${user}&${sensorQueryString}`
+          `purchaseregistry/list?purchaser=~${user}&${sensorQueryString}`
         )
         .then(resolve)
         .catch(reject);
@@ -42,7 +42,7 @@ export function fetchSensorMeta(axiosClient, sensors, user) {
     new Promise((resolve, reject) => {
       axiosClient
         .get(
-          `sensorregistry/list?item.owner=~${user}&${contractAddressQueryString}`
+          `sensorregistry/list?owner=~${user}&${contractAddressQueryString}`
         )
         .then(resolve)
         .catch(reject);
@@ -59,7 +59,7 @@ export function fetchSensorMeta(axiosClient, sensors, user) {
  */
 export function fetchSensors(authenticatedAxiosClient, queryParams) {
   const { limit, start = 0, sort = 'asc', filterUrlQuery } = queryParams;
-  let url = `/sensorregistry/list?limit=${limit}&skip=${start}&sort=${sort}&${filterUrlQuery}&sortBy=item.stake`;
+  let url = `/sensorregistry/list?limit=${limit}&skip=${start}&sort=${sort}&${filterUrlQuery}&sortBy=stake`;
   return authenticatedAxiosClient.get(url).then(response => response);
 }
 

@@ -9,7 +9,7 @@ import { fetchChallenges } from '../../api/challenges';
 import {
   fetchLocation,
   getGeolocationByAddress,
-  fetchStreetAddress
+  fetchStreetAddress,
 } from '../../utils/geo';
 
 export const STREAMS_TYPES = {
@@ -34,7 +34,7 @@ export const STREAMS_TYPES = {
   FETCHING_STREAMS: 'FETCHING_STREAMS',
   FETCH_AVAILABLE_STREAM_TYPES: 'FETCH_AVAILABLE_STREAM_TYPES',
   FETCH_FORMATTED_ADDRESS: 'FETCH_FORMATTED_ADDRESS', //Address in stream details
-  FETCH_FILTER_ADDRESS: 'FETCH_FILTER_ADDRESS' //Address (city) in location filter
+  FETCH_FILTER_ADDRESS: 'FETCH_FILTER_ADDRESS', //Address (city) in location filter
 };
 
 export const STREAMS_ACTIONS = {
@@ -44,7 +44,7 @@ export const STREAMS_ACTIONS = {
 
       dispatch({
         type: STREAMS_TYPES.FETCHING_STREAMS,
-        value: true
+        value: true,
       });
 
       const limit = 5000;
@@ -64,7 +64,7 @@ export const STREAMS_ACTIONS = {
       (counter => {
         fetchSensors(anonymousAxiosClient, {
           limit,
-          filterUrlQuery
+          filterUrlQuery,
         })
           .then(response => {
             if (counter !== getState().streams.fetchStreamCounter) {
@@ -94,36 +94,36 @@ export const STREAMS_ACTIONS = {
                     type: 'Point',
                     coordinates: [
                       item.geo.coordinates[1],
-                      item.geo.coordinates[0]
-                    ]
+                      item.geo.coordinates[0],
+                    ],
                   },
                   owner: item.owner,
                   numberofchallenges: item.numberofchallenges,
-                  challengesstake: item.challengesStake
+                  challengesstake: item.challengesStake,
                 };
               }
             });
 
             dispatch({
               type: STREAMS_TYPES.FETCH_STREAMS,
-              streams: parsedResponse
+              streams: parsedResponse,
             });
           })
           .catch(error => {
             if (error && error.response && error.response.status === 401) {
               dispatch({
                 type: ERROR_TYPES.AUTHENTICATION_ERROR,
-                error
+                error,
               });
             }
             dispatch({
-              type: STREAMS_TYPES.FETCH_ERROR
+              type: STREAMS_TYPES.FETCH_ERROR,
             });
           });
       })(fetchStreamCounter);
       dispatch({
         type: STREAMS_TYPES.FETCH_STREAM_COUNTER,
-        value: fetchStreamCounter
+        value: fetchStreamCounter,
       });
     };
   },
@@ -132,7 +132,7 @@ export const STREAMS_ACTIONS = {
       try {
         dispatch({
           type: STREAMS_TYPES.FETCHING_STREAM,
-          value: true
+          value: true,
         });
 
         const anonymousAxiosClient = axios(null, true);
@@ -144,7 +144,7 @@ export const STREAMS_ACTIONS = {
           : {};
 
         // Get the challenges
-        const urlParametersChallenges = `item.listing=~${stream}`;
+        const urlParametersChallenges = `listing=~${stream}`;
         response = await fetchChallenges(
           anonymousAxiosClient,
           urlParametersChallenges
@@ -155,13 +155,13 @@ export const STREAMS_ACTIONS = {
         dispatch({
           type: STREAMS_TYPES.FETCHING_STREAM,
           value: false,
-          stream: parsedStream
+          stream: parsedStream,
         });
 
         // Get nearby streams
         dispatch({
           type: STREAMS_TYPES.FETCHING_NEARBY_STREAMS,
-          value: true
+          value: true,
         });
 
         const urlParametersNearbyStreams = buildNearbyQuery(parsedStream);
@@ -175,7 +175,7 @@ export const STREAMS_ACTIONS = {
         });
         dispatch({
           type: STREAMS_TYPES.FETCH_NEARBY_STREAMS,
-          streams: parsedResponse
+          streams: parsedResponse,
         });
 
         //Get formatted address
@@ -185,19 +185,19 @@ export const STREAMS_ACTIONS = {
           const streetAddress = await fetchStreetAddress(lat, lng);
           dispatch({
             type: STREAMS_TYPES.FETCH_FORMATTED_ADDRESS,
-            formattedAddress: streetAddress
+            formattedAddress: streetAddress,
           });
         }
       } catch (error) {
         if (error && error.response && error.response.status === 401) {
           dispatch({
             type: ERROR_TYPES.AUTHENTICATION_ERROR,
-            error
+            error,
           });
         }
         dispatch({
           type: STREAMS_TYPES.FETCHING_STREAM_ERROR,
-          error
+          error,
         });
         console.log(error);
       }
@@ -208,7 +208,7 @@ export const STREAMS_ACTIONS = {
       const anonymousAxiosClient = axios(null, true);
       anonymousAxiosClient
         .get(
-          `/sensorregistry/list?limit=100&item.type[]=temperature&item.type[]=humidity&item.type[]=PM25&item.type[]=PM10&near=4.700518,50.879844,4000`
+          `/sensorregistry/list?limit=100&type[]=temperature&type[]=humidity&type[]=PM25&type[]=PM10`
         )
         .then(response => {
           const parsedResponse = {};
@@ -233,23 +233,23 @@ export const STREAMS_ACTIONS = {
                   type: 'Point',
                   coordinates: [
                     item.geo.coordinates[1],
-                    item.geo.coordinates[0]
-                  ]
-                }
+                    item.geo.coordinates[0],
+                  ],
+                },
               };
             }
           });
 
           dispatch({
             type: STREAMS_TYPES.FETCH_LANDING_STREAMS,
-            streams: parsedResponse
+            streams: parsedResponse,
           });
         })
         .catch(error => {
           if (error && error.response && error.response.status === 401) {
             dispatch({
               type: ERROR_TYPES.AUTHENTICATION_ERROR,
-              error
+              error,
             });
           }
           console.log(error);
@@ -263,21 +263,21 @@ export const STREAMS_ACTIONS = {
         availableStreamTypes: {
           temperature: {
             id: 'temperature',
-            name: 'Temperature'
+            name: 'Temperature',
           },
           humidity: {
             id: 'humidity',
-            name: 'Humidity'
+            name: 'Humidity',
           },
           PM10: {
             id: 'PM10',
-            name: 'PM10'
+            name: 'PM10',
           },
           PM25: {
             id: 'PM25',
-            name: 'PM25'
-          }
-        }
+            name: 'PM25',
+          },
+        },
       });
     };
   },
@@ -285,7 +285,7 @@ export const STREAMS_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: STREAMS_TYPES.UPDATED_FILTER,
-        filter
+        filter,
       });
 
       STREAMS_ACTIONS.fetchStreams(dispatch, filter);
@@ -301,19 +301,19 @@ export const STREAMS_ACTIONS = {
 
       if (lat && lng) {
         const {
-          streams: { map }
+          streams: { map },
         } = getState();
         const newMap = { ...map, lat, lng };
 
         dispatch({
           type: STREAMS_TYPES.UPDATED_MAP,
-          map: newMap
+          map: newMap,
         });
 
         const filterAddress = await fetchLocation(lat, lng);
         dispatch({
           type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
-          filterAddress
+          filterAddress,
         });
       }
     };
@@ -322,13 +322,13 @@ export const STREAMS_ACTIONS = {
     return async (dispatch, getState) => {
       dispatch({
         type: STREAMS_TYPES.UPDATED_MAP,
-        map
+        map,
       });
 
       const filterAddress = await fetchLocation(map.lat, map.lng);
       dispatch({
         type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
-        filterAddress
+        filterAddress,
       });
     };
   },
@@ -336,16 +336,14 @@ export const STREAMS_ACTIONS = {
     return (dispatch, getState) => {
       dispatch({
         type: STREAMS_TYPES.FETCH_FILTER_ADDRESS,
-        filterAddress
+        filterAddress,
       });
     };
-  }
+  },
 };
 
 function buildNearbyQuery(stream) {
-  return `limit=20&item.type=${stream.type}&near=${
-    stream.geometry.coordinates[1]
-  },${stream.geometry.coordinates[0]},500&sort=item.stake`;
+  return `limit=20&type=${stream.type}&sort=stake`;
 }
 
 function buildFilterQuery(dispatch, state, _filter, _lat, _lng, _distance) {
@@ -353,41 +351,39 @@ function buildFilterQuery(dispatch, state, _filter, _lat, _lng, _distance) {
 
   //Filter on type
   const filter = _filter ? _filter : state.streams.filter;
-  if (filter.types && filter.types.length === 0)
-    filterUrlQuery = `item.type=none`;
+  if (filter.types && filter.types.length === 0) filterUrlQuery = `type=none`;
   else if (filter.types && filter.types.length === 1)
-    filterUrlQuery = `item.type=${filter.types[0]}`;
+    filterUrlQuery = `type=${filter.types[0]}`;
   else
     filterUrlQuery = map(filter.types, type => {
-      return `item.type[]=${type}`;
+      return `type[]=${type}`;
     }).join('&');
 
   if (_filter) {
     dispatch({
       type: STREAMS_TYPES.UPDATED_FILTER,
-      filter //ES6 syntax sugar
+      filter, //ES6 syntax sugar
     });
   }
 
   //Only get streams near certain point
   if (_lat && _lng && _distance) {
-    filterUrlQuery += `&near=${_lng},${_lat},${_distance}`;
+    // filterUrlQuery += `&near=${_lng},${_lat},${_distance}`;
     dispatch({
       type: STREAMS_TYPES.UPDATED_MAP,
       map: {
         ...state.map,
         distance: _distance,
         lat: _lat,
-        lng: _lng
-      }
+        lng: _lng,
+      },
     });
   } else {
     // Get from Redux state
-    const distance = state.streams.map.distance;
     const lat = state.streams.map.lat;
     const lng = state.streams.map.lng;
 
-    filterUrlQuery += `&near=${lng},${lat},${distance}`;
+    filterUrlQuery += `&near=${lng},${lat}`;
   }
 
   return filterUrlQuery;
