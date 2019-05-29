@@ -380,10 +380,9 @@ function buildFilterQuery(dispatch, state, _filter, _lat, _lng, _distance) {
     });
   } else {
     // Get from Redux state
-    const lat = state.streams.map.lat;
-    const lng = state.streams.map.lng;
-
-    filterUrlQuery += `&near=${lng},${lat}`;
+    // const lat = state.streams.map.lat;
+    // const lng = state.streams.map.lng;
+    // filterUrlQuery += `&near=${lng},${lat}`;
   }
 
   return filterUrlQuery;
